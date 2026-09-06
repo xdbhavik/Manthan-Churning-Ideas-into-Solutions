@@ -1,11 +1,15 @@
-# Thin wrapper image: copies the pre-built Spring Boot fat jar.
+# Thin wrapper image: copies a pre-built Spring Boot fat jar.
 # Build it from the repo root AFTER packaging on the host:
 #   ./mvnw -DskipTests package
-#   docker build -f Dockerfile.app -t sih26043-app:step2 .
+#   docker compose up -d --build
+#
+# The jar to embed is chosen per service with the JAR_FILE build arg
+# (see docker-compose.yml); the default is the monolith app jar.
 FROM eclipse-temurin:21-jre
 
 WORKDIR /app
-COPY app/target/app-0.0.1-SNAPSHOT.jar /app/app.jar
+ARG JAR_FILE=app/target/app-0.0.1-SNAPSHOT.jar
+COPY ${JAR_FILE} /app/app.jar
 
-EXPOSE 8081
+EXPOSE 8081 8083
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]

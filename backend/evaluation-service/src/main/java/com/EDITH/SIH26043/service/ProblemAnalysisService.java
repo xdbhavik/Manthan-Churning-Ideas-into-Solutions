@@ -1,20 +1,14 @@
 package com.EDITH.SIH26043.service;
 
-import com.EDITH.SIH26043.entity.Domain;
+import com.EDITH.SIH26043.client.ProblemContextGateway;
 import com.EDITH.SIH26043.entity.EvaluationCycle;
-import com.EDITH.SIH26043.entity.Problem;
 import com.EDITH.SIH26043.entity.ProblemAnalysis;
-import com.EDITH.SIH26043.entity.ProblemDomain;
 import com.EDITH.SIH26043.enums.AuditAction;
 import com.EDITH.SIH26043.enums.EvaluationStatus;
 import com.EDITH.SIH26043.exception.ApiException;
-import com.EDITH.SIH26043.repository.DomainRepository;
+import com.EDITH.SIH26043.internal.ProblemContextResponse;
 import com.EDITH.SIH26043.repository.EvaluationCycleRepository;
-import com.EDITH.SIH26043.repository.EvidenceRepository;
-import com.EDITH.SIH26043.repository.LocationRepository;
 import com.EDITH.SIH26043.repository.ProblemAnalysisRepository;
-import com.EDITH.SIH26043.repository.ProblemDomainRepository;
-import com.EDITH.SIH26043.repository.ProblemRepository;
 import com.EDITH.SIH26043.service.analysis.AnalysisResult;
 import com.EDITH.SIH26043.service.analysis.HeuristicAnalysisFallback;
 import com.EDITH.SIH26043.service.analysis.ProblemAnalysisClient;
@@ -23,54 +17,42 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Phase 2 analysis step: assembles the problem context, runs the LLM client
- * (falling back to the deterministic heuristic when the model is unavailable),
- * persists the {@link ProblemAnalysis} row and advances the cycle to ROUTING.
+ * Phase 2 analysis step: fetches the problem context from problem-service,
+ * runs the LLM client (falling back to the deterministic heuristic when the
+ * model is unavailable), persists the {@link ProblemAnalysis} row and advances
+ * the cycle to ROUTING.
  */
 @Service
 public class ProblemAnalysisService {
 
     private final EvaluationCycleRepository cycleRepository;
-    private final ProblemRepository problemRepository;
-    private final LocationRepository locationRepository;
-    private final ProblemDomainRepository problemDomainRepository;
-    private final DomainRepository domainRepository;
-    private final EvidenceRepository evidenceRepository;
     private final ProblemAnalysisRepository analysisRepository;
     private final EvaluationStatusService statusService;
     private final AuditService auditService;
     private final ProblemAnalysisClient analysisClient;
     private final HeuristicAnalysisFallback fallback;
+    private final ProblemContextGateway problemGateway;
 
     public ProblemAnalysisService(EvaluationCycleRepository cycleRepository,
-                                  ProblemRepository problemRepository,
-                                  LocationRepository locationRepository,
-                                  ProblemDomainRepository problemDomainRepository,
-                                  DomainRepository domainRepository,
-                                  EvidenceRepository evidenceRepository,
                                   ProblemAnalysisRepository analysisRepository,
                                   EvaluationStatusService statusService,
                                   AuditService auditService,
                                   ProblemAnalysisClient analysisClient,
-                                  HeuristicAnalysisFallback fallback) {
+                                  HeuristicAnalysisFallback fallback,
+                                  ProblemContextGateway problemGateway) {
         this.cycleRepository = cycleRepository;
-        this.problemRepository = problemRepository;
-        this.locationRepository = locationRepository;
-        this.problemDomainRepository = problemDomainRepository;
-        this.domainRepository = domainRepository;
-        this.evidenceRepository = evidenceRepository;
         this.analysisRepository = analysisRepository;
         this.statusService = statusService;
         this.auditService = auditService;
         this.analysisClient = analysisClient;
         this.fallback = fallback;
+        this.problemGateway = problemGateway;
     }
 
     @Transactional
@@ -81,10 +63,9 @@ public class ProblemAnalysisService {
 
         prepareForAnalysis(cycle, actorUserId);
 
-        Problem problem = problemRepository.findById(cycle.getProblemId())
-                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND,
-                        "Problem " + cycle.getProblemId() + " not found"));
-        ProblemContext context = buildContext(problem);
+        // The context is assembled upstream (problem + location + domain names +
+        // evidence count) and fetched over the internal API.
+        ProblemContext context = toContext(problemGateway.fetch(cycle.getProblemId()));
 
         long startedNanos = System.nanoTime();
         Optional<AnalysisResult> llmResult = analysisClient.analyze(context);
@@ -100,7 +81,7 @@ public class ProblemAnalysisService {
         // ROUTING in practice; ANALYSIS_FAILED stays reachable for a total outage.
         statusService.transition(cycleId, EvaluationStatus.ROUTING, actorUserId,
                 "Problem analysis completed by " + result.provider() + "/" + result.model());
-        auditService.record(problem.getProblemId(), AuditAction.EVALUATION_ANALYZED,
+        auditService.record("PROBLEM", context.problemId(), AuditAction.EVALUATION_ANALYZED,
                 actorUserId, null, snapshot(row), ipAddress);
         return row;
     }
@@ -120,38 +101,12 @@ public class ProblemAnalysisService {
         }
     }
 
-    private ProblemContext buildContext(Problem problem) {
-        List<String> domains = new ArrayList<>();
-        List<UUID> domainIds = problemDomainRepository.findByIdProblemId(problem.getProblemId())
-                .stream()
-                .map(ProblemDomain::getId)
-                .map(id -> id.getDomainId())
-                .toList();
-        if (!domainIds.isEmpty()) {
-            for (Domain domain : domainRepository.findAllById(domainIds)) {
-                domains.add(domain.getDomainName());
-            }
-        }
-
-        String location = null;
-        if (problem.getLocationId() != null) {
-            location = locationRepository.findById(problem.getLocationId())
-                    .map(l -> String.join(", ",
-                            List.of(nvl(l.getState()), nvl(l.getDistrict()), nvl(l.getBlockTehsil()))
-                                    .stream().filter(s -> !s.isEmpty()).toList()))
-                    .orElse(null);
-        }
-
-        int evidenceCount = evidenceRepository.findByProblemId(problem.getProblemId()).size();
-
+    private static ProblemContext toContext(ProblemContextResponse p) {
         return new ProblemContext(
-                problem.getProblemId(), problem.getTitle(), problem.getDescription(),
-                problem.getSourceBucket() == null ? null : problem.getSourceBucket().name(),
-                problem.getSubEntityType() == null ? null : problem.getSubEntityType().name(),
-                problem.getUrgency() == null ? null : problem.getUrgency().name(),
-                problem.getSeverity() == null ? null : problem.getSeverity().name(),
-                problem.getAffectedPopulation(), problem.getExpectedOutcome(),
-                problem.getExistingIntervention(), location, domains, evidenceCount);
+                p.problemId(), p.title(), p.description(),
+                p.sourceBucket(), p.subEntityType(), p.urgency(), p.severity(),
+                p.affectedPopulation(), p.expectedOutcome(), p.existingIntervention(),
+                p.location(), p.domains(), p.evidenceCount());
     }
 
     private void map(AnalysisResult result, ProblemAnalysis row, UUID cycleId, long latencyMs) {
@@ -193,9 +148,5 @@ public class ProblemAnalysisService {
         snap.put("status", row.getStatus() == null ? null : row.getStatus().name());
         snap.put("impactAreas", row.getImpactAreas());
         return snap;
-    }
-
-    private static String nvl(String value) {
-        return value == null ? "" : value;
     }
 }

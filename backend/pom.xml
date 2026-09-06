@@ -19,6 +19,7 @@
 		<module>edith-common</module>
 		<module>edith-security</module>
 		<module>app</module>
+		<module>evaluation-service</module>
 	</modules>
 
 	<properties>

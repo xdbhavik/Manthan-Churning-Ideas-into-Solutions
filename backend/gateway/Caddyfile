@@ -4,10 +4,9 @@
 # RELATIVE API paths — so the gateway contract is "same paths, one port":
 # path prefixes below are forwarded verbatim, only the upstream host changes.
 #
-# Step 2: every route still lands on the monolith (`app` on :8081). As the
-# strangler extracts services, point each matcher group's `reverse_proxy` at
-# that service's compose name (source-service/problem-service/evaluation-service)
-# and delete the default catch-all once all prefixes are claimed.
+# Step 3: the evaluation pipeline is extracted to `evaluation-service` (:8083);
+# everything else still lands on the monolith (`app` on :8081). Steps 4-5 will
+# point the problem and source matcher groups at their own services.
 
 :8080 {
 	encode gzip
@@ -27,7 +26,7 @@
 	# --- evaluation-service route set ---
 	@evaluation path /evaluation/*
 	handle @evaluation {
-		reverse_proxy app:8081
+		reverse_proxy evaluation-service:8083
 	}
 
 	# --- everything else (swagger-ui, /v3/api-docs, /error, OPTIONS preflight,

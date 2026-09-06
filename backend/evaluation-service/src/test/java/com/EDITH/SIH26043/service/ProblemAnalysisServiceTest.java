@@ -1,19 +1,15 @@
 package com.EDITH.SIH26043.service;
 
+import com.EDITH.SIH26043.client.ProblemContextGateway;
 import com.EDITH.SIH26043.entity.EvaluationCycle;
-import com.EDITH.SIH26043.entity.Problem;
 import com.EDITH.SIH26043.entity.ProblemAnalysis;
 import com.EDITH.SIH26043.enums.AnalysisStatus;
 import com.EDITH.SIH26043.enums.AuditAction;
 import com.EDITH.SIH26043.enums.EvaluationStatus;
 import com.EDITH.SIH26043.exception.ApiException;
-import com.EDITH.SIH26043.repository.DomainRepository;
+import com.EDITH.SIH26043.internal.ProblemContextResponse;
 import com.EDITH.SIH26043.repository.EvaluationCycleRepository;
-import com.EDITH.SIH26043.repository.EvidenceRepository;
-import com.EDITH.SIH26043.repository.LocationRepository;
 import com.EDITH.SIH26043.repository.ProblemAnalysisRepository;
-import com.EDITH.SIH26043.repository.ProblemDomainRepository;
-import com.EDITH.SIH26043.repository.ProblemRepository;
 import com.EDITH.SIH26043.service.analysis.AnalysisResult;
 import com.EDITH.SIH26043.service.analysis.HeuristicAnalysisFallback;
 import com.EDITH.SIH26043.service.analysis.ProblemAnalysisClient;
@@ -46,21 +42,16 @@ import static org.mockito.Mockito.when;
 class ProblemAnalysisServiceTest {
 
     private final EvaluationCycleRepository cycleRepository = mock(EvaluationCycleRepository.class);
-    private final ProblemRepository problemRepository = mock(ProblemRepository.class);
-    private final LocationRepository locationRepository = mock(LocationRepository.class);
-    private final ProblemDomainRepository problemDomainRepository = mock(ProblemDomainRepository.class);
-    private final DomainRepository domainRepository = mock(DomainRepository.class);
-    private final EvidenceRepository evidenceRepository = mock(EvidenceRepository.class);
     private final ProblemAnalysisRepository analysisRepository = mock(ProblemAnalysisRepository.class);
     private final EvaluationStatusService statusService = mock(EvaluationStatusService.class);
     private final AuditService auditService = mock(AuditService.class);
     private final ProblemAnalysisClient analysisClient = mock(ProblemAnalysisClient.class);
     private final HeuristicAnalysisFallback fallback = mock(HeuristicAnalysisFallback.class);
+    private final ProblemContextGateway problemGateway = mock(ProblemContextGateway.class);
 
     private final ProblemAnalysisService service = new ProblemAnalysisService(
-            cycleRepository, problemRepository, locationRepository, problemDomainRepository,
-            domainRepository, evidenceRepository, analysisRepository, statusService,
-            auditService, analysisClient, fallback);
+            cycleRepository, analysisRepository, statusService, auditService,
+            analysisClient, fallback, problemGateway);
 
     private final UUID actor = UUID.randomUUID();
     private final UUID cycleId = UUID.randomUUID();
@@ -112,8 +103,8 @@ class ProblemAnalysisServiceTest {
         verify(analysisRepository).save(row);
         verify(statusService).transition(eq(cycleId), eq(EvaluationStatus.ROUTING), eq(actor),
                 org.mockito.ArgumentMatchers.contains("claude"));
-        verify(auditService).record(eq(problemId), eq(AuditAction.EVALUATION_ANALYZED), eq(actor),
-                isNull(), anyMap(), eq("127.0.0.1"));
+        verify(auditService).record(eq("PROBLEM"), eq(problemId), eq(AuditAction.EVALUATION_ANALYZED),
+                eq(actor), isNull(), anyMap(), eq("127.0.0.1"));
         // Claude answered, so the deterministic classifier is never consulted.
         verify(fallback, never()).analyze(any());
     }
@@ -172,6 +163,20 @@ class ProblemAnalysisServiceTest {
                 .containsExactly(EvaluationStatus.ANALYZING, EvaluationStatus.ROUTING);
     }
 
+    @Test
+    void missingProblemUpstreamSurfacesAsNotFound() {
+        givenCycle(EvaluationStatus.RECEIVED);
+        when(problemGateway.fetch(problemId))
+                .thenThrow(new ApiException(HttpStatus.NOT_FOUND, "Problem " + problemId + " not found"));
+
+        assertThatThrownBy(() -> service.analyze(cycleId, actor, "127.0.0.1"))
+                .isInstanceOf(ApiException.class)
+                .extracting(ex -> ((ApiException) ex).getStatus())
+                .isEqualTo(HttpStatus.NOT_FOUND);
+
+        verify(analysisRepository, never()).save(any());
+    }
+
     private void givenCycle(EvaluationStatus status) {
         EvaluationCycle cycle = new EvaluationCycle();
         cycle.setCycleId(cycleId);
@@ -181,13 +186,10 @@ class ProblemAnalysisServiceTest {
     }
 
     private void givenProblem() {
-        Problem problem = new Problem();
-        problem.setProblemId(problemId);
-        problem.setTitle("Irregular drinking water supply");
-        problem.setDescription("Hand pumps dry during summer.");
-        when(problemRepository.findById(problemId)).thenReturn(Optional.of(problem));
-        when(problemDomainRepository.findByIdProblemId(problemId)).thenReturn(List.of());
-        when(evidenceRepository.findByProblemId(problemId)).thenReturn(List.of());
+        when(problemGateway.fetch(problemId)).thenReturn(new ProblemContextResponse(
+                problemId, "REGISTERED", "Irregular drinking water supply",
+                "Hand pumps dry during summer.", null, null, null, null, null, null,
+                null, null, List.of(), 0));
     }
 
     private static AnalysisResult claudeResult() {

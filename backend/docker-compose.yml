@@ -1,14 +1,20 @@
 # SIH26043 demo stack.
 #
-# Step 2 topology:
-#   gateway (:8080, Caddy)  ──►  app (:8081, monolith Spring Boot)
-#                                    │
-#                                    └──►  db (:5432, PostGIS)
+# Step 3 topology:
+#   gateway (:8080, Caddy)  ──►  app (:8081, monolith: source + problem)
+#                                  └──►  db (:5432, PostGIS, db sih26043)
+#   gateway (:8080, /evaluation/*)  ──►  evaluation-service (:8083, db sih_eval)
 #
-# The app image is a THIN wrapper over the pre-built fat jar, so you must
+# Service images are THIN wrappers over the pre-built fat jars, so you must
 # (re)package before building:
 #     ./mvnw -DskipTests package
 #     docker compose up -d --build
+#
+# The per-service databases (sih_eval / sih_problem / sih_source) are created on
+# a FRESH db volume via db/init. If you have an existing volume from an earlier
+# step, create the new ones manually:
+#     docker compose up -d db
+#     docker exec sih26043-pg psql -U sih -d postgres -c "CREATE DATABASE sih_eval"
 #
 # Secrets default to the local-dev values for a SIH demo; override via a
 # sibling `.env` file (see compose env substitution below).
@@ -32,12 +38,15 @@ services:
       retries: 15
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
 
   app:
     build:
       context: .
       dockerfile: Dockerfile.app
-    image: sih26043-app:step2
+      args:
+        JAR_FILE: app/target/app-0.0.1-SNAPSHOT.jar
+    image: sih26043-app:step3
     depends_on:
       db:
         condition: service_healthy
@@ -49,18 +58,42 @@ services:
       JWT_SECRET: ${JWT_SECRET:-local-dev-only-secret-key-min-32-bytes-change-me!!}
       MOCK_OTP_CODE: ${MOCK_OTP_CODE:-123456}
       IDENTITY_PEPPER: ${IDENTITY_PEPPER:-local-dev-only-identity-pepper-change-me}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       EVIDENCE_STORAGE_DIR: /data/evidence
     ports:
       - "8081:8081"
     volumes:
       - evidence:/data/evidence
 
+  evaluation-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+      args:
+        JAR_FILE: evaluation-service/target/evaluation-service-0.0.1-SNAPSHOT.jar
+    image: sih26043-evaluation-service:step3
+    depends_on:
+      db:
+        condition: service_healthy
+      app:
+        condition: service_started
+    environment:
+      SERVER_PORT: "8083"
+      DB_URL: jdbc:postgresql://db:5432/sih_eval
+      DB_USERNAME: ${DB_USERNAME:-sih}
+      DB_PASSWORD: ${DB_PASSWORD:-sih}
+      JWT_SECRET: ${JWT_SECRET:-local-dev-only-secret-key-min-32-bytes-change-me!!}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      # Monolith serves GET /internal/problems/{id} until Step 4.
+      PROBLEM_SERVICE_URL: http://app:8081
+    ports:
+      - "8083:8083"
+
   gateway:
     image: caddy:2
     container_name: sih26043-gateway
     depends_on:
       - app
+      - evaluation-service
     ports:
       - "8080:8080"
     volumes:

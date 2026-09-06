@@ -1,20 +1,19 @@
 package com.EDITH.SIH26043.service;
 
+import com.EDITH.SIH26043.client.ProblemContextGateway;
 import com.EDITH.SIH26043.entity.EvaluationCycle;
 import com.EDITH.SIH26043.entity.EvaluationStatusHistory;
-import com.EDITH.SIH26043.entity.Problem;
 import com.EDITH.SIH26043.enums.AuditAction;
 import com.EDITH.SIH26043.enums.EvaluationStatus;
-import com.EDITH.SIH26043.enums.ProblemStatus;
 import com.EDITH.SIH26043.exception.ApiException;
+import com.EDITH.SIH26043.internal.ProblemContextResponse;
 import com.EDITH.SIH26043.repository.EvaluationCycleRepository;
 import com.EDITH.SIH26043.repository.EvaluationStatusHistoryRepository;
-import com.EDITH.SIH26043.repository.ProblemRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpStatus;
 
-import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,24 +31,29 @@ import static org.mockito.Mockito.when;
  * Phase 2 intake (S2): only REGISTERED problems without an existing cycle may
  * enter evaluation; a successful start opens the cycle in RECEIVED with an
  * initial history row and an EVALUATION_STARTED audit entry.
+ *
+ * <p>Since the extraction the problem row lives in problem-service: the
+ * eligibility check runs against the {@link ProblemContextGateway} snapshot
+ * instead of a local {@code ProblemRepository}.</p>
  */
 class EvaluationIntakeServiceTest {
 
-    private final ProblemRepository problemRepository = mock(ProblemRepository.class);
+    private final ProblemContextGateway problemGateway = mock(ProblemContextGateway.class);
     private final EvaluationCycleRepository cycleRepository = mock(EvaluationCycleRepository.class);
     private final EvaluationStatusHistoryRepository historyRepository =
             mock(EvaluationStatusHistoryRepository.class);
     private final AuditService auditService = mock(AuditService.class);
 
     private final EvaluationIntakeService service = new EvaluationIntakeService(
-            problemRepository, cycleRepository, historyRepository, auditService);
+            problemGateway, cycleRepository, historyRepository, auditService);
 
     private final UUID actor = UUID.randomUUID();
     private final UUID problemId = UUID.randomUUID();
 
     @Test
     void unknownProblemIsNotFound() {
-        when(problemRepository.findById(problemId)).thenReturn(Optional.empty());
+        when(problemGateway.fetch(problemId))
+                .thenThrow(new ApiException(HttpStatus.NOT_FOUND, "Problem " + problemId + " not found"));
 
         assertThatThrownBy(() -> service.start(problemId, actor, "127.0.0.1"))
                 .isInstanceOf(ApiException.class)
@@ -61,7 +65,7 @@ class EvaluationIntakeServiceTest {
 
     @Test
     void nonRegisteredProblemIsRejected() {
-        when(problemRepository.findById(problemId)).thenReturn(Optional.of(problem(ProblemStatus.SUBMITTED)));
+        when(problemGateway.fetch(problemId)).thenReturn(problem("SUBMITTED"));
 
         assertThatThrownBy(() -> service.start(problemId, actor, "127.0.0.1"))
                 .isInstanceOf(ApiException.class)
@@ -74,7 +78,7 @@ class EvaluationIntakeServiceTest {
 
     @Test
     void duplicateCycleIsConflict() {
-        when(problemRepository.findById(problemId)).thenReturn(Optional.of(problem(ProblemStatus.REGISTERED)));
+        when(problemGateway.fetch(problemId)).thenReturn(problem("REGISTERED"));
         when(cycleRepository.existsByProblemId(problemId)).thenReturn(true);
 
         assertThatThrownBy(() -> service.start(problemId, actor, "127.0.0.1"))
@@ -88,7 +92,7 @@ class EvaluationIntakeServiceTest {
 
     @Test
     void successCreatesCycleInReceivedWithHistoryAndAudit() {
-        when(problemRepository.findById(problemId)).thenReturn(Optional.of(problem(ProblemStatus.REGISTERED)));
+        when(problemGateway.fetch(problemId)).thenReturn(problem("REGISTERED"));
         when(cycleRepository.existsByProblemId(problemId)).thenReturn(false);
 
         EvaluationCycle cycle = service.start(problemId, actor, "127.0.0.1");
@@ -105,14 +109,12 @@ class EvaluationIntakeServiceTest {
         assertThat(history.getCycleId()).isEqualTo(cycle.getCycleId());
         assertThat(history.getToStatus()).isEqualTo(EvaluationStatus.RECEIVED);
 
-        verify(auditService).record(eq(problemId), eq(AuditAction.EVALUATION_STARTED), eq(actor),
-                isNull(), anyMap(), eq("127.0.0.1"));
+        verify(auditService).record(eq("PROBLEM"), eq(problemId), eq(AuditAction.EVALUATION_STARTED),
+                eq(actor), isNull(), anyMap(), eq("127.0.0.1"));
     }
 
-    private static Problem problem(ProblemStatus status) {
-        Problem p = new Problem();
-        p.setProblemId(UUID.randomUUID());
-        p.setStatus(status);
-        return p;
+    private static ProblemContextResponse problem(String status) {
+        return new ProblemContextResponse(UUID.randomUUID(), status, "title", "desc",
+                null, null, null, null, null, null, null, null, List.of(), 0);
     }
 }

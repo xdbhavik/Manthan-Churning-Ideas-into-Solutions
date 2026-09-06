@@ -1,15 +1,15 @@
 package com.EDITH.SIH26043.service;
 
+import com.EDITH.SIH26043.client.ProblemContextGateway;
 import com.EDITH.SIH26043.entity.EvaluationCycle;
 import com.EDITH.SIH26043.entity.EvaluationStatusHistory;
-import com.EDITH.SIH26043.entity.Problem;
 import com.EDITH.SIH26043.enums.AuditAction;
 import com.EDITH.SIH26043.enums.EvaluationStatus;
 import com.EDITH.SIH26043.enums.ProblemStatus;
 import com.EDITH.SIH26043.exception.ApiException;
+import com.EDITH.SIH26043.internal.ProblemContextResponse;
 import com.EDITH.SIH26043.repository.EvaluationCycleRepository;
 import com.EDITH.SIH26043.repository.EvaluationStatusHistoryRepository;
-import com.EDITH.SIH26043.repository.ProblemRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,26 +19,28 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Phase 2 intake: validates a {@link Problem} is eligible for evaluation and
- * opens the single {@link EvaluationCycle} for it.
+ * Phase 2 intake: validates a problem is eligible for evaluation and opens the
+ * single {@link EvaluationCycle} for it.
  *
  * <p>Eligibility (doc plan §3): {@code problem.status == REGISTERED} and no
- * in-flight/duplicate cycle for the same problem. The cycle is created in
- * {@code RECEIVED} with a history row; the problem row itself is never mutated.</p>
+ * in-flight/duplicate cycle for the same problem. The problem row itself is not
+ * stored in this service's database — eligibility is checked against the
+ * problem-service snapshot fetched via {@link ProblemContextGateway}, and the
+ * cycle is created in {@code RECEIVED} with a history row plus an audit entry.</p>
  */
 @Service
 public class EvaluationIntakeService {
 
-    private final ProblemRepository problemRepository;
+    private final ProblemContextGateway problemGateway;
     private final EvaluationCycleRepository cycleRepository;
     private final EvaluationStatusHistoryRepository historyRepository;
     private final AuditService auditService;
 
-    public EvaluationIntakeService(ProblemRepository problemRepository,
+    public EvaluationIntakeService(ProblemContextGateway problemGateway,
                                    EvaluationCycleRepository cycleRepository,
                                    EvaluationStatusHistoryRepository historyRepository,
                                    AuditService auditService) {
-        this.problemRepository = problemRepository;
+        this.problemGateway = problemGateway;
         this.cycleRepository = cycleRepository;
         this.historyRepository = historyRepository;
         this.auditService = auditService;
@@ -46,14 +48,12 @@ public class EvaluationIntakeService {
 
     @Transactional
     public EvaluationCycle start(UUID problemId, UUID actorUserId, String ipAddress) {
-        Problem problem = problemRepository.findById(problemId)
-                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND,
-                        "Problem " + problemId + " not found"));
+        ProblemContextResponse problem = problemGateway.fetch(problemId);
 
-        if (problem.getStatus() != ProblemStatus.REGISTERED) {
+        if (ProblemStatus.valueOf(problem.status()) != ProblemStatus.REGISTERED) {
             throw new ApiException(HttpStatus.BAD_REQUEST,
                     "INVALID_PROBLEM_STATUS: problem " + problemId
-                            + " is " + problem.getStatus() + ", only REGISTERED problems can be evaluated");
+                            + " is " + problem.status() + ", only REGISTERED problems can be evaluated");
         }
         if (cycleRepository.existsByProblemId(problemId)) {
             throw new ApiException(HttpStatus.CONFLICT,
@@ -66,11 +66,14 @@ public class EvaluationIntakeService {
         cycle.setTriggerMethod("ADMIN");
         cycle.setTriggeredByUserId(actorUserId);
         cycle.setStartedAt(Instant.now());
-        cycleRepository.save(cycle);
+        // Reassign: save() on a new entity whose @Version is pre-set (1) goes through
+        // merge(), which returns a managed copy — the original stays transient with a
+        // null cycleId until flush. The returned copy has its @PrePersist id assigned.
+        cycle = cycleRepository.save(cycle);
 
         appendInitialHistory(cycle, actorUserId);
 
-        auditService.record(problemId, AuditAction.EVALUATION_STARTED, actorUserId,
+        auditService.record("PROBLEM", problemId, AuditAction.EVALUATION_STARTED, actorUserId,
                 null, snapshot(cycle), ipAddress);
         return cycle;
     }

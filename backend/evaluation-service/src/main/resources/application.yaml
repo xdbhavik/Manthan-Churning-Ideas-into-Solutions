@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: evaluation-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/sih_eval}
+    username: ${DB_USERNAME:sih}
+    password: ${DB_PASSWORD:sih}
+    hikari:
+      maximum-pool-size: 10
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    locations: classpath:db/migration
+
+server:
+  port: 8083
+
+app:
+  jwt:
+    # HMAC-SHA256 signing secret shared across services via .env; MUST be provided
+    # in any real deployment.
+    secret: ${JWT_SECRET:}
+    issuer: sih26043
+    access-token-ttl-minutes: 15
+  # Where problem-service (the monolith until Step 4) serves GET /internal/problems/{id}.
+  problem-service:
+    base-url: ${PROBLEM_SERVICE_URL:http://localhost:8081}
+  llm:
+    # Anthropic Claude SDK (Phase 2 problem analysis). Empty key → heuristic
+    # fallback; the service must boot and the pipeline must route without a key.
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY:}
+      model: ${ANTHROPIC_MODEL:claude-opus-5}
+      max-tokens: 16000
+      timeout-seconds: 60
+      max-retries: 1
