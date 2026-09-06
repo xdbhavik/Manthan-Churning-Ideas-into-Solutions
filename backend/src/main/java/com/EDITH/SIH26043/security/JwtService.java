@@ -1,6 +1,7 @@
 package com.EDITH.SIH26043.security;
 
-import com.EDITH.SIH26043.entity.User;
+import com.EDITH.SIH26043.enums.KycStatus;
+import com.EDITH.SIH26043.enums.UserRole;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -65,7 +66,7 @@ public class JwtService {
         this.ttlMinutes = ttlMinutes;
     }
 
-    public String issueAccessToken(User user) {
+    public String issueAccessToken(AuthUser user) {
         Instant now = Instant.now();
         JWTClaimsSet claims = new JWTClaimsSet.Builder()
                 .subject(user.getUserId().toString())
@@ -74,7 +75,7 @@ public class JwtService {
                 .expirationTime(Date.from(now.plusSeconds(ttlMinutes * 60)))
                 .claim("phone", user.getPhone())
                 .claim("role", user.getRole().name())
-                .claim("kyc", user.getKycStatus().name())
+                .claim("kyc", user.getKycStatus() == null ? null : user.getKycStatus().name())
                 .build();
         return sign(claims);
     }
@@ -94,6 +95,31 @@ public class JwtService {
             return jwt;
         } catch (ParseException | JOSEException e) {
             throw new IllegalArgumentException("Malformed JWT", e);
+        }
+    }
+
+    /**
+     * Maps a verified token to the {@link AuthUser} principal entirely from
+     * claims. No DB lookup: {@code role} and {@code kyc} change only when a new
+     * token is minted (<= access-token TTL), which is the accepted trade-off of
+     * claim-based auth.
+     */
+    public AuthUser authUserOf(SignedJWT jwt) {
+        try {
+            JWTClaimsSet claims = jwt.getJWTClaimsSet();
+            UUID userId = UUID.fromString(claims.getSubject());
+            String role = claims.getStringClaim("role");
+            if (role == null || role.isBlank()) {
+                throw new IllegalArgumentException("JWT missing role claim");
+            }
+            String kyc = claims.getStringClaim("kyc");
+            return new AuthUser(
+                    userId,
+                    claims.getStringClaim("phone"),
+                    UserRole.valueOf(role),
+                    kyc == null ? KycStatus.UNVERIFIED : KycStatus.valueOf(kyc));
+        } catch (ParseException e) {
+            throw new IllegalArgumentException("Unable to read JWT claims", e);
         }
     }
 

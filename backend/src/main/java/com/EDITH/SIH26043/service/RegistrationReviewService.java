@@ -4,7 +4,6 @@ import com.EDITH.SIH26043.entity.ProblemSource;
 import com.EDITH.SIH26043.entity.RegistrationStatusHistory;
 import com.EDITH.SIH26043.entity.SourceAccount;
 import com.EDITH.SIH26043.entity.SourceRegistration;
-import com.EDITH.SIH26043.entity.User;
 import com.EDITH.SIH26043.enums.AccountVerificationStatus;
 import com.EDITH.SIH26043.enums.KycStatus;
 import com.EDITH.SIH26043.enums.RegistrationStatus;
@@ -15,6 +14,7 @@ import com.EDITH.SIH26043.repository.RegistrationStatusHistoryRepository;
 import com.EDITH.SIH26043.repository.SourceAccountRepository;
 import com.EDITH.SIH26043.repository.SourceRegistrationRepository;
 import com.EDITH.SIH26043.repository.UserRepository;
+import com.EDITH.SIH26043.security.AuthUser;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,7 +72,7 @@ public class RegistrationReviewService {
     }
 
     @Transactional
-    public SourceRegistration assign(UUID registrationId, User reviewer) {
+    public SourceRegistration assign(UUID registrationId, AuthUser reviewer) {
         SourceRegistration reg = load(registrationId);
         if (reg.getStatus() != RegistrationStatus.SUBMITTED
                 && reg.getStatus() != RegistrationStatus.UNDER_REVIEW) {
@@ -98,7 +98,7 @@ public class RegistrationReviewService {
      * UNDER_REVIEW registration.
      */
     @Transactional
-    public SourceRegistration approve(UUID registrationId, User reviewer, String comment) {
+    public SourceRegistration approve(UUID registrationId, AuthUser reviewer, String comment) {
         SourceRegistration reg = load(registrationId);
         requireDecidable(reg, "approved");
 
@@ -163,7 +163,7 @@ public class RegistrationReviewService {
     }
 
     @Transactional
-    public SourceRegistration reject(UUID registrationId, User reviewer, String reason) {
+    public SourceRegistration reject(UUID registrationId, AuthUser reviewer, String reason) {
         if (reason == null || reason.isBlank()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Rejection reason is required");
         }
@@ -183,7 +183,7 @@ public class RegistrationReviewService {
 
     /** ACTION_REQUIRED: sends the registration back to the owner for fixes. */
     @Transactional
-    public SourceRegistration requestAction(UUID registrationId, User reviewer, String comment) {
+    public SourceRegistration requestAction(UUID registrationId, AuthUser reviewer, String comment) {
         if (comment == null || comment.isBlank()) {
             throw new ApiException(HttpStatus.BAD_REQUEST,
                     "A comment describing the required action is mandatory");

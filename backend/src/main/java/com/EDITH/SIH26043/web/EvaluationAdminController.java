@@ -3,11 +3,11 @@ package com.EDITH.SIH26043.web;
 import com.EDITH.SIH26043.config.OpenApiConfig;
 import com.EDITH.SIH26043.entity.EvaluationCycle;
 import com.EDITH.SIH26043.entity.EvaluationStatusHistory;
-import com.EDITH.SIH26043.entity.User;
 import com.EDITH.SIH26043.enums.EvaluationStatus;
 import com.EDITH.SIH26043.exception.ApiException;
 import com.EDITH.SIH26043.repository.EvaluationCycleRepository;
 import com.EDITH.SIH26043.repository.EvaluationStatusHistoryRepository;
+import com.EDITH.SIH26043.security.AuthUser;
 import com.EDITH.SIH26043.service.EvaluationIntakeService;
 import com.EDITH.SIH26043.service.ProblemAnalysisService;
 import com.EDITH.SIH26043.web.dto.EvaluationCycleResponse;
@@ -69,7 +69,7 @@ public class EvaluationAdminController {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/problems/{problemId}/start")
     public EvaluationCycleResponse start(@PathVariable UUID problemId,
-                                         @AuthenticationPrincipal User me,
+                                         @AuthenticationPrincipal AuthUser me,
                                          HttpServletRequest http) {
         EvaluationCycle cycle = intakeService.start(problemId, me.getUserId(), clientIp(http));
         return EvaluationCycleResponse.from(cycle);
@@ -86,7 +86,7 @@ public class EvaluationAdminController {
                     the existing profile. Advances the cycle to ROUTING.""")
     @PostMapping("/cycles/{cycleId}/analyze")
     public ProblemAnalysisResponse analyze(@PathVariable UUID cycleId,
-                                           @AuthenticationPrincipal User me,
+                                           @AuthenticationPrincipal AuthUser me,
                                            HttpServletRequest http) {
         return ProblemAnalysisResponse.from(
                 analysisService.analyze(cycleId, me.getUserId(), clientIp(http)));

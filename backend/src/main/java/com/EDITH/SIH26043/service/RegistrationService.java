@@ -11,6 +11,7 @@ import com.EDITH.SIH26043.exception.ApiException;
 import com.EDITH.SIH26043.repository.RegistrationStatusHistoryRepository;
 import com.EDITH.SIH26043.repository.SourceRegistrationRepository;
 import com.EDITH.SIH26043.repository.UserRepository;
+import com.EDITH.SIH26043.security.AuthUser;
 import com.EDITH.SIH26043.web.dto.RegistrationCreateRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -89,7 +90,7 @@ public class RegistrationService {
     }
 
     @Transactional
-    public SourceRegistration update(UUID registrationId, Map<String, Object> payload, User owner) {
+    public SourceRegistration update(UUID registrationId, Map<String, Object> payload, AuthUser owner) {
         SourceRegistration reg = owned(registrationId, owner);
         if (reg.getStatus() != RegistrationStatus.DRAFT
                 && reg.getStatus() != RegistrationStatus.ACTION_REQUIRED) {
@@ -105,7 +106,7 @@ public class RegistrationService {
      * (resubmission after fixing what the reviewer flagged).
      */
     @Transactional
-    public SourceRegistration submit(UUID registrationId, User owner) {
+    public SourceRegistration submit(UUID registrationId, AuthUser owner) {
         SourceRegistration reg = owned(registrationId, owner);
         RegistrationStatus from = reg.getStatus();
 
@@ -130,19 +131,19 @@ public class RegistrationService {
     }
 
     @Transactional(readOnly = true)
-    public List<SourceRegistration> mine(User owner) {
+    public List<SourceRegistration> mine(AuthUser owner) {
         return registrationRepository.findBySubmittedByUserIdOrderByCreatedAtDesc(owner.getUserId());
     }
 
     @Transactional(readOnly = true)
-    public SourceRegistration get(UUID registrationId, User viewer) {
+    public SourceRegistration get(UUID registrationId, AuthUser viewer) {
         SourceRegistration reg = load(registrationId);
         requireVisibleTo(reg, viewer);
         return reg;
     }
 
     @Transactional(readOnly = true)
-    public List<RegistrationStatusHistory> history(UUID registrationId, User viewer) {
+    public List<RegistrationStatusHistory> history(UUID registrationId, AuthUser viewer) {
         SourceRegistration reg = load(registrationId);
         requireVisibleTo(reg, viewer);
         return historyRepository.findByRegistrationIdOrderByChangedAtAsc(registrationId);
@@ -155,14 +156,14 @@ public class RegistrationService {
     }
 
     /** Owner sees own rows; REVIEWER/ADMIN see everything (reviewer queue). */
-    private void requireVisibleTo(SourceRegistration reg, User viewer) {
+    private void requireVisibleTo(SourceRegistration reg, AuthUser viewer) {
         boolean staff = viewer.getRole() == UserRole.REVIEWER || viewer.getRole() == UserRole.ADMIN;
         if (!staff && !reg.getSubmittedByUserId().equals(viewer.getUserId())) {
             throw new ApiException(HttpStatus.FORBIDDEN, "Not your registration");
         }
     }
 
-    private SourceRegistration owned(UUID registrationId, User owner) {
+    private SourceRegistration owned(UUID registrationId, AuthUser owner) {
         SourceRegistration reg = load(registrationId);
         if (!reg.getSubmittedByUserId().equals(owner.getUserId())) {
             throw new ApiException(HttpStatus.FORBIDDEN, "Not your registration");

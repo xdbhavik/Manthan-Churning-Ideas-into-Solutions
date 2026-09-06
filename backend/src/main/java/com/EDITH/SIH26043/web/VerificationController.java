@@ -2,7 +2,7 @@ package com.EDITH.SIH26043.web;
 
 import com.EDITH.SIH26043.config.OpenApiConfig;
 import com.EDITH.SIH26043.entity.SourceVerification;
-import com.EDITH.SIH26043.entity.User;
+import com.EDITH.SIH26043.security.AuthUser;
 import com.EDITH.SIH26043.service.SourceVerificationService;
 import com.EDITH.SIH26043.web.dto.VerifySourceRequest;
 import io.swagger.v3.oas.annotations.Operation;
@@ -56,7 +56,7 @@ public class VerificationController {
     public SourceVerification verify(
             @Parameter(description = "SourceAccount UUID", required = true) @PathVariable UUID id,
             @Valid @RequestBody VerifySourceRequest req,
-            @AuthenticationPrincipal User me,
+            @AuthenticationPrincipal AuthUser me,
             jakarta.servlet.http.HttpServletRequest http) {
         return verificationService.verify(id, req, me, clientIp(http));
     }

@@ -1,7 +1,5 @@
 package com.EDITH.SIH26043.security;
 
-import com.EDITH.SIH26043.entity.User;
-import com.EDITH.SIH26043.repository.UserRepository;
 import com.nimbusds.jwt.SignedJWT;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -15,21 +13,20 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Resolves the Bearer JWT into a Spring Security authentication whose principal
- * is the {@link User} entity (authorities derived from the current DB role).
+ * is a claim-derived {@link AuthUser}. No {@code users}-table lookup: the role
+ * (and thus authorities) come from the token itself, so a service without the
+ * users table can still authorize every request.
  */
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserRepository userRepository;
 
-    public JwtAuthFilter(JwtService jwtService, UserRepository userRepository) {
+    public JwtAuthFilter(JwtService jwtService) {
         this.jwtService = jwtService;
-        this.userRepository = userRepository;
     }
 
     @Override
@@ -39,15 +36,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith("Bearer ")) {
             try {
                 SignedJWT jwt = jwtService.parseAndVerify(header.substring(7));
-                UUID userId = jwtService.subjectOf(jwt);
-                userRepository.findById(userId).ifPresent(user -> {
-                    var auth = new UsernamePasswordAuthenticationToken(
-                            user, null,
-                            List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())));
-                    SecurityContextHolder.getContext().setAuthentication(auth);
-                });
+                AuthUser user = jwtService.authUserOf(jwt);
+                var auth = new UsernamePasswordAuthenticationToken(
+                        user, null,
+                        List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())));
+                SecurityContextHolder.getContext().setAuthentication(auth);
             } catch (IllegalArgumentException ignored) {
-                // invalid/expired token -> leave unauthenticated (401 by entry point)
+                // invalid/expired token or unreadable claims -> leave unauthenticated (401 by entry point)
             }
         }
         chain.doFilter(request, response);

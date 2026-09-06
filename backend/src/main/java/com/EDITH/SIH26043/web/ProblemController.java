@@ -2,12 +2,12 @@ package com.EDITH.SIH26043.web;
 
 import com.EDITH.SIH26043.entity.Evidence;
 import com.EDITH.SIH26043.entity.Problem;
-import com.EDITH.SIH26043.entity.User;
 import com.EDITH.SIH26043.enums.EvidenceType;
 import com.EDITH.SIH26043.enums.ProblemStatus;
 import com.EDITH.SIH26043.enums.UserRole;
 import com.EDITH.SIH26043.exception.ApiException;
 import com.EDITH.SIH26043.repository.ProblemRepository;
+import com.EDITH.SIH26043.security.AuthUser;
 import com.EDITH.SIH26043.service.EvidenceUploadService;
 import com.EDITH.SIH26043.service.ProblemCollectionEngine;
 import com.EDITH.SIH26043.service.ProblemStatusService;
@@ -53,14 +53,14 @@ public class ProblemController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ProblemResponse submit(@Valid @RequestBody ProblemSubmitRequest req,
-                                  @AuthenticationPrincipal User me,
+                                  @AuthenticationPrincipal AuthUser me,
                                   jakarta.servlet.http.HttpServletRequest http) {
         Problem created = engine.receiveSubmission(req, me, clientIp(http));
         return ProblemResponse.from(created);
     }
 
     @GetMapping("/{id}")
-    public ProblemResponse get(@PathVariable UUID id, @AuthenticationPrincipal User me) {
+    public ProblemResponse get(@PathVariable UUID id, @AuthenticationPrincipal AuthUser me) {
         Problem p = problemRepository.findById(id)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Problem not found"));
         if (me.getRole() == UserRole.SUBMITTER
@@ -74,7 +74,7 @@ public class ProblemController {
     @PreAuthorize("hasRole('REVIEWER') or hasRole('ADMIN')")
     public ProblemResponse patchStatus(@PathVariable UUID id,
                                        @Valid @RequestBody StatusPatchRequest req,
-                                       @AuthenticationPrincipal User me,
+                                       @AuthenticationPrincipal AuthUser me,
                                        jakarta.servlet.http.HttpServletRequest http) {
         Problem updated = statusService.transition(id, req.status(), me.getUserId(),
                 req.expectedVersion(), clientIp(http));
@@ -86,7 +86,7 @@ public class ProblemController {
                                 @RequestParam("file") MultipartFile file,
                                 @RequestParam(value = "evidenceType", defaultValue = "DOCUMENT")
                                 EvidenceType evidenceType,
-                                @AuthenticationPrincipal User me,
+                                @AuthenticationPrincipal AuthUser me,
                                 jakarta.servlet.http.HttpServletRequest http) {
         Problem p = problemRepository.findById(id)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Problem not found"));

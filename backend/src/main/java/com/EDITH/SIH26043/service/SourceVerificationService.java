@@ -1,13 +1,13 @@
 package com.EDITH.SIH26043.service;
 
 import com.EDITH.SIH26043.entity.SourceVerification;
-import com.EDITH.SIH26043.entity.User;
 import com.EDITH.SIH26043.enums.ProblemStatus;
 import com.EDITH.SIH26043.enums.VerificationResult;
 import com.EDITH.SIH26043.exception.ApiException;
 import com.EDITH.SIH26043.repository.ProblemRepository;
 import com.EDITH.SIH26043.repository.ProblemSourceRepository;
 import com.EDITH.SIH26043.repository.SourceVerificationRepository;
+import com.EDITH.SIH26043.security.AuthUser;
 import com.EDITH.SIH26043.web.dto.VerifySourceRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -39,7 +39,7 @@ public class SourceVerificationService {
     }
 
     @Transactional
-    public SourceVerification verify(UUID sourceId, VerifySourceRequest req, User reviewer, String ip) {
+    public SourceVerification verify(UUID sourceId, VerifySourceRequest req, AuthUser reviewer, String ip) {
         var source = sourceRepository.findById(sourceId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Source not found"));
 

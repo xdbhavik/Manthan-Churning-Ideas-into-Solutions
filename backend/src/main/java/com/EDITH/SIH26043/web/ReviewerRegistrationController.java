@@ -2,8 +2,8 @@ package com.EDITH.SIH26043.web;
 
 import com.EDITH.SIH26043.config.OpenApiConfig;
 import com.EDITH.SIH26043.entity.SourceRegistration;
-import com.EDITH.SIH26043.entity.User;
 import com.EDITH.SIH26043.enums.RegistrationStatus;
+import com.EDITH.SIH26043.security.AuthUser;
 import com.EDITH.SIH26043.service.RegistrationReviewService;
 import com.EDITH.SIH26043.web.dto.RegistrationDecisionRequest;
 import com.EDITH.SIH26043.web.dto.RegistrationResponse;
@@ -68,7 +68,7 @@ public class ReviewerRegistrationController {
     @PostMapping("/{id}/assign")
     public RegistrationResponse assign(
             @Parameter(description = "Registration UUID", required = true) @PathVariable UUID id,
-            @AuthenticationPrincipal User me) {
+            @AuthenticationPrincipal AuthUser me) {
         return RegistrationResponse.from(reviewService.assign(id, me));
     }
 
@@ -88,7 +88,7 @@ public class ReviewerRegistrationController {
     public RegistrationResponse approve(
             @Parameter(description = "Registration UUID", required = true) @PathVariable UUID id,
             @RequestBody(required = false) RegistrationDecisionRequest req,
-            @AuthenticationPrincipal User me) {
+            @AuthenticationPrincipal AuthUser me) {
         String comment = req == null ? null : req.comment();
         return RegistrationResponse.from(reviewService.approve(id, me, comment));
     }
@@ -105,7 +105,7 @@ public class ReviewerRegistrationController {
     public RegistrationResponse reject(
             @Parameter(description = "Registration UUID", required = true) @PathVariable UUID id,
             @RequestBody RegistrationDecisionRequest req,
-            @AuthenticationPrincipal User me) {
+            @AuthenticationPrincipal AuthUser me) {
         return RegistrationResponse.from(reviewService.reject(id, me, req.comment()));
     }
 
@@ -120,7 +120,7 @@ public class ReviewerRegistrationController {
     public RegistrationResponse requestAction(
             @Parameter(description = "Registration UUID", required = true) @PathVariable UUID id,
             @RequestBody RegistrationDecisionRequest req,
-            @AuthenticationPrincipal User me) {
+            @AuthenticationPrincipal AuthUser me) {
         return RegistrationResponse.from(reviewService.requestAction(id, me, req.comment()));
     }
 }

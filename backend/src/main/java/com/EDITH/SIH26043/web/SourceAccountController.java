@@ -2,10 +2,10 @@ package com.EDITH.SIH26043.web;
 
 import com.EDITH.SIH26043.config.OpenApiConfig;
 import com.EDITH.SIH26043.entity.SourceAccount;
-import com.EDITH.SIH26043.entity.User;
 import com.EDITH.SIH26043.enums.UserRole;
 import com.EDITH.SIH26043.exception.ApiException;
 import com.EDITH.SIH26043.repository.SourceAccountRepository;
+import com.EDITH.SIH26043.security.AuthUser;
 import com.EDITH.SIH26043.web.dto.SourceAccountResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -47,7 +47,7 @@ public class SourceAccountController {
                     An account shows `canSubmit=true` only when it is both `ACTIVE` + `VERIFIED`.""")
     @ApiResponse(responseCode = "200", description = "Account listing (may be empty if no registrations approved yet)")
     @GetMapping
-    public List<SourceAccountResponse> mine(@AuthenticationPrincipal User me) {
+    public List<SourceAccountResponse> mine(@AuthenticationPrincipal AuthUser me) {
         return sourceAccountRepository.findByOwnerUserIdOrderByCreatedAtDesc(me.getUserId())
                 .stream()
                 .map(SourceAccountResponse::from)
@@ -66,7 +66,7 @@ public class SourceAccountController {
     public SourceAccountResponse get(
             @Parameter(description = "SourceAccount UUID", required = true)
             @PathVariable UUID id,
-            @AuthenticationPrincipal User me) {
+            @AuthenticationPrincipal AuthUser me) {
         SourceAccount account = sourceAccountRepository.findById(id)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Source account not found"));
         boolean staff = me.getRole() == UserRole.REVIEWER || me.getRole() == UserRole.ADMIN;

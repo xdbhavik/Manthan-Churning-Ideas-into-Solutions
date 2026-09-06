@@ -2,11 +2,11 @@ package com.EDITH.SIH26043.service;
 
 import com.EDITH.SIH26043.entity.Evidence;
 import com.EDITH.SIH26043.entity.Problem;
-import com.EDITH.SIH26043.entity.User;
 import com.EDITH.SIH26043.enums.EvidenceType;
 import com.EDITH.SIH26043.exception.ApiException;
 import com.EDITH.SIH26043.repository.EvidenceRepository;
 import com.EDITH.SIH26043.repository.ProblemRepository;
+import com.EDITH.SIH26043.security.AuthUser;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -47,7 +47,7 @@ public class EvidenceUploadService {
     }
 
     @Transactional
-    public Evidence upload(UUID problemId, MultipartFile file, EvidenceType type, User uploader, String ip) {
+    public Evidence upload(UUID problemId, MultipartFile file, EvidenceType type, AuthUser uploader, String ip) {
         Problem problem = problemRepository.findById(problemId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Problem not found"));
 

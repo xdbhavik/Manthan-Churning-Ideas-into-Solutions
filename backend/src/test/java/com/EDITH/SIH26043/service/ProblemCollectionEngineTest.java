@@ -2,8 +2,8 @@ package com.EDITH.SIH26043.service;
 
 import com.EDITH.SIH26043.entity.Problem;
 import com.EDITH.SIH26043.entity.SourceAccount;
-import com.EDITH.SIH26043.entity.User;
 import com.EDITH.SIH26043.enums.AccountVerificationStatus;
+import com.EDITH.SIH26043.enums.KycStatus;
 import com.EDITH.SIH26043.enums.SourceAccountStatus;
 import com.EDITH.SIH26043.enums.SourceBucket;
 import com.EDITH.SIH26043.enums.SubEntityType;
@@ -16,6 +16,7 @@ import com.EDITH.SIH26043.repository.LocationRepository;
 import com.EDITH.SIH26043.repository.ProblemDomainRepository;
 import com.EDITH.SIH26043.repository.ProblemRepository;
 import com.EDITH.SIH26043.repository.SourceAccountRepository;
+import com.EDITH.SIH26043.security.AuthUser;
 import com.EDITH.SIH26043.web.dto.ProblemSubmitRequest;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -52,7 +53,7 @@ class ProblemCollectionEngineTest {
 
     @Test
     void unknownAccountIsNotFound() {
-        User me = user();
+        AuthUser me = user();
         UUID missing = UUID.randomUUID();
         when(sourceAccountRepository.findById(missing)).thenReturn(Optional.empty());
 
@@ -66,7 +67,7 @@ class ProblemCollectionEngineTest {
 
     @Test
     void anotherUsersAccountIsForbidden() {
-        User me = user();
+        AuthUser me = user();
         SourceAccount other = account(UUID.randomUUID(),
                 SourceAccountStatus.ACTIVE, AccountVerificationStatus.VERIFIED);
         when(sourceAccountRepository.findById(other.getSourceAccountId())).thenReturn(Optional.of(other));
@@ -81,7 +82,7 @@ class ProblemCollectionEngineTest {
 
     @Test
     void unverifiedAccountCannotSubmit() {
-        User me = user();
+        AuthUser me = user();
         SourceAccount pending = account(me.getUserId(),
                 SourceAccountStatus.PENDING, AccountVerificationStatus.UNVERIFIED);
         when(sourceAccountRepository.findById(pending.getSourceAccountId())).thenReturn(Optional.of(pending));
@@ -99,7 +100,7 @@ class ProblemCollectionEngineTest {
     /** Verification alone is not enough; a suspended account is still barred. */
     @Test
     void suspendedAccountCannotSubmit() {
-        User me = user();
+        AuthUser me = user();
         SourceAccount suspended = account(me.getUserId(),
                 SourceAccountStatus.SUSPENDED, AccountVerificationStatus.VERIFIED);
         when(sourceAccountRepository.findById(suspended.getSourceAccountId())).thenReturn(Optional.of(suspended));
@@ -114,7 +115,7 @@ class ProblemCollectionEngineTest {
 
     @Test
     void verifiedAccountSuppliesBucketAndTypeAndSource() {
-        User me = user();
+        AuthUser me = user();
         SourceAccount active = account(me.getUserId(),
                 SourceAccountStatus.ACTIVE, AccountVerificationStatus.VERIFIED);
         when(sourceAccountRepository.findById(active.getSourceAccountId())).thenReturn(Optional.of(active));
@@ -131,11 +132,9 @@ class ProblemCollectionEngineTest {
         assertThat(p.getSubmittedByUserId()).isEqualTo(me.getUserId());
     }
 
-    private User user() {
-        User u = new User();
-        u.setUserId(UUID.randomUUID());
-        u.setRole(UserRole.SUBMITTER);
-        return u;
+    private AuthUser user() {
+        return new AuthUser(UUID.randomUUID(), "9999999999",
+                UserRole.SUBMITTER, KycStatus.UNVERIFIED);
     }
 
     private SourceAccount account(UUID ownerUserId, SourceAccountStatus status,

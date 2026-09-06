@@ -1,7 +1,7 @@
 package com.EDITH.SIH26043.web;
 
 import com.EDITH.SIH26043.entity.SourceRegistration;
-import com.EDITH.SIH26043.entity.User;
+import com.EDITH.SIH26043.security.AuthUser;
 import com.EDITH.SIH26043.service.RegistrationService;
 import com.EDITH.SIH26043.service.SourceTypeCatalog;
 import com.EDITH.SIH26043.web.dto.RegistrationCreateRequest;
@@ -67,32 +67,32 @@ public class RegistrationController {
     }
 
     @GetMapping("/mine")
-    public List<RegistrationResponse> mine(@AuthenticationPrincipal User me) {
+    public List<RegistrationResponse> mine(@AuthenticationPrincipal AuthUser me) {
         return registrationService.mine(me).stream()
                 .map(RegistrationResponse::from)
                 .toList();
     }
 
     @GetMapping("/{id}")
-    public RegistrationResponse get(@PathVariable UUID id, @AuthenticationPrincipal User me) {
+    public RegistrationResponse get(@PathVariable UUID id, @AuthenticationPrincipal AuthUser me) {
         return RegistrationResponse.from(registrationService.get(id, me));
     }
 
     @PatchMapping("/{id}")
     public RegistrationResponse update(@PathVariable UUID id,
                                        @Valid @RequestBody RegistrationUpdateRequest req,
-                                       @AuthenticationPrincipal User me) {
+                                       @AuthenticationPrincipal AuthUser me) {
         return RegistrationResponse.from(registrationService.update(id, req.source(), me));
     }
 
     @PostMapping("/{id}/submit")
-    public RegistrationResponse submit(@PathVariable UUID id, @AuthenticationPrincipal User me) {
+    public RegistrationResponse submit(@PathVariable UUID id, @AuthenticationPrincipal AuthUser me) {
         return RegistrationResponse.from(registrationService.submit(id, me));
     }
 
     @GetMapping("/{id}/history")
     public List<RegistrationHistoryResponse> history(@PathVariable UUID id,
-                                                     @AuthenticationPrincipal User me) {
+                                                     @AuthenticationPrincipal AuthUser me) {
         return RegistrationHistoryResponse.from(registrationService.history(id, me));
     }
 }

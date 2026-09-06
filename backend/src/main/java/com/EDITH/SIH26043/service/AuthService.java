@@ -7,6 +7,7 @@ import com.EDITH.SIH26043.enums.UserRole;
 import com.EDITH.SIH26043.exception.ApiException;
 import com.EDITH.SIH26043.repository.RefreshTokenRepository;
 import com.EDITH.SIH26043.repository.UserRepository;
+import com.EDITH.SIH26043.security.AuthUser;
 import com.EDITH.SIH26043.security.JwtService;
 import com.EDITH.SIH26043.web.dto.OtpRequest;
 import com.EDITH.SIH26043.web.dto.OtpResponse;
@@ -81,7 +82,7 @@ public class AuthService {
         User user = userRepository.findByPhone(phone)
                 .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED,
                         "No user for this phone"));
-        String accessToken = jwtService.issueAccessToken(user);
+        String accessToken = jwtService.issueAccessToken(toAuthUser(user));
         RefreshToken refresh = new RefreshToken();
         refresh.setToken(UUID.randomUUID());
         refresh.setUserId(user.getUserId());
@@ -116,7 +117,12 @@ public class AuthService {
         next.setCreatedAt(Instant.now());
         refreshTokenRepository.save(next);
 
-        return new RefreshRequest.RefreshResponse(jwtService.issueAccessToken(user), next.getToken());
+        return new RefreshRequest.RefreshResponse(jwtService.issueAccessToken(toAuthUser(user)), next.getToken());
+    }
+
+    /** Snapshots the DB {@link User} into the claim-derived {@link AuthUser} used to mint tokens. */
+    private AuthUser toAuthUser(User u) {
+        return new AuthUser(u.getUserId(), u.getPhone(), u.getRole(), u.getKycStatus());
     }
 
     @Transactional

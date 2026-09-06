@@ -6,7 +6,6 @@ import com.EDITH.SIH26043.entity.Problem;
 import com.EDITH.SIH26043.entity.ProblemDomain;
 import com.EDITH.SIH26043.entity.ProblemDomainId;
 import com.EDITH.SIH26043.entity.SourceAccount;
-import com.EDITH.SIH26043.entity.User;
 import com.EDITH.SIH26043.enums.AuditAction;
 import com.EDITH.SIH26043.enums.ProblemStatus;
 import com.EDITH.SIH26043.exception.ApiException;
@@ -16,6 +15,7 @@ import com.EDITH.SIH26043.repository.LocationRepository;
 import com.EDITH.SIH26043.repository.ProblemDomainRepository;
 import com.EDITH.SIH26043.repository.ProblemRepository;
 import com.EDITH.SIH26043.repository.SourceAccountRepository;
+import com.EDITH.SIH26043.security.AuthUser;
 import com.EDITH.SIH26043.web.dto.ProblemSubmitRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -63,7 +63,7 @@ public class ProblemCollectionEngine {
     }
 
     @Transactional
-    public Problem receiveSubmission(ProblemSubmitRequest req, User submitter, String ip) {
+    public Problem receiveSubmission(ProblemSubmitRequest req, AuthUser submitter, String ip) {
         SourceAccount account = requireSubmittableAccount(req.sourceAccountId(), submitter);
 
         Location location = mapLocation(req.location());
@@ -109,7 +109,7 @@ public class ProblemCollectionEngine {
      * suspended account is a 403 SOURCE_NOT_VERIFIED -- never a silent downgrade
      * to an unverified submission.
      */
-    private SourceAccount requireSubmittableAccount(UUID accountId, User submitter) {
+    private SourceAccount requireSubmittableAccount(UUID accountId, AuthUser submitter) {
         SourceAccount account = sourceAccountRepository.findById(accountId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Source account not found"));
         if (!account.getOwnerUserId().equals(submitter.getUserId())) {
@@ -153,7 +153,7 @@ public class ProblemCollectionEngine {
         }
     }
 
-    private void storeEvidence(Problem problem, ProblemSubmitRequest.EvidenceRequest e, User submitter) {
+    private void storeEvidence(Problem problem, ProblemSubmitRequest.EvidenceRequest e, AuthUser submitter) {
         if (evidenceRepository.existsByFileHash(e.fileHash())) {
             throw new ApiException(HttpStatus.CONFLICT, "Duplicate evidence: file_hash already on file");
         }
