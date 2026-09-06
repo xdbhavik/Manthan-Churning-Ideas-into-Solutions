@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: source-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/sih_source}
+    username: ${DB_USERNAME:sih}
+    password: ${DB_PASSWORD:sih}
+    hikari:
+      maximum-pool-size: 10
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    locations: classpath:db/migration
+
+server:
+  port: 8081
+
+app:
+  jwt:
+    # HMAC-SHA256 signing secret shared across services via .env; MUST be provided
+    # in any real deployment.
+    secret: ${JWT_SECRET:}
+    issuer: sih26043
+    access-token-ttl-minutes: 15
+  refresh-token:
+    ttl-days: 7
+  otp:
+    ttl-minutes: 5
+    max-attempts: 3
+    max-requests-per-phone-per-hour: 5
+    # Fixed OTP used when the prod profile is NOT active (demo/testing).
+    # Leave empty to fall back to a random code; ignored when prod is active.
+    mock-code: ${MOCK_OTP_CODE:}
+  # Server-side pepper mixed into HMAC-SHA-256 of aadhaar/voter id.
+  # DEVIATION from design docs (which specify bare SHA-256): a 12-digit
+  # Aadhaar is brute-forceable against a plain hash; pepper prevents it.
+  identity-pepper: ${IDENTITY_PEPPER:}

@@ -13,12 +13,12 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>SIH26043</name>
-	<description>SIH26043 monolith-to-microservices reactor (edith-common, edith-security, app)</description>
+	<description>SIH26043 microservices reactor (edith-common, edith-security, source-service, problem-service, evaluation-service)</description>
 
 	<modules>
 		<module>edith-common</module>
 		<module>edith-security</module>
-		<module>app</module>
+		<module>source-service</module>
 		<module>evaluation-service</module>
 		<module>problem-service</module>
 	</modules>

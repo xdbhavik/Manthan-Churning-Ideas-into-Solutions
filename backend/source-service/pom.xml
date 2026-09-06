@@ -8,9 +8,9 @@
 		<version>0.0.1-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
-	<artifactId>app</artifactId>
-	<name>app</name>
-	<description>The monolith host (source + problem aggregates; serves GET /internal/problems/{id} until Step 4). Evaluation extracted into evaluation-service.</description>
+	<artifactId>source-service</artifactId>
+	<name>source-service</name>
+	<description>Source-service (auth/identity, source registration &amp; accounts). The former monolith `app`, re-based onto its own sih_source DB.</description>
 
 	<dependencies>
 		<!-- Shared kernel jars. -->
@@ -62,11 +62,6 @@
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>net.postgis</groupId>
-			<artifactId>postgis-jdbc</artifactId>
-			<version>2025.1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springdoc</groupId>

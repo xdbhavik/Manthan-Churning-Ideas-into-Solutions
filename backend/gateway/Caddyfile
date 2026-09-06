@@ -4,18 +4,29 @@
 # RELATIVE API paths — so the gateway contract is "same paths, one port":
 # path prefixes below are forwarded verbatim, only the upstream host changes.
 #
-# Step 4: the problem aggregate is extracted to `problem-service` (:8082);
-# the evaluation pipeline is on `evaluation-service` (:8083). Everything else
-# still lands on the monolith (`app` on :8081) until Step 5 renames it to
-# source-service.
+# Step 5 (final): all three services are standalone, each on its own DB.
+#   source-service (:8081)   — auth/identity, source registration & accounts
+#   problem-service (:8082)  — problems, domains, problem-scoped audit
+#   evaluation-service (:8083) — evaluation pipeline
+# The old monolith (`app`) is retired.
+#
+# Every public endpoint must be listed as BOTH the bare prefix and the `/*` glob:
+# Caddy's `path` matcher treats `/x/*` as "under /x/" and does NOT match the bare
+# `/x`, and several endpoints ARE bare (POST /registration, GET /reviewer/registrations,
+# GET /source/accounts, GET /audit, GET /domains, GET /problems).
+#
+# /internal/** endpoints are NOT routed here — services call each other directly
+# on their own ports.
 
 :8080 {
 	encode gzip
 
-	# --- source-service route set (auth, users, source registration & accounts) ---
-	@source path /auth/* /users/* /registration/* /reviewer/registrations/* /source/accounts/* /sources/*
+	# --- source-service route set (auth, users, source registration & accounts).
+	#     Explicit even though the fallback below is also source-service, so the
+	#     intent is documented and the routing is robust to a future default change. ---
+	@source path /auth /auth/* /users /users/* /registration /registration/* /reviewer/registrations /reviewer/registrations/* /source/accounts /source/accounts/* /sources /sources/*
 	handle @source {
-		reverse_proxy app:8081
+		reverse_proxy source-service:8081
 	}
 
 	# --- problem-service route set (domains, problems, problem-scoped audit) ---
@@ -25,14 +36,14 @@
 	}
 
 	# --- evaluation-service route set ---
-	@evaluation path /evaluation/*
+	@evaluation path /evaluation /evaluation/*
 	handle @evaluation {
 		reverse_proxy evaluation-service:8083
 	}
 
 	# --- everything else (swagger-ui, /v3/api-docs, /error, OPTIONS preflight,
-	#     any unclaimed prefix) still goes to the monolith at this step. ---
+	#     any unclaimed prefix) falls through to source-service. ---
 	handle {
-		reverse_proxy app:8081
+		reverse_proxy source-service:8081
 	}
 }

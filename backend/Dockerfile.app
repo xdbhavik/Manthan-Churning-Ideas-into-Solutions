@@ -4,11 +4,11 @@
 #   docker compose up -d --build
 #
 # The jar to embed is chosen per service with the JAR_FILE build arg
-# (see docker-compose.yml); the default is the monolith app jar.
+# (see docker-compose.yml); the default is the source-service jar.
 FROM eclipse-temurin:21-jre
 
 WORKDIR /app
-ARG JAR_FILE=app/target/app-0.0.1-SNAPSHOT.jar
+ARG JAR_FILE=source-service/target/source-service-0.0.1-SNAPSHOT.jar
 COPY ${JAR_FILE} /app/app.jar
 
 EXPOSE 8081 8083

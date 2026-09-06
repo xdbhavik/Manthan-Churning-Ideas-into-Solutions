@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/sih26043
+    url: jdbc:postgresql://localhost:5432/sih_source
     username: sih
     password: sih
   jpa:
@@ -22,6 +22,4 @@ app:
     max-attempts: 3
     max-requests-per-phone-per-hour: 5
     mock-code: "123456"
-  evidence:
-    storage-dir: ./data/evidence
   identity-pepper: local-dev-only-identity-pepper-change-me

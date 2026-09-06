@@ -10,6 +10,4 @@ app:
     max-attempts: 3
     max-requests-per-phone-per-hour: 5
     mock-code: "123456"
-  evidence:
-    storage-dir: ./target/test-evidence
   identity-pepper: test-only-identity-pepper
