@@ -1,0 +1,38 @@
+# SIH26043 gateway (Caddy 2, static L7 reverse proxy).
+#
+# The frontends call a configurable baseUrl (default http://localhost:8080) with
+# RELATIVE API paths — so the gateway contract is "same paths, one port":
+# path prefixes below are forwarded verbatim, only the upstream host changes.
+#
+# Step 2: every route still lands on the monolith (`app` on :8081). As the
+# strangler extracts services, point each matcher group's `reverse_proxy` at
+# that service's compose name (source-service/problem-service/evaluation-service)
+# and delete the default catch-all once all prefixes are claimed.
+
+:8080 {
+	encode gzip
+
+	# --- source-service route set (auth, users, source registration & accounts) ---
+	@source path /auth/* /users/* /registration/* /reviewer/registrations/* /source/accounts/* /sources/*
+	handle @source {
+		reverse_proxy app:8081
+	}
+
+	# --- problem-service route set (domains, problems, problem-scoped audit) ---
+	@problem path /domains /domains/* /problems /problems/* /audit*
+	handle @problem {
+		reverse_proxy app:8081
+	}
+
+	# --- evaluation-service route set ---
+	@evaluation path /evaluation/*
+	handle @evaluation {
+		reverse_proxy app:8081
+	}
+
+	# --- everything else (swagger-ui, /v3/api-docs, /error, OPTIONS preflight,
+	#     any unclaimed prefix) still goes to the monolith at this step. ---
+	handle {
+		reverse_proxy app:8081
+	}
+}

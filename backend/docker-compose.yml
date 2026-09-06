@@ -1,0 +1,71 @@
+# SIH26043 demo stack.
+#
+# Step 2 topology:
+#   gateway (:8080, Caddy)  ──►  app (:8081, monolith Spring Boot)
+#                                    │
+#                                    └──►  db (:5432, PostGIS)
+#
+# The app image is a THIN wrapper over the pre-built fat jar, so you must
+# (re)package before building:
+#     ./mvnw -DskipTests package
+#     docker compose up -d --build
+#
+# Secrets default to the local-dev values for a SIH demo; override via a
+# sibling `.env` file (see compose env substitution below).
+
+name: sih26043
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: sih26043-pg
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-sih}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-sih}
+      POSTGRES_DB: sih26043
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-sih} -d sih26043"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    image: sih26043-app:step2
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: "8081"
+      DB_URL: jdbc:postgresql://db:5432/sih26043
+      DB_USERNAME: ${DB_USERNAME:-sih}
+      DB_PASSWORD: ${DB_PASSWORD:-sih}
+      JWT_SECRET: ${JWT_SECRET:-local-dev-only-secret-key-min-32-bytes-change-me!!}
+      MOCK_OTP_CODE: ${MOCK_OTP_CODE:-123456}
+      IDENTITY_PEPPER: ${IDENTITY_PEPPER:-local-dev-only-identity-pepper-change-me}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      EVIDENCE_STORAGE_DIR: /data/evidence
+    ports:
+      - "8081:8081"
+    volumes:
+      - evidence:/data/evidence
+
+  gateway:
+    image: caddy:2
+    container_name: sih26043-gateway
+    depends_on:
+      - app
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./gateway/Caddyfile:/etc/caddy/Caddyfile:ro
+
+volumes:
+  pgdata:
+  evidence:
