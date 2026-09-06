@@ -31,6 +31,10 @@ app:
   # Where problem-service (Step 4+) serves GET /internal/problems/{id}.
   problem-service:
     base-url: ${PROBLEM_SERVICE_URL:http://localhost:8082}
+  # Phase 2 routing: how many days an ASSIGNED evaluator has before the lazy
+  # deadline expires. Deadlines are enforced on read/submit, not by a scheduler.
+  evaluation:
+    assignment-deadline-days: 7
   llm:
     # Anthropic Claude SDK (Phase 2 problem analysis). Empty key → heuristic
     # fallback; the service must boot and the pipeline must route without a key.

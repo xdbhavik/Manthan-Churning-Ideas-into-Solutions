@@ -9,10 +9,12 @@ import com.EDITH.SIH26043.repository.EvaluationCycleRepository;
 import com.EDITH.SIH26043.repository.EvaluationStatusHistoryRepository;
 import com.EDITH.SIH26043.security.AuthUser;
 import com.EDITH.SIH26043.service.EvaluationIntakeService;
+import com.EDITH.SIH26043.service.EvaluationRoutingService;
 import com.EDITH.SIH26043.service.ProblemAnalysisService;
 import com.EDITH.SIH26043.web.dto.EvaluationCycleResponse;
 import com.EDITH.SIH26043.web.dto.EvaluationStatusHistoryResponse;
 import com.EDITH.SIH26043.web.dto.ProblemAnalysisResponse;
+import com.EDITH.SIH26043.web.dto.RouteOutcomeResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -47,15 +49,18 @@ public class EvaluationAdminController {
 
     private final EvaluationIntakeService intakeService;
     private final ProblemAnalysisService analysisService;
+    private final EvaluationRoutingService routingService;
     private final EvaluationCycleRepository cycleRepository;
     private final EvaluationStatusHistoryRepository historyRepository;
 
     public EvaluationAdminController(EvaluationIntakeService intakeService,
                                      ProblemAnalysisService analysisService,
+                                     EvaluationRoutingService routingService,
                                      EvaluationCycleRepository cycleRepository,
                                      EvaluationStatusHistoryRepository historyRepository) {
         this.intakeService = intakeService;
         this.analysisService = analysisService;
+        this.routingService = routingService;
         this.cycleRepository = cycleRepository;
         this.historyRepository = historyRepository;
     }
@@ -83,13 +88,35 @@ public class EvaluationAdminController {
                     returns unusable JSON, a deterministic heuristic profile is stored instead,
                     so the pipeline never blocks on the network. The profile is advisory: it
                     never contributes to the evaluation score. Idempotent — re-running replaces
-                    the existing profile. Advances the cycle to ROUTING.""")
+                    the existing profile. Advances the cycle to ROUTING and, when a matching
+                    evaluator has capacity, immediately routes it (auto-route).""")
     @PostMapping("/cycles/{cycleId}/analyze")
     public ProblemAnalysisResponse analyze(@PathVariable UUID cycleId,
                                            @AuthenticationPrincipal AuthUser me,
                                            HttpServletRequest http) {
-        return ProblemAnalysisResponse.from(
+        ProblemAnalysisResponse response = ProblemAnalysisResponse.from(
                 analysisService.analyze(cycleId, me.getUserId(), clientIp(http)));
+        // Auto-route: analysis has just moved the cycle to ROUTING, so try to hand the
+        // problem to the least-loaded evaluator of the matching pool now. This is a separate
+        // transaction from analysis, so a routing no-op/failure cannot roll back the
+        // committed profile. No candidate keeps the cycle at ROUTING — retry via POST …/route.
+        routingService.route(cycleId, me.getUserId(), clientIp(http));
+        return response;
+    }
+
+    @Operation(
+            summary = "📤 Route to an evaluator",
+            description = """
+                    Hands the problem to the least-loaded active evaluator of the pool that
+                    matches its origin bucket (GOVT→GOVERNMENT, INDUSTRY→INDUSTRY, …). Exactly
+                    one ASSIGNED assignment is created and the cycle moves ROUTING →
+                    EVALUATION_IN_PROGRESS. Idempotent no-op when the cycle is not ROUTING.
+                    Use this to retry when an earlier analyze auto-route found no candidate.""")
+    @PostMapping("/cycles/{cycleId}/route")
+    public RouteOutcomeResponse route(@PathVariable UUID cycleId,
+                                      @AuthenticationPrincipal AuthUser me,
+                                      HttpServletRequest http) {
+        return routingService.route(cycleId, me.getUserId(), clientIp(http));
     }
 
     @Operation(summary = "🔎 Cycle detail", description = "Current state of an evaluation cycle.")
