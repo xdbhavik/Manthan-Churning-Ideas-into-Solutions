@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIH26043 · Admin Console</title>
+<link rel="stylesheet" href="actor.css">
+</head>
+<body data-actor="ADMIN">
+
+<header>
+  <h1>🧪 SIH26043 Test Console <span class="who">· Admin</span></h1>
+  <label>Base URL</label>
+  <input id="baseUrl" style="width:200px">
+  <button class="btn" onclick="saveBase()">Save</button>
+  <span id="roleBadge" class="badge"></span>
+  <div style="flex:1 1 100%;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <label>JWT</label>
+    <input id="token" style="flex:1;min-width:200px;font-family:monospace;font-size:11px" placeholder="admin access token">
+    <button class="btn sm" onclick="saveToken()">Save</button>
+    <button class="btn sm err" onclick="clearTokens()">Clear</button>
+  </div>
+</header>
+
+<nav class="personas">
+  <a data-actor="SUBMITTER" href="submitter.html">🙋 Submitter</a>
+  <a data-actor="REVIEWER" href="reviewer.html">🔍 Reviewer</a>
+  <a data-actor="ADMIN" href="admin.html">🛡️ Admin</a>
+</nav>
+
+<main>
+  <div class="left">
+    <div id="roleNote" class="role-note"></div>
+
+    <!-- ======= AUTH (admin account) ======= -->
+    <div class="card">
+      <h3>Login (admin OTP token)</h3>
+      <div class="hint">Test ADMIN accounts: <code>9618273001</code> · <code>9617935001</code>. Nahi hai to kisi ko DB me <code>ADMIN</code> bana lo, phir login.</div>
+      <div class="row"><label>Phone</label><input id="aPhone" placeholder="9618273001" value="9618273001"></div>
+      <div class="row"><label>Email</label><input id="aEmail" placeholder="optional"></div>
+      <div class="row">
+        <button class="btn primary" onclick="auth('login')">Login</button>
+        <button class="btn" onclick="auth('register')">Register</button>
+      </div>
+      <div class="row"><label>challengeId</label><input id="aChallenge"></div>
+      <div class="row"><label>Code</label><input id="aCode"></div>
+      <div class="row">
+        <button class="btn primary" onclick="verifyOtp()">Verify OTP</button>
+        <button class="btn warn" onclick="useDevOtp()">Use devOtp</button>
+      </div>
+      <div class="row"><label>refreshToken</label><input id="aRefresh" class="fill"></div>
+      <div class="row"><button class="btn" onclick="refreshTok()">Refresh</button><button class="btn" onclick="logout()">Logout</button></div>
+    </div>
+
+    <!-- ======= USER MGMT ======= -->
+    <div class="card">
+      <h3>User lookup</h3>
+      <div class="row"><label>userId</label><input id="admUserId" class="fill"></div>
+      <div class="row"><button class="btn" onclick="admGetUser()">Get user</button></div>
+    </div>
+
+    <div class="card">
+      <h3>Change role</h3>
+      <div class="hint">Kisi submitter ko REVIEWER banana / hatana. Role DB me turant reflect hota hai (JWT claim re-read hota hai har request par) — <b>re-login ki zaroorat nahi</b> naye role ke liye.</div>
+      <div class="row"><label>userId</label><input id="admRoleUserId" class="fill"></div>
+      <div class="row">
+        <label>New role</label>
+        <select id="admRole" style="flex:1"><option>SUBMITTER</option><option>REVIEWER</option><option>ADMIN</option></select>
+        <button class="btn warn" onclick="admChangeRole()">Change role</button>
+      </div>
+    </div>
+
+    <!-- ======= AUDIT ======= -->
+    <div class="card">
+      <h3>Audit trail (per problem)</h3>
+      <div class="row"><label>problemId</label><input id="audPid" class="fill"></div>
+      <div class="row"><button class="btn" onclick="auditGet()">Get audit log</button></div>
+    </div>
+
+    <!-- ======= ADMIN note ======= -->
+    <div class="card">
+      <h3>Admin = Reviewer bhi</h3>
+      <div class="hint">ADMIN ko sab REVIEWER endpoints bhi allowed hain (approve/reject/action/verify). Review karne ke liye <a href="reviewer.html" style="color:var(--accent)">Reviewer page</a> kholo — token alag hai, par ADMIN token bhi chalega.</div>
+    </div>
+
+    <!-- ======= RAW ======= -->
+    <div class="card">
+      <h3>Raw (any endpoint with this admin token)</h3>
+      <div class="row">
+        <select id="rawMethod" class="sm2">
+          <option>GET</option><option>POST</option><option>PATCH</option><option>PUT</option><option>DELETE</option>
+        </select>
+        <input id="rawPath" class="fill" placeholder="/users/{id}">
+      </div>
+      <div class="row"><label>Body</label><textarea id="rawBody" spellcheck="false">{}</textarea></div>
+      <div class="row"><button class="btn" onclick="rawSend()">Send</button></div>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="card" style="position:sticky;top:0">
+      <div class="statusbar"><span id="outReq">—</span><span id="outStatus" class="badge">no request yet</span></div>
+      <pre id="out" class="out">Response yahan aayega…</pre>
+    </div>
+  </div>
+</main>
+
+<script src="actor-core.js"></script>
+<script>
+/* ---------- admin ops ---------- */
+async function admGetUser(){show('GET /users/'+$('admUserId').value.trim(),await api('GET','/users/'+$('admUserId').value.trim()));}
+async function admChangeRole(){const id=$('admRoleUserId').value.trim();
+  show('PATCH /users/'+id+'/role',await api('PATCH','/users/'+id+'/role',{body:{role:$('admRole').value}}));}
+async function auditGet(){show('GET /audit/'+$('audPid').value.trim(),await api('GET','/audit/'+$('audPid').value.trim()));}
+</script>
+</body>
+</html>

@@ -35,8 +35,8 @@ public class SourceTypeCatalog {
             Map.entry(SubEntityType.MSME, List.of("companyName", "udyamRegistrationNumber")),
             Map.entry(SubEntityType.CSR, List.of("companyName")),
             Map.entry(SubEntityType.NGO, List.of("organizationName")),
-            Map.entry(SubEntityType.SHG, List.of("organizationName")),
-            Map.entry(SubEntityType.CBO_COOP, List.of("organizationName")),
+            Map.entry(SubEntityType.SHG, List.of("organizationName", "shgName")),
+            Map.entry(SubEntityType.CBO_COOP, List.of("organizationName", "orgType")),
             Map.entry(SubEntityType.UNIVERSITY, List.of("institutionName")),
             Map.entry(SubEntityType.RESEARCH_LAB, List.of("institutionName"))
     );
@@ -93,15 +93,20 @@ public class SourceTypeCatalog {
 
     /** Rejects submit when any mandatory payload key is absent/blank. */
     public void validatePayload(SubEntityType type, Map<String, Object> payload) {
-        List<String> missing = requiredFields(type).stream()
-                .filter(field -> payload == null
-                        || payload.get(field) == null
-                        || String.valueOf(payload.get(field)).isBlank())
-                .toList();
+        List<String> missing = missingRequired(type, payload);
         if (!missing.isEmpty()) {
             throw new ApiException(HttpStatus.BAD_REQUEST,
                     "Missing required fields for " + type + ": " + String.join(", ", missing));
         }
+    }
+
+    /** Mandatory payload keys that are absent/blank — shared by the submit gate and the approve-time guard. */
+    public List<String> missingRequired(SubEntityType type, Map<String, Object> payload) {
+        return requiredFields(type).stream()
+                .filter(field -> payload == null
+                        || payload.get(field) == null
+                        || String.valueOf(payload.get(field)).isBlank())
+                .toList();
     }
 
     private List<String> requiredFields(SubEntityType type) {

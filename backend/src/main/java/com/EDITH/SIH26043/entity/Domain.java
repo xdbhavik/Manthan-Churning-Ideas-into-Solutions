@@ -1,5 +1,6 @@
 package com.EDITH.SIH26043.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -32,6 +33,11 @@ public class Domain {
     @Column(name = "description", columnDefinition = "text")
     private String description;
 
+    /**
+     * Not serialized: the tree response nests children, so emitting the parent
+     * too makes the graph cyclic and overruns Jackson's nesting depth limit.
+     */
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "parent_domain_id")
     private Domain parentDomain;

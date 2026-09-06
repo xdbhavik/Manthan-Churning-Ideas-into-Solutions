@@ -1,0 +1,50 @@
+/* SIH26043 Actor-based test consoles — shared look (mirror of test-ui palette) */
+:root {
+  --bg:#0f1419; --panel:#171e26; --panel2:#1d2731; --border:#2a3642;
+  --text:#d7e2ec; --muted:#8ba0b2; --accent:#3b82f6; --ok:#22c55e;
+  --warn:#f59e0b; --err:#ef4444;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 "Segoe UI",system-ui,sans-serif}
+header{padding:12px 18px;background:var(--panel);border-bottom:1px solid var(--border);
+  display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+header h1{font-size:16px;margin:0 12px 0 0;color:#fff}
+header h1 .who{color:var(--accent)}
+header label{color:var(--muted);font-size:12px}
+header input,header button,select,textarea,.btn{background:var(--panel2);color:var(--text);
+  border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:13px;font-family:inherit}
+header input:focus,select:focus,textarea:focus{outline:1px solid var(--accent)}
+.btn{cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.ok{border-color:var(--ok);color:var(--ok)}
+.btn.warn{border-color:var(--warn);color:var(--warn)}
+.btn.err{border-color:var(--err);color:var(--err)}
+.btn.sm{padding:2px 8px;font-size:12px}
+.badge{font-size:11px;padding:2px 8px;border-radius:10px;border:1px solid var(--border);color:var(--muted)}
+nav.personas{display:flex;gap:2px;background:#10161c;border-bottom:1px solid var(--border);padding:0 12px;overflow-x:auto}
+nav.personas a{color:var(--muted);text-decoration:none;padding:9px 14px;font-size:13px;
+  border-bottom:2px solid transparent;white-space:nowrap}
+nav.personas a:hover{color:#fff}
+nav.personas a.active{color:#fff;border-bottom-color:var(--accent)}
+main{display:flex;gap:14px;padding:14px;height:calc(100vh - 150px);min-height:420px}
+.left{flex:1;overflow-y:auto;padding-right:4px}
+.right{flex:1;overflow-y:auto}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px}
+.card h3{margin:0 0 10px;font-size:13px;color:#fff;text-transform:uppercase;letter-spacing:.5px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;align-items:center}
+.row label{font-size:12px;color:var(--muted);min-width:90px}
+.row input,.row select,.row textarea{flex:1;min-width:150px}
+.row textarea{font-family:monospace;font-size:12px;min-height:90px;resize:vertical}
+.row .fill{flex:1;min-width:150px}
+.row .sm2{flex:0 0 110px}
+.hint{font-size:12px;color:var(--muted);margin:4px 0 10px}
+.hint code{background:var(--panel2);padding:1px 5px;border-radius:4px;font-size:11px}
+.out{font-family:"Cascadia Code",Consolas,monospace;font-size:12px;white-space:pre-wrap;word-break:break-word}
+.statusbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.ok{color:var(--ok)} .err{color:var(--err)} .warn{color:var(--warn)}
+hr{border:none;border-top:1px solid var(--border);margin:12px 0}
+.role-note{border-left:3px solid var(--warn);background:var(--panel2);padding:8px 10px;
+  font-size:12px;color:var(--text);margin:0 0 12px;border-radius:4px}
+.role-ok{border-left-color:var(--ok)}
+.role-wrong{border-left-color:var(--err)}

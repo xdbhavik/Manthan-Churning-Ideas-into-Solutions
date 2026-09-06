@@ -46,3 +46,27 @@ app:
   # DEVIATION from design docs (which specify bare SHA-256): a 12-digit
   # Aadhaar is brute-forceable against a plain hash; pepper prevents it.
   identity-pepper: ${IDENTITY_PEPPER:}
+  llm:
+    # Anthropic Claude SDK (Phase 2 problem analysis). Empty key → heuristic
+    # fallback; the app must boot and the pipeline must route without a key.
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY:}
+      model: ${ANTHROPIC_MODEL:claude-opus-5}
+      max-tokens: 16000
+      timeout-seconds: 60
+      max-retries: 1
+  evaluation:
+    deadline-days: 7
+    disagreement-threshold: 2.0
+    min-submissions-for-aggregation: 5
+    comment-required-below-score: 4
+    priority:
+      p1-min: 90.0
+      p2-min: 75.0
+      p3-min: 50.0
+      weights:
+        final-score: 0.50
+        severity: 0.20
+        urgency: 0.15
+        population: 0.10
+        social-impact: 0.05

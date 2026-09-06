@@ -45,19 +45,22 @@ public class RegistrationReviewService {
     private final SourceAccountRepository sourceAccountRepository;
     private final UserRepository userRepository;
     private final SourceMapper sourceMapper;
+    private final SourceTypeCatalog sourceTypeCatalog;
 
     public RegistrationReviewService(SourceRegistrationRepository registrationRepository,
                                      RegistrationStatusHistoryRepository historyRepository,
                                      ProblemSourceRepository sourceRepository,
                                      SourceAccountRepository sourceAccountRepository,
                                      UserRepository userRepository,
-                                     SourceMapper sourceMapper) {
+                                     SourceMapper sourceMapper,
+                                     SourceTypeCatalog sourceTypeCatalog) {
         this.registrationRepository = registrationRepository;
         this.historyRepository = historyRepository;
         this.sourceRepository = sourceRepository;
         this.sourceAccountRepository = sourceAccountRepository;
         this.userRepository = userRepository;
         this.sourceMapper = sourceMapper;
+        this.sourceTypeCatalog = sourceTypeCatalog;
     }
 
     @Transactional(readOnly = true)
@@ -98,6 +101,20 @@ public class RegistrationReviewService {
     public SourceRegistration approve(UUID registrationId, User reviewer, String comment) {
         SourceRegistration reg = load(registrationId);
         requireDecidable(reg, "approved");
+
+        // Guard against 500s: the submit-time gate (SourceTypeCatalog.REQUIRED_FIELDS)
+        // is thinner than the NOT NULL columns materialization needs. Older/incomplete
+        // payloads in the queue fail here with a clean, actionable error instead of a
+        // DataIntegrityViolationException deep inside the INSERT.
+        List<String> missing = sourceTypeCatalog.missingRequired(
+                reg.getSourceType(), reg.getSourcePayload());
+        if (!missing.isEmpty()) {
+            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "Cannot approve " + reg.getSourceType() + " registration: source payload is missing "
+                            + "field(s) required to materialize the source account: "
+                            + String.join(", ", missing)
+                            + ". Send it back as ACTION_REQUIRED so the owner can add them.");
+        }
 
         ProblemSource source = sourceMapper.materialize(
                 reg.getSourceType(), reg.getSourceBucket(), reg.getSourcePayload());

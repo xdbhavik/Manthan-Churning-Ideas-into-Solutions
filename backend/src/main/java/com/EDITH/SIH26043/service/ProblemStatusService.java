@@ -28,13 +28,22 @@ public class ProblemStatusService {
         this.auditService = auditService;
     }
 
-    private static final Map<ProblemStatus, EnumSet<ProblemStatus>> ALLOWED = Map.of(
-            ProblemStatus.SUBMITTED, EnumSet.of(
-                    ProblemStatus.SOURCE_VERIFYING, ProblemStatus.REJECTED, ProblemStatus.ARCHIVED),
-            ProblemStatus.SOURCE_VERIFYING, EnumSet.of(
-                    ProblemStatus.SOURCE_VERIFIED, ProblemStatus.REJECTED),
-            ProblemStatus.SOURCE_VERIFIED, EnumSet.of(
-                    ProblemStatus.REGISTERED, ProblemStatus.SUBMITTED)
+    private static final Map<ProblemStatus, EnumSet<ProblemStatus>> ALLOWED = Map.ofEntries(
+            Map.entry(ProblemStatus.SUBMITTED, EnumSet.of(
+                    ProblemStatus.SOURCE_VERIFYING, ProblemStatus.REJECTED, ProblemStatus.ARCHIVED)),
+            Map.entry(ProblemStatus.SOURCE_VERIFYING, EnumSet.of(
+                    ProblemStatus.SOURCE_VERIFIED, ProblemStatus.REJECTED)),
+            Map.entry(ProblemStatus.SOURCE_VERIFIED, EnumSet.of(
+                    ProblemStatus.REGISTERED, ProblemStatus.SUBMITTED, ProblemStatus.REJECTED)),
+            // Registered (triage complete) → can be escalated further, closed, or sent back
+            Map.entry(ProblemStatus.REGISTERED, EnumSet.of(
+                    ProblemStatus.SUBMITTED, ProblemStatus.ARCHIVED, ProblemStatus.REJECTED)),
+            // Rejected by reviewer → submitter may withdraw, or admin can archive / send back
+            Map.entry(ProblemStatus.REJECTED, EnumSet.of(
+                    ProblemStatus.SUBMITTED, ProblemStatus.ARCHIVED)),
+            // Archived (soft delete) → can be restored for re-review
+            Map.entry(ProblemStatus.ARCHIVED, EnumSet.of(
+                    ProblemStatus.SUBMITTED, ProblemStatus.REJECTED))
     );
 
     @Transactional

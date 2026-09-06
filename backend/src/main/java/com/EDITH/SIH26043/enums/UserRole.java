@@ -7,5 +7,7 @@ package com.EDITH.SIH26043.enums;
 public enum UserRole {
     SUBMITTER,
     REVIEWER,
-    ADMIN
+    ADMIN,
+    /** Phase 2: real-user evaluator who scores problems via the dashboard. */
+    EVALUATOR
 }

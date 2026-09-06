@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIH26043 · Registration Wizard</title>
+<link rel="stylesheet" href="wizard.css">
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="logo">🏛️</span>
+    <h1>Source Registration <span>· SIH26043 Problem Collection</span></h1>
+  </div>
+  <div class="hdr-actions">
+    <label>API base</label>
+    <input id="baseUrl" value="http://localhost:8080">
+    <button id="btnBase" class="btn">Save</button>
+    <span id="roleBadge" class="badge"></span>
+  </div>
+</header>
+
+<!-- ============ STEPPER ============ -->
+<nav id="stepper">
+  <ol>
+    <li data-step="0"><span class="num">1</span> Who you are</li>
+    <li data-step="1"><span class="num">2</span> Details form</li>
+    <li data-step="2"><span class="num">3</span> Account &amp; documents</li>
+    <li data-step="3"><span class="num">4</span> Review &amp; create</li>
+    <li data-step="4"><span class="num">5</span> Verify &amp; submit</li>
+  </ol>
+</nav>
+
+<main>
+
+  <!-- ============ STEP 0 : CHOOSE SOURCE ============ -->
+  <section class="panel" id="panel-step0">
+    <h2>Step 1 · Who is registering?</h2>
+    <p class="sub">Pick the bucket, then the exact type. Each type has its own full registration form.</p>
+    <div id="bucketList" class="bucket-grid"></div>
+    <div id="typeList" class="type-grid" hidden></div>
+  </section>
+
+  <!-- ============ STEP 1 : DETAILS FORM ============ -->
+  <section class="panel" id="panel-step1" hidden>
+    <h2>Step 2 · Details <span id="typeTitle" class="chosen"></span></h2>
+    <p class="sub" id="typeTag"></p>
+    <form id="detailForm" autocomplete="off"></form>
+    <div class="btnrow">
+      <button class="btn" data-go="0">← Back</button>
+      <button class="btn primary" id="btnToAccount">Save &amp; continue →</button>
+    </div>
+  </section>
+
+  <!-- ============ STEP 2 : ACCOUNT + DOCUMENTS ============ -->
+  <section class="panel" id="panel-step2" hidden>
+    <h2>Step 3 · Account &amp; documents</h2>
+    <p class="sub">The phone number becomes your login identity (OTP). Documents help verify the source.</p>
+    <div class="card">
+      <h3>Contact / login</h3>
+      <div class="row"><label>Phone (10-digit) *</label><input id="acctPhone" placeholder="9876543210"></div>
+      <div class="row"><label>Email</label><input id="acctEmail" placeholder="you@example.org"></div>
+    </div>
+    <div class="card">
+      <h3>Supporting documents</h3>
+      <p class="mini">e.g. authorization letter, registration certificate. Optional at draft stage.</p>
+      <div id="docRows"></div>
+      <div class="row">
+        <button class="btn" id="btnAddDoc">+ Add document</button>
+      </div>
+    </div>
+    <div class="btnrow">
+      <button class="btn" data-go="1">← Back</button>
+      <button class="btn primary" id="btnToReview">Continue →</button>
+    </div>
+  </section>
+
+  <!-- ============ STEP 3 : REVIEW & CREATE ============ -->
+  <section class="panel" id="panel-step3" hidden>
+    <h2>Step 4 · Review &amp; create draft</h2>
+    <div id="reviewOut" class="review"></div>
+    <div class="btnrow">
+      <button class="btn" data-go="2">← Back</button>
+      <button class="btn primary" id="btnCreate">Create registration (draft)</button>
+    </div>
+    <div id="apiOut" class="api-out" hidden></div>
+  </section>
+
+  <!-- ============ STEP 4 : VERIFY OTP + SUBMIT ============ -->
+  <section class="panel" id="panel-step4" hidden>
+    <h2>Step 5 · Verify OTP &amp; submit</h2>
+    <p class="sub">Creating the draft issued an OTP to your phone. In dev mode the code is shown in the
+    response — paste it below to log in as the registration owner, then submit for review.</p>
+    <div class="card">
+      <h3>Verify OTP → own the registration</h3>
+      <div class="row"><label>challengeId</label><input id="otpChallenge" class="mono"></div>
+      <div class="row"><label>Code</label><input id="otpCode" class="mono"></div>
+      <div class="row"><button class="btn primary" id="btnVerify">Verify OTP</button></div>
+      <div class="mini" id="otpHint"></div>
+    </div>
+    <div class="card" id="submitCard" hidden>
+      <h3>Submit for review</h3>
+      <p id="regLine"></p>
+      <div class="btnrow"><button class="btn primary" id="btnSubmit">Submit registration</button></div>
+    </div>
+    <div id="apiOut2" class="api-out" hidden></div>
+  </section>
+
+  <!-- ============ STATUS / TIMELINE ============ -->
+  <section class="panel" id="panel-status" hidden>
+    <h2>Registration status</h2>
+    <div id="statusCard"></div>
+    <p class="mini">Reviewer hint: flip a user's role in the DB to test review —
+      <code>docker exec sih26043-pg psql -U sih -d sih26043 -c "UPDATE users SET role='REVIEWER' WHERE phone='&lt;phone&gt;';"</code></p>
+    <div class="btnrow">
+      <button class="btn" id="btnRefreshStatus">↻ Refresh status</button>
+      <button class="btn" id="btnReset">+ New registration</button>
+    </div>
+  </section>
+
+</main>
+
+<footer>SIH26043 · Phase 1 registration wizard · static demo (no build). Raw endpoint console: <code>test-ui/index.html</code></footer>
+
+<script src="field-schemas.js"></script>
+<script src="wizard-app.js"></script>
+</body>
+</html>

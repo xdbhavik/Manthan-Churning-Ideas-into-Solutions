@@ -3,12 +3,15 @@ package com.EDITH.SIH26043.service;
 import com.EDITH.SIH26043.entity.RegistrationStatusHistory;
 import com.EDITH.SIH26043.entity.SourceRegistration;
 import com.EDITH.SIH26043.entity.User;
+import com.EDITH.SIH26043.enums.KycStatus;
 import com.EDITH.SIH26043.enums.RegistrationStatus;
 import com.EDITH.SIH26043.enums.SubEntityType;
 import com.EDITH.SIH26043.enums.UserRole;
 import com.EDITH.SIH26043.exception.ApiException;
 import com.EDITH.SIH26043.repository.RegistrationStatusHistoryRepository;
 import com.EDITH.SIH26043.repository.SourceRegistrationRepository;
+import com.EDITH.SIH26043.repository.UserRepository;
+import com.EDITH.SIH26043.web.dto.RegistrationCreateRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,28 +32,60 @@ public class RegistrationService {
     private final SourceRegistrationRepository registrationRepository;
     private final RegistrationStatusHistoryRepository historyRepository;
     private final SourceTypeCatalog catalog;
+    private final UserRepository userRepository;
+    private final OtpService otpService;
 
     public RegistrationService(SourceRegistrationRepository registrationRepository,
                                RegistrationStatusHistoryRepository historyRepository,
-                               SourceTypeCatalog catalog) {
+                               SourceTypeCatalog catalog,
+                               UserRepository userRepository,
+                               OtpService otpService) {
         this.registrationRepository = registrationRepository;
         this.historyRepository = historyRepository;
         this.catalog = catalog;
+        this.userRepository = userRepository;
+        this.otpService = otpService;
     }
 
+    /**
+     * Public registration: creates the user account if needed, then creates
+     * the registration and sends an OTP so the user can verify and login.
+     */
     @Transactional
-    public SourceRegistration create(SubEntityType sourceType, Map<String, Object> payload, User owner) {
+    public SourceRegistration create(RegistrationCreateRequest req) {
+        User user = userRepository.findByPhone(req.account().phone())
+                .orElseGet(() -> createUser(req.account()));
+
+        Map<String, Object> payload = new HashMap<>(req.source());
+        if (req.documents() != null && !req.documents().isEmpty()) {
+            payload.put("documents", req.documents());
+        }
+
         SourceRegistration reg = new SourceRegistration();
-        reg.setSourceType(sourceType);
-        reg.setSourceBucket(catalog.bucketOf(sourceType));
-        reg.setSourcePayload(payload == null ? new HashMap<>() : new HashMap<>(payload));
-        reg.setSubmittedByUserId(owner.getUserId());
+        reg.setSourceType(req.sourceType());
+        reg.setSourceBucket(catalog.bucketOf(req.sourceType()));
+        reg.setSourcePayload(payload);
+        reg.setSubmittedByUserId(user.getUserId());
         reg.setStatus(RegistrationStatus.DRAFT);
         SourceRegistration saved = registrationRepository.save(reg);
 
         historyRepository.save(entry(saved, null, RegistrationStatus.DRAFT,
-                owner.getUserId(), "Draft created"));
+                user.getUserId(), "Draft created"));
+
+        otpService.issue(req.account().phone());
+
         return saved;
+    }
+
+    private User createUser(RegistrationCreateRequest.AccountPayload account) {
+        User user = new User();
+        user.setUserId(UUID.randomUUID());
+        user.setPhone(account.phone());
+        user.setEmail(account.email());
+        user.setRole(UserRole.SUBMITTER);
+        user.setKycStatus(KycStatus.UNVERIFIED);
+        user.setCreatedAt(Instant.now());
+        return userRepository.save(user);
     }
 
     @Transactional
@@ -111,6 +146,12 @@ public class RegistrationService {
         SourceRegistration reg = load(registrationId);
         requireVisibleTo(reg, viewer);
         return historyRepository.findByRegistrationIdOrderByChangedAtAsc(registrationId);
+    }
+
+    /** Public status lookup: no auth required. */
+    @Transactional(readOnly = true)
+    public SourceRegistration getStatus(UUID registrationId) {
+        return load(registrationId);
     }
 
     /** Owner sees own rows; REVIEWER/ADMIN see everything (reviewer queue). */

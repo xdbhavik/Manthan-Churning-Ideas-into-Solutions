@@ -67,6 +67,9 @@ public class OtpService {
         challenge.setCreatedAt(Instant.now());
         otpRepository.save(challenge);
 
+        // Fire-and-forget SMS dispatch (placeholder today; replace with real gateway in Phase 2).
+        sendSms(phone, code);
+
         // In non-prod, expose the code so the flow is demo-able without an SMS gateway.
         return new OtpResponse(challenge.getChallengeId(), challenge.getExpiresAt(),
                 prod ? null : code, remaining);

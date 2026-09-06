@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIH26043 · Submitter Console</title>
+<link rel="stylesheet" href="actor.css">
+</head>
+<body data-actor="SUBMITTER">
+
+<header>
+  <h1>🧪 SIH26043 Test Console <span class="who">· Submitter</span></h1>
+  <label>Base URL</label>
+  <input id="baseUrl" style="width:200px">
+  <button class="btn" onclick="saveBase()">Save</button>
+  <span id="roleBadge" class="badge"></span>
+  <div style="flex:1 1 100%;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <label>JWT</label>
+    <input id="token" style="flex:1;min-width:200px;font-family:monospace;font-size:11px" placeholder="submitter access token">
+    <button class="btn sm" onclick="saveToken()">Save</button>
+    <button class="btn sm err" onclick="clearTokens()">Clear</button>
+  </div>
+</header>
+
+<nav class="personas">
+  <a data-actor="SUBMITTER" href="submitter.html">🙋 Submitter</a>
+  <a data-actor="REVIEWER" href="reviewer.html">🔍 Reviewer</a>
+  <a data-actor="ADMIN" href="admin.html">🛡️ Admin</a>
+</nav>
+
+<main>
+  <div class="left">
+    <div id="roleNote" class="role-note"></div>
+
+    <!-- ======= AUTH (submitter account) ======= -->
+    <div class="card">
+      <h3>Login / Register (apna OTP token)</h3>
+      <div class="row"><label>Phone</label><input id="aPhone" placeholder="9876543210"></div>
+      <div class="row"><label>Email</label><input id="aEmail" placeholder="optional"></div>
+      <div class="row">
+        <button class="btn primary" onclick="auth('register')">Register</button>
+        <button class="btn" onclick="auth('login')">Login</button>
+      </div>
+      <div class="hint">Response me <code>devOtp</code> aata hai → <b>Use devOtp</b> dabao → <b>Verify OTP</b>. Token is page ke liye alag save hota hai.</div>
+      <div class="row"><label>challengeId</label><input id="aChallenge"></div>
+      <div class="row"><label>Code</label><input id="aCode"></div>
+      <div class="row">
+        <button class="btn primary" onclick="verifyOtp()">Verify OTP</button>
+        <button class="btn warn" onclick="useDevOtp()">Use devOtp</button>
+      </div>
+      <div class="row"><label>refreshToken</label><input id="aRefresh" class="fill"></div>
+      <div class="row"><button class="btn" onclick="refreshTok()">Refresh</button><button class="btn" onclick="logout()">Logout</button></div>
+    </div>
+
+    <!-- ======= SOURCE REGISTRATION (Module A) ======= -->
+    <div class="card">
+      <h3>Source types (public) — dropdown populate</h3>
+      <div class="row"><button class="btn" onclick="loadSourceTypes()">Load source-types</button></div>
+    </div>
+
+    <div class="card">
+      <h3>Create registration (public → DRAFT)</h3>
+      <div class="row"><label>Source type</label><select id="regType" style="flex:1"><option value="">-- load source-types pehle --</option></select></div>
+      <div class="row"><label>Phone</label><input id="regPhone" placeholder="9876543210"></div>
+      <div class="row"><label>Email</label><input id="regEmail" placeholder="optional"></div>
+      <div class="row"><label>source payload</label><textarea id="regPayload" spellcheck="false">{}</textarea></div>
+      <div class="row"><label>documents (opt)</label><textarea id="regDocs" spellcheck="false" style="min-height:40px">[]</textarea></div>
+      <div class="row"><button class="btn primary" onclick="createRegistration()">Create Registration</button></div>
+    </div>
+
+    <div class="card">
+      <h3>My registration actions (owner)</h3>
+      <div class="hint">Order: create → OTP verify → <b>Submit</b>. Edit (PATCH) sirf DRAFT / ACTION_REQUIRED par. Approve tumhara kaam nahi — reviewer ka.</div>
+      <div class="row"><label>registrationId</label><input id="regId" class="fill"></div>
+      <div class="row">
+        <button class="btn" onclick="regMine()">My registrations</button>
+        <button class="btn" onclick="regGet()">Get</button>
+        <button class="btn" onclick="regStatus()">Status (public)</button>
+        <button class="btn ok" onclick="regSubmit()">Submit</button>
+        <button class="btn" onclick="regHistory()">History</button>
+      </div>
+      <div class="row"><label>Edit payload</label><textarea id="regEditPayload" spellcheck="false">{}</textarea></div>
+      <div class="row"><button class="btn warn" onclick="regUpdate()">Update (edit draft)</button></div>
+    </div>
+
+    <!-- ======= SOURCE ACCOUNTS ======= -->
+    <div class="card">
+      <h3>My verified source accounts</h3>
+      <div class="hint">Approve hone ke baad yahan account aata hai. <code>sourceAccountId</code> yahin se lo → <b>Submit problem</b> me chahiye.</div>
+      <div class="row"><button class="btn" onclick="accMine()">My accounts</button></div>
+      <div class="row"><label>sourceAccountId</label><input id="accId" class="fill"></div>
+      <div class="row"><button class="btn" onclick="accGet()">Get account</button></div>
+    </div>
+
+    <!-- ======= PROBLEM SUBMISSION (Module B) ======= -->
+    <div class="card">
+      <h3>Domains (public)</h3>
+      <div class="row"><button class="btn" onclick="loadDomains()">Load domains</button></div>
+      <div class="hint">Response se domain UUID <code>domainIds</code> me auto-fill.</div>
+    </div>
+
+    <div class="card">
+      <h3>Submit problem (POST /problems)</h3>
+      <div class="row"><label>sourceAccountId</label><input id="pAccount" class="fill" placeholder="Accounts tab se lo"></div>
+      <div class="row"><label>Title</label><input id="pTitle" class="fill" value="Road repair needed in ward 12"></div>
+      <div class="row"><label>Description</label><input id="pDesc" class="fill" value="Waterlogging every monsoon, potholes since 2 years."></div>
+      <div class="row">
+        <label>Urgency</label>
+        <select id="pUrgency" style="flex:1"><option>IMMEDIATE</option><option>SHORT_TERM</option><option>LONG_TERM</option></select>
+        <label>Severity</label>
+        <select id="pSeverity" style="flex:1"><option>CRITICAL</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select>
+      </div>
+      <div class="row"><label>Affected pop.</label><input id="pPop" class="fill" value="5000" type="number"></div>
+      <div class="row"><label>Expected outcome</label><input id="pOutcome" class="fill" value="Paved road and storm drain"></div>
+      <div class="row"><label>Existing intervention</label><input id="pExisting" class="fill"></div>
+      <div class="row"><label>State</label><input id="pState" class="fill" value="Madhya Pradesh"><label>District</label><input id="pDistrict" class="fill" value="Bhopal"></div>
+      <div class="row"><label>Block/Tehsil</label><input id="pBlock" class="fill" value="Huzur"><label>Village/Ward</label><input id="pWard" class="fill" value="Ward 12"></div>
+      <div class="row"><label>Pincode</label><input id="pPin" class="fill" value="462001">
+        <label>Lat</label><input id="pLat" class="fill" value="23.2599" type="number" step="any">
+        <label>Lng</label><input id="pLng" class="fill" value="77.4126" type="number" step="any"></div>
+      <div class="row"><label>Landmark</label><input id="pLandmark" class="fill"></div>
+      <div class="row"><label>domainIds (opt)</label><textarea id="pDomains" spellcheck="false" style="min-height:40px">[]</textarea></div>
+      <div class="row"><label>evidence (opt)</label><textarea id="pEvidence" spellcheck="false" style="min-height:40px">[]</textarea></div>
+      <div class="row"><button class="btn primary" onclick="submitProblem()">Submit problem</button></div>
+    </div>
+
+    <div class="card">
+      <h3>My problem actions (owner)</h3>
+      <div class="row"><label>problemId</label><input id="pId" class="fill"></div>
+      <div class="row"><button class="btn" onclick="probGet()">Get</button></div>
+      <hr>
+      <div class="row"><label>Evidence file</label><input id="pEvFile" type="file" class="fill"></div>
+      <div class="row">
+        <label>Type</label>
+        <select id="pEvType" style="flex:1">
+          <option>PHOTO</option><option>VIDEO</option><option>DOCUMENT</option>
+          <option>AUDIO</option><option>DATASET</option><option>LOCATION_PIN</option>
+        </select>
+        <button class="btn" onclick="uploadEvidence()">Upload evidence</button>
+      </div>
+      <div class="hint">Problem ki status change (SOURCE_VERIFYING/REGISTERED…) reviewer karta hai — Review state machine woh dekh lega. Evidence file attach kar sakte ho apne problem pe.</div>
+    </div>
+
+    <!-- ======= RAW ======= -->
+    <div class="card">
+      <h3>Raw (any endpoint with this submitter token)</h3>
+      <div class="row">
+        <select id="rawMethod" class="sm2">
+          <option>GET</option><option>POST</option><option>PATCH</option><option>PUT</option><option>DELETE</option>
+        </select>
+        <input id="rawPath" class="fill" placeholder="/registration/mine">
+      </div>
+      <div class="row"><label>Body</label><textarea id="rawBody" spellcheck="false">{}</textarea></div>
+      <div class="row"><button class="btn" onclick="rawSend()">Send</button></div>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="card" style="position:sticky;top:0">
+      <div class="statusbar"><span id="outReq">—</span><span id="outStatus" class="badge">no request yet</span></div>
+      <pre id="out" class="out">Response yahan aayega…</pre>
+    </div>
+  </div>
+</main>
+
+<script src="actor-core.js"></script>
+<script>
+/* ---------- submitter ops (Module A: registration, Module B: problem) ---------- */
+
+/* registration */
+async function loadSourceTypes(){
+  const res = await api('GET','/registration/source-types',{auth:false});
+  show('GET /registration/source-types',res); if(!res.ok) return;
+  state.sourceTypes = res.data.categories.flatMap(c=>c.types.map(t=>({...t,bucket:c.displayName})));
+  const sel=$('regType');
+  sel.innerHTML='<option value="">-- select source type --</option>'+
+    state.sourceTypes.map(t=>`<option value="${t.code}">${t.bucket} · ${t.displayName} (${t.code})</option>`).join('');
+  sel.onchange=()=>applyTemplate(sel.value);
+}
+const TEMPLATES={
+  DEPARTMENT:{departmentFullName:'Rural Development Department',ministryName:'Ministry of Rural Development',nodalOfficerName:'R. Sharma',nodalOfficerPhone:'9876500001'},
+  PRI:{priLevel:'GRAM_PANCHAYAT',priName:'Gram Panchayat Khajuri',sarpanchName:'S. Devi'},
+  ULB:{ulbName:'Bhopal Municipal Corporation',ulbCode:'BP-1234'},
+  INDIVIDUAL:{contactNumber:'9876500002',contactPersonName:'Aarav Kumar',contactEmail:'aarav@example.com'},
+  RWA:{rwaName:'Green Residency RWA',contactPersonName:'M. Joshi'},
+  COMPANY:{companyName:'Test Industries Pvt Ltd',contactPersonName:'CEO Test'},
+  STARTUP:{companyName:'Test Startup'},
+  MSME:{companyName:'Test MSME',udyamRegistrationNumber:'UDYAM-MP-01-0000001'},
+  CSR:{companyName:'CSR Foundation'},
+  NGO:{organizationName:'Seva Foundation',ngoRegistrationNumber:'NGO/2024/12345',contactPersonName:'P. Rao'},
+  SHG:{organizationName:'Mahila Shakti SHG'},
+  CBO_COOP:{organizationName:'Farmers Cooperative'},
+  UNIVERSITY:{institutionName:'Test University'},
+  RESEARCH_LAB:{institutionName:'CSIR Test Lab'}
+};
+function applyTemplate(type){ const t=TEMPLATES[type]; $('regPayload').value=t?JSON.stringify(t,null,2):'{}'; }
+async function createRegistration(){
+  const type=$('regType').value; if(!type){flash('Pehle source-type select karo');return;}
+  const body={sourceType:type,account:{phone:$('regPhone').value.trim(),email:$('regEmail').value.trim()||null},
+    source:jsonParse($('regPayload').value),documents:jsonParse($('regDocs').value)};
+  const res=await api('POST','/registration',{body,auth:false});
+  show('POST /registration',res);
+  if(res.ok) $('regId').value=res.data.registrationId;
+}
+async function regMine(){ const res=await api('GET','/registration/mine'); show('GET /registration/mine',res);
+  if(res.ok&&res.data.length){ $('regId').value=res.data[0].registrationId; $('regEditPayload').value=JSON.stringify(res.data[0].source,null,2);} }
+async function regGet(){show('GET /registration/'+$('regId').value.trim(),await api('GET','/registration/'+$('regId').value.trim()));}
+async function regStatus(){show('GET /registration/'+$('regId').value.trim()+'/status (public)',await api('GET','/registration/'+$('regId').value.trim()+'/status',{auth:false}));}
+async function regHistory(){show('GET /registration/'+$('regId').value.trim()+'/history',await api('GET','/registration/'+$('regId').value.trim()+'/history'));}
+async function regSubmit(){show('POST /registration/'+$('regId').value.trim()+'/submit',await api('POST','/registration/'+$('regId').value.trim()+'/submit'));}
+async function regUpdate(){const id=$('regId').value.trim();show('PATCH /registration/'+id,await api('PATCH','/registration/'+id,{body:{source:jsonParse($('regEditPayload').value)}}));}
+
+/* source accounts */
+async function accMine(){ const res=await api('GET','/source/accounts'); show('GET /source/accounts',res);
+  if(res.ok&&res.data.length) $('accId').value=res.data[0].sourceAccountId; }
+async function accGet(){show('GET /source/accounts/'+$('accId').value.trim(),await api('GET','/source/accounts/'+$('accId').value.trim()));}
+
+/* problems */
+async function loadDomains(){ const res=await api('GET','/domains',{auth:false}); show('GET /domains (public)',res);
+  if(res.ok&&res.data.length){ const d=res.data[0]; $('pDomains').value=JSON.stringify([d.domainId||d.id].filter(Boolean)); } }
+async function submitProblem(){
+  const loc={state:$('pState').value.trim(),district:$('pDistrict').value.trim(),
+    blockTehsil:$('pBlock').value.trim()||null,villageWard:$('pWard').value.trim()||null,
+    pincode:$('pPin').value.trim()||null,latitude:parseFloat($('pLat').value),longitude:parseFloat($('pLng').value),
+    landmark:$('pLandmark').value.trim()||null};
+  const body={title:$('pTitle').value.trim(),description:$('pDesc').value.trim(),
+    urgency:$('pUrgency').value,severity:$('pSeverity').value,
+    affectedPopulation:$('pPop').value?parseInt($('pPop').value,10):null,
+    expectedOutcome:$('pOutcome').value.trim()||null,existingIntervention:$('pExisting').value.trim()||null,
+    sourceAccountId:$('pAccount').value.trim(),location:loc,
+    domainIds:jsonParse($('pDomains').value),evidence:jsonParse($('pEvidence').value)};
+  const res=await api('POST','/problems',{body}); show('POST /problems',res);
+  if(res.ok) $('pId').value=res.data.problemId;
+}
+async function probGet(){show('GET /problems/'+$('pId').value.trim(),await api('GET','/problems/'+$('pId').value.trim()));}
+async function uploadEvidence(){
+  const id=$('pId').value.trim(); const file=$('pEvFile').files[0];
+  if(!file){flash('Pehle file choose karo');return;}
+  const fd=new FormData(); fd.append('file',file); fd.append('evidenceType',$('pEvType').value);
+  show('POST /problems/'+id+'/evidence (multipart)',await api('POST','/problems/'+id+'/evidence',{formData:fd}));
+}
+</script>
+</body>
+</html>

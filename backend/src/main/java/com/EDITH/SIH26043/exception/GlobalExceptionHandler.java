@@ -1,11 +1,16 @@
 package com.EDITH.SIH26043.exception;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.net.URI;
 import java.util.LinkedHashMap;
@@ -16,6 +21,8 @@ import java.util.Map;
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(ApiException.class)
     public ProblemDetail handleApi(ApiException ex) {
@@ -38,8 +45,36 @@ public class GlobalExceptionHandler {
         return pd;
     }
 
+    /**
+     * Unparsable body: unknown enum constant, malformed UUID, broken JSON.
+     * That is caller error, so 400 — the catch-all would report it as 500.
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ProblemDetail handleUnreadableBody(HttpMessageNotReadableException ex) {
+        return toProblem(HttpStatus.BAD_REQUEST, "Malformed or invalid request body");
+    }
+
+    /** Path or query value that cannot be converted, e.g. a non-UUID id. */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ProblemDetail handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        return toProblem(HttpStatus.BAD_REQUEST,
+                "Invalid value for parameter '" + ex.getName() + "'");
+    }
+
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleGeneric(Exception ex) {
+        // Spring's own MVC exceptions already carry the right status (404, 405,
+        // 415, ...); this catch-all must not flatten them all into 500.
+        if (ex instanceof ErrorResponse er) {
+            HttpStatus status = HttpStatus.resolve(er.getStatusCode().value());
+            if (status != null && status != HttpStatus.INTERNAL_SERVER_ERROR) {
+                return toProblem(status, er.getBody().getDetail() != null
+                        ? er.getBody().getDetail()
+                        : status.getReasonPhrase());
+            }
+        }
+        // A 500 with no stack trace is undebuggable; always log the cause.
+        log.error("Unhandled exception reached the API boundary", ex);
         return toProblem(HttpStatus.INTERNAL_SERVER_ERROR,
                 "Unexpected error: " + ex.getClass().getSimpleName());
     }

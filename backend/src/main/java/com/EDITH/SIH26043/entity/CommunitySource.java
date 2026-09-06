@@ -29,15 +29,9 @@ public class CommunitySource extends ProblemSource {
     @Column(name = "community_subtype", nullable = false, columnDefinition = "community_subtype")
     private CommunitySubtype communitySubtype;
 
-    @Column(name = "organization_name", nullable = false, length = 255)
-    private String organizationName;
-
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "registration_type", columnDefinition = "community_registration_type")
     private CommunityRegistrationType registrationType;
-
-    @Column(name = "registration_number", length = 50)
-    private String registrationNumber;
 
     @Column(name = "registration_date")
     private LocalDate registrationDate;

@@ -6,15 +6,15 @@ import com.EDITH.SIH26043.enums.SourceBucket;
 import com.EDITH.SIH26043.enums.SubEntityType;
 
 import java.time.Instant;
-import java.util.Map;
 import java.util.UUID;
+import java.util.Map;
 
 public record RegistrationResponse(
         UUID registrationId,
         SourceBucket sourceBucket,
         SubEntityType sourceType,
         RegistrationStatus status,
-        Map<String, Object> sourcePayload,
+        Map<String, Object> source,
         UUID submittedByUserId,
         UUID sourceId,
         UUID assignedReviewerId,

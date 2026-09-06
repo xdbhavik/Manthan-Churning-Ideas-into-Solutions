@@ -34,7 +34,7 @@ public class EvidenceUploadService {
     private final EvidenceRepository evidenceRepository;
     private final ProblemRepository problemRepository;
     private final AuditService auditService;
-    private final String storageDir;
+    private final Path storageRoot;
 
     public EvidenceUploadService(EvidenceRepository evidenceRepository,
                                  ProblemRepository problemRepository,
@@ -43,7 +43,7 @@ public class EvidenceUploadService {
         this.evidenceRepository = evidenceRepository;
         this.problemRepository = problemRepository;
         this.auditService = auditService;
-        this.storageDir = storageDir;
+        this.storageRoot = Path.of(storageDir).toAbsolutePath().normalize();
     }
 
     @Transactional
@@ -57,9 +57,13 @@ public class EvidenceUploadService {
         }
 
         String filename = UUID.randomUUID() + "-" + sanitize(file.getOriginalFilename());
-        Path target = Path.of(storageDir, filename);
+        Path target = storageRoot.resolve(filename).normalize();
+        if (!target.startsWith(storageRoot)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "Invalid filename: resolves outside the evidence storage directory.");
+        }
         try {
-            Files.createDirectories(target.getParent());
+            Files.createDirectories(storageRoot);
             try (var in = file.getInputStream()) {
                 Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
             }
@@ -100,6 +104,11 @@ public class EvidenceUploadService {
     }
 
     private String sanitize(String name) {
-        return name == null ? "file" : name.replaceAll("[^a-zA-Z0-9._-]", "_");
+        if (name == null || name.isBlank()) return "file";
+        // Strip any leading dot-dot / separators, then only keep safe characters.
+        String stripped = name.replaceAll("^[./\\\\]+", "");
+        String safe = stripped.replaceAll("[^a-zA-Z0-9._-]", "_");
+        // Cap length so paths never exceed OS limits.
+        return safe.length() > 180 ? safe.substring(0, 180) : safe;
     }
 }

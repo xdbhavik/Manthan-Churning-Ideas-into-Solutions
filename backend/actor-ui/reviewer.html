@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIH26043 · Reviewer Console</title>
+<link rel="stylesheet" href="actor.css">
+</head>
+<body data-actor="REVIEWER">
+
+<header>
+  <h1>🧪 SIH26043 Test Console <span class="who">· Reviewer</span></h1>
+  <label>Base URL</label>
+  <input id="baseUrl" style="width:200px">
+  <button class="btn" onclick="saveBase()">Save</button>
+  <span id="roleBadge" class="badge"></span>
+  <div style="flex:1 1 100%;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <label>JWT</label>
+    <input id="token" style="flex:1;min-width:200px;font-family:monospace;font-size:11px" placeholder="reviewer access token">
+    <button class="btn sm" onclick="saveToken()">Save</button>
+    <button class="btn sm err" onclick="clearTokens()">Clear</button>
+  </div>
+</header>
+
+<nav class="personas">
+  <a data-actor="SUBMITTER" href="submitter.html">🙋 Submitter</a>
+  <a data-actor="REVIEWER" href="reviewer.html">🔍 Reviewer</a>
+  <a data-actor="ADMIN" href="admin.html">🛡️ Admin</a>
+</nav>
+
+<main>
+  <div class="left">
+    <div id="roleNote" class="role-note"></div>
+
+    <!-- ======= AUTH (reviewer account) ======= -->
+    <div class="card">
+      <h3>Login (reviewer OTP token)</h3>
+      <div class="hint">Reviewer role DB me set hona chahiye. Test account: <code>9810011122</code> (REVIEWER). Na ho to DB me set karo, phir login.</div>
+      <div class="row"><label>Phone</label><input id="aPhone" placeholder="9810011122" value="9810011122"></div>
+      <div class="row"><label>Email</label><input id="aEmail" placeholder="optional"></div>
+      <div class="row">
+        <button class="btn primary" onclick="auth('login')">Login</button>
+        <button class="btn" onclick="auth('register')">Register</button>
+      </div>
+      <div class="row"><label>challengeId</label><input id="aChallenge"></div>
+      <div class="row"><label>Code</label><input id="aCode"></div>
+      <div class="row">
+        <button class="btn primary" onclick="verifyOtp()">Verify OTP</button>
+        <button class="btn warn" onclick="useDevOtp()">Use devOtp</button>
+      </div>
+      <div class="row"><label>refreshToken</label><input id="aRefresh" class="fill"></div>
+      <div class="row"><button class="btn" onclick="refreshTok()">Refresh</button><button class="btn" onclick="logout()">Logout</button></div>
+    </div>
+
+    <!-- ======= REGISTRATION QUEUE (Module A review) ======= -->
+    <div class="card">
+      <h3>Registration queue</h3>
+      <div class="row">
+        <label>Status filter</label>
+        <select id="revStatus" style="flex:1">
+          <option value="">(default: open queue)</option>
+          <option>DRAFT</option><option>SUBMITTED</option><option>UNDER_REVIEW</option>
+          <option>APPROVED</option><option>REJECTED</option><option>ACTION_REQUIRED</option>
+        </select>
+        <button class="btn" onclick="reviewQueue()">Load queue</button>
+      </div>
+      <div class="hint">Approve/reject/action SUBMITTED (queue) ya UNDER_REVIEW par chalta hai. DRAFT ko approve nahi kar sakte — pehle submit hona chahiye.</div>
+    </div>
+
+    <div class="card">
+      <h3>Registration decisions (approve → SourceAccount)</h3>
+      <div class="row"><label>registrationId</label><input id="revId" class="fill"></div>
+      <div class="row"><label>Comment / reason</label><input id="revComment" class="fill"></div>
+      <div class="row">
+        <button class="btn" onclick="revGet()">Get full</button>
+        <button class="btn" onclick="revAssign()">Assign to me</button>
+        <button class="btn ok" onclick="revApprove()">Approve ✅</button>
+        <button class="btn err" onclick="revReject()">Reject</button>
+        <button class="btn warn" onclick="revAction()">Action-required</button>
+      </div>
+      <div class="hint">Action-required par owner edit/PATCH kar sakta hai (edit lock nahi rahega), phir resubmit → UNDER_REVIEW.</div>
+    </div>
+
+    <!-- ======= SOURCE VERIFICATION (Module C) ======= -->
+    <div class="card">
+      <h3>Verify source identity (POST /sources/{id}/verify)</h3>
+      <div class="hint">Verified <code>SourceAccount</code> ki identity check. sourceAccountId = approved source ka account id.</div>
+      <div class="row"><label>sourceAccountId</label><input id="revSrcId" class="fill"></div>
+      <div class="row">
+        <label>Method</label>
+        <select id="revMethod" style="flex:1">
+          <option>OFFICIAL_EMAIL</option><option>AUTHORIZATION_DOC</option><option>OTP</option>
+          <option>REGISTRATION_API</option><option>INSTITUTIONAL_EMAIL</option><option>MANUAL_REVIEW</option>
+        </select>
+      </div>
+      <div class="row">
+        <label>Result</label>
+        <select id="revResult" style="flex:1"><option>PASS</option><option>FAIL</option><option>NEEDS_REVIEW</option></select>
+      </div>
+      <div class="row"><label>Notes</label><input id="revNotes" class="fill"></div>
+      <div class="row"><button class="btn" onclick="verifySource()">Record verification</button></div>
+    </div>
+
+    <!-- ======= PROBLEM REVIEW / STATE MACHINE (Module B+C) ======= -->
+    <div class="card">
+      <h3>Problem review · state machine</h3>
+      <div class="hint">Problem status advance (SOURCE_VERIFYING → SOURCE_VERIFIED → REGISTERED / REJECTED) reviewer karta hai. <code>expectedVersion</code> stale write 409 se bachata hai (optimistic lock).</div>
+      <div class="row"><label>problemId</label><input id="pId" class="fill"></div>
+      <div class="row"><button class="btn" onclick="probGet()">Get problem</button></div>
+      <div class="row">
+        <label>New status</label>
+        <select id="pNewStatus" style="flex:1">
+          <option>SUBMITTED</option><option>SOURCE_VERIFYING</option><option>SOURCE_VERIFIED</option>
+          <option>REGISTERED</option><option>REJECTED</option><option>ARCHIVED</option>
+        </select>
+        <label>expectedVersion</label><input id="pVersion" class="fill" type="number" placeholder="(Get se version lo)">
+        <button class="btn warn" onclick="probPatchStatus()">Patch status</button>
+      </div>
+    </div>
+
+    <!-- ======= AUDIT (Module C) ======= -->
+    <div class="card">
+      <h3>Audit trail (per problem)</h3>
+      <div class="row"><label>problemId</label><input id="audPid" class="fill"></div>
+      <div class="row"><button class="btn" onclick="auditGet()">Get audit log</button></div>
+    </div>
+
+    <!-- ======= RAW ======= -->
+    <div class="card">
+      <h3>Raw (any endpoint with this reviewer token)</h3>
+      <div class="row">
+        <select id="rawMethod" class="sm2">
+          <option>GET</option><option>POST</option><option>PATCH</option><option>PUT</option><option>DELETE</option>
+        </select>
+        <input id="rawPath" class="fill" placeholder="/reviewer/registrations">
+      </div>
+      <div class="row"><label>Body</label><textarea id="rawBody" spellcheck="false">{}</textarea></div>
+      <div class="row"><button class="btn" onclick="rawSend()">Send</button></div>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="card" style="position:sticky;top:0">
+      <div class="statusbar"><span id="outReq">—</span><span id="outStatus" class="badge">no request yet</span></div>
+      <pre id="out" class="out">Response yahan aayega…</pre>
+    </div>
+  </div>
+</main>
+
+<script src="actor-core.js"></script>
+<script>
+/* ---------- reviewer ops ---------- */
+
+/* queue + decisions */
+async function reviewQueue(){ const s=$('revStatus').value;
+  const res=await api('GET','/reviewer/registrations'+(s?'?status='+s:''));
+  show('GET /reviewer/registrations'+(s?'?status='+s:''),res); }
+async function revGet(){show('GET /registration/'+$('revId').value.trim(),await api('GET','/registration/'+$('revId').value.trim()));}
+async function revAssign(){const id=$('revId').value.trim();show('POST /reviewer/registrations/'+id+'/assign',await api('POST',`/reviewer/registrations/${id}/assign`));}
+async function revApprove(){const id=$('revId').value.trim();const c=$('revComment').value.trim();
+  show('POST /reviewer/registrations/'+id+'/approve',await api('POST',`/reviewer/registrations/${id}/approve`,{body:c?{comment:c}:undefined}));}
+async function revReject(){const id=$('revId').value.trim();show('POST /reviewer/registrations/'+id+'/reject',await api('POST',`/reviewer/registrations/${id}/reject`,{body:{comment:$('revComment').value.trim()}}));}
+async function revAction(){const id=$('revId').value.trim();show('POST /reviewer/registrations/'+id+'/request-action',await api('POST',`/reviewer/registrations/${id}/request-action`,{body:{comment:$('revComment').value.trim()}}));}
+
+/* source verification */
+async function verifySource(){
+  const id=$('revSrcId').value.trim();
+  const body={method:$('revMethod').value,result:$('revResult').value};
+  if($('revNotes').value.trim()) body.notes=$('revNotes').value.trim();
+  show('POST /sources/'+id+'/verify',await api('POST','/sources/'+id+'/verify',{body}));
+}
+
+/* problem review / state machine */
+async function probGet(){const r=await api('GET','/problems/'+$('pId').value.trim());show('GET /problems/'+$('pId').value.trim(),r);
+  if(r.ok&&r.data&&r.data.version!=null) $('pVersion').value=r.data.version;}
+async function probPatchStatus(){
+  const id=$('pId').value.trim();
+  const body={status:$('pNewStatus').value};
+  const v=$('pVersion').value.trim(); if(v) body.expectedVersion=parseInt(v,10);
+  show('PATCH /problems/'+id+'/status',await api('PATCH','/problems/'+id+'/status',{body}));
+}
+
+/* audit */
+async function auditGet(){show('GET /audit/'+$('audPid').value.trim(),await api('GET','/audit/'+$('audPid').value.trim()));}
+</script>
+</body>
+</html>

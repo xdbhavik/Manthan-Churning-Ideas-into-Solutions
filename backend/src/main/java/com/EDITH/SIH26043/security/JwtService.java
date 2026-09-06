@@ -8,6 +8,8 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -23,6 +25,10 @@ import java.util.UUID;
 @Component
 public class JwtService {
 
+    private static final Logger log = LoggerFactory.getLogger(JwtService.class);
+    private static final String DEV_FALLBACK_JWT_SECRET =
+            "dev-jwt-secret-change-me-before-production--minimum-32-chars!";
+
     private final String secret;
     private final String issuer;
     private final long ttlMinutes;
@@ -30,7 +36,30 @@ public class JwtService {
     public JwtService(
             @Value("${app.jwt.secret}") String secret,
             @Value("${app.jwt.issuer}") String issuer,
-            @Value("${app.jwt.access-token-ttl-minutes}") long ttlMinutes) {
+            @Value("${app.jwt.access-token-ttl-minutes}") long ttlMinutes,
+            @Value("${spring.profiles.active:}") String activeProfiles) {
+        boolean prod = activeProfiles != null && activeProfiles.contains("prod");
+        if (secret == null || secret.isBlank()) {
+            if (prod) {
+                throw new IllegalStateException(
+                        "JWT_SECRET must be set in production (>= 32 chars for HS256). "
+                        + "Empty secret means signing will fail at runtime.");
+            }
+            log.warn("========================================");
+            log.warn("⚠️  app.jwt.secret is NOT CONFIGURED.");
+            log.warn("    Using INSECURE dev fallback JWT secret.");
+            log.warn("    Set JWT_SECRET env var before production!");
+            log.warn("========================================");
+            secret = DEV_FALLBACK_JWT_SECRET;
+        } else if (secret.length() < 32) {
+            if (prod) {
+                throw new IllegalStateException(
+                        "JWT_SECRET must be at least 32 characters in production for HS256. "
+                        + "Got length: " + secret.length());
+            }
+            log.warn("⚠️  app.jwt.secret is shorter than 32 chars (dev-only). "
+                    + "HS256 requires 256-bit = 32+ bytes. Prod needs 32+ chars.");
+        }
         this.secret = secret;
         this.issuer = issuer;
         this.ttlMinutes = ttlMinutes;

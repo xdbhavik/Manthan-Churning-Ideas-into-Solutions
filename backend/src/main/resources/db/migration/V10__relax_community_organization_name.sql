@@ -1,0 +1,14 @@
+-- V10: Relax community_source.organization_name NOT NULL.
+--
+-- The entity hierarchy maps a single `organizationName` property on the JOINED
+-- root (problem_source.organization_name). CommunitySource previously redeclared
+-- the same attribute against community_source.organization_name (NOT NULL), but
+-- Hibernate cannot write one attribute to two joined tables -- it stores it on
+-- the root and omits the community column from the INSERT. Every community
+-- approval (NGO/SHG/CBO) therefore failed with a NOT NULL violation on the
+-- unreachable community copy.
+--
+-- problem_source.organization_name is the canonical source of the display name
+-- (V9 backfill reads it for every bucket), so the community mirror is redundant.
+-- Relax it to nullable rather than double-storing the same value.
+ALTER TABLE community_source ALTER COLUMN organization_name DROP NOT NULL;

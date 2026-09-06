@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIH26043 Test Console</title>
+<style>
+  :root {
+    --bg: #0f1419; --panel: #171e26; --panel2: #1d2731; --border: #2a3642;
+    --text: #d7e2ec; --muted: #8ba0b2; --accent: #3b82f6; --ok: #22c55e;
+    --warn: #f59e0b; --err: #ef4444;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.5 "Segoe UI", system-ui, sans-serif;
+  }
+  header {
+    padding: 12px 18px; background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  }
+  header h1 { font-size: 16px; margin: 0 12px 0 0; color: #fff; }
+  header label { color: var(--muted); font-size: 12px; }
+  header input, header button, select, textarea, .btn {
+    background: var(--panel2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 6px 10px; font-size: 13px; font-family: inherit;
+  }
+  header input:focus, select:focus, textarea:focus { outline: 1px solid var(--accent); }
+  .btn { cursor: pointer; }
+  .btn:hover { border-color: var(--accent); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.ok { border-color: var(--ok); color: var(--ok); }
+  .btn.warn { border-color: var(--warn); color: var(--warn); }
+  .btn.err { border-color: var(--err); color: var(--err); }
+  .btn.sm { padding: 2px 8px; font-size: 12px; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; border: 1px solid var(--border); color: var(--muted); }
+  #tokenBar { flex: 1 1 100%; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  #tokenBar input { flex: 1; min-width: 200px; font-family: monospace; font-size: 11px; }
+  nav {
+    display: flex; background: var(--panel); border-bottom: 1px solid var(--border);
+    padding: 0 12px; gap: 2px; overflow-x: auto;
+  }
+  nav button {
+    background: none; border: none; color: var(--muted); padding: 10px 14px;
+    cursor: pointer; font-size: 13px; border-bottom: 2px solid transparent; white-space: nowrap;
+  }
+  nav button.active { color: #fff; border-bottom-color: var(--accent); }
+  main { display: flex; gap: 14px; padding: 14px; height: calc(100vh - 128px); min-height: 400px; }
+  .left { flex: 1; overflow-y: auto; padding-right: 4px; }
+  .right { flex: 1; overflow-y: auto; }
+  .tab { display: none; }
+  .tab.active { display: block; }
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px; margin-bottom: 12px;
+  }
+  .card h3 { margin: 0 0 10px; font-size: 13px; color: #fff; text-transform: uppercase; letter-spacing: .5px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; align-items: center; }
+  .row label { font-size: 12px; color: var(--muted); min-width: 90px; }
+  .row input, .row select, .row textarea { flex: 1; min-width: 150px; }
+  .row textarea { font-family: monospace; font-size: 12px; min-height: 90px; resize: vertical; }
+  .row .fill { flex: 1; min-width: 150px; }
+  .hint { font-size: 12px; color: var(--muted); margin: 4px 0 10px; }
+  .hint code { background: var(--panel2); padding: 1px 5px; border-radius: 4px; font-size: 11px; }
+  .out { font-family: "Cascadia Code", Consolas, monospace; font-size: 12px; white-space: pre-wrap; word-break: break-word; }
+  .statusbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .code { font-family: monospace; font-size: 11px; color: var(--muted); word-break: break-all; }
+  .ok { color: var(--ok); } .err { color: var(--err); } .warn { color: var(--warn); }
+  hr { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🧪 SIH26043 Test Console</h1>
+  <label>Base URL</label>
+  <input id="baseUrl" style="width:220px" placeholder="http://localhost:8080">
+  <button class="btn" onclick="saveBase()">Save</button>
+  <span id="roleBadge" class="badge"></span>
+  <div id="tokenBar">
+    <label>JWT</label>
+    <input id="token" placeholder="paste access token here (ya Verify OTP karke auto-set hoga)">
+    <button class="btn sm" onclick="saveToken()">Save</button>
+    <button class="btn sm err" onclick="clearTokens()">Clear</button>
+  </div>
+</header>
+
+<nav id="tabs">
+  <button class="active" data-tab="auth">Auth</button>
+  <button data-tab="reg">Registration</button>
+  <button data-tab="rev">Reviewer</button>
+  <button data-tab="acc">Accounts</button>
+  <button data-tab="prob">Problems</button>
+  <button data-tab="admin">Admin</button>
+  <button data-tab="raw">Raw</button>
+</nav>
+
+<main>
+  <div class="left">
+
+    <!-- ============ AUTH ============ -->
+    <section class="tab active" id="tab-auth">
+      <div class="card">
+        <h3>Step 1 · Register / Login (OTP bhejta hai)</h3>
+        <div class="row"><label>Phone (10-digit)</label><input id="aPhone" placeholder="9876543210"></div>
+        <div class="row"><label>Email (optional)</label><input id="aEmail" placeholder="you@example.com"></div>
+        <div class="row">
+          <button class="btn primary" onclick="auth('register')">Register</button>
+          <button class="btn" onclick="auth('login')">Login</button>
+        </div>
+        <div class="hint">Response me <code>devOtp</code> milega (dev mode). Neeche <b>Use devOtp</b> dabao — challengeId + code auto-fill ho jayega.</div>
+      </div>
+
+      <div class="card">
+        <h3>Step 2 · Verify OTP → JWT lo</h3>
+        <div class="row"><label>challengeId</label><input id="aChallenge"></div>
+        <div class="row"><label>Code</label><input id="aCode" placeholder="123456"></div>
+        <div class="row">
+          <button class="btn primary" onclick="verifyOtp()">Verify OTP</button>
+          <button class="btn warn" onclick="useDevOtp()">Use devOtp</button>
+        </div>
+        <div class="hint">Success pe accessToken + refreshToken auto-save hote hain. 🔑 Role bhi yahi dikhega.</div>
+      </div>
+
+      <div class="card">
+        <h3>Token management</h3>
+        <div class="row"><label>refreshToken</label><input id="aRefresh" class="fill"></div>
+        <div class="row">
+          <button class="btn" onclick="refreshTok()">Refresh</button>
+          <button class="btn" onclick="logout()">Logout</button>
+        </div>
+        <div class="hint">Refresh rotate karta hai — purana token turant revoke. Reviewer/Admin testing ke liye:<br>
+        <code>docker exec sih26043-pg psql -U sih -d sih26043 -c "UPDATE users SET role='REVIEWER' WHERE phone='&lt;tumhara-phone&gt;';"</code></div>
+      </div>
+    </section>
+
+    <!-- ============ REGISTRATION ============ -->
+    <section class="tab" id="tab-reg">
+      <div class="card">
+        <h3>Source types (public)</h3>
+        <div class="row"><button class="btn" onclick="loadSourceTypes()">Load source-types</button></div>
+        <div class="hint" id="regTypesHint">Dropdown populate karne ke liye load karo. Required fields template me auto-filled.</div>
+      </div>
+
+      <div class="card">
+        <h3>Create registration (public, draft banta hai)</h3>
+        <div class="row"><label>Source type</label><select id="regType"><option value="">-- load source-types pehle --</option></select></div>
+        <div class="row"><label>Phone</label><input id="regPhone" placeholder="9876543210"></div>
+        <div class="row"><label>Email</label><input id="regEmail" placeholder="optional"></div>
+        <div class="row"><label>source payload</label><textarea id="regPayload" spellcheck="false">{}</textarea></div>
+        <div class="row"><label>documents (opt)</label><textarea id="regDocs" spellcheck="false" style="min-height:40px">[]</textarea></div>
+        <div class="row"><button class="btn primary" onclick="createRegistration()">Create Registration</button></div>
+      </div>
+
+      <div class="card">
+        <h3>Registration actions</h3>
+        <div class="row"><label>registrationId</label><input id="regId" class="fill"></div>
+        <div class="row">
+          <button class="btn" onclick="regMine()">My registrations</button>
+          <button class="btn" onclick="regGet()">Get</button>
+          <button class="btn" onclick="regStatus()">Status (public)</button>
+          <button class="btn ok" onclick="regSubmit()">Submit</button>
+          <button class="btn" onclick="regHistory()">History</button>
+        </div>
+        <div class="row"><label>Edit payload</label><textarea id="regEditPayload" spellcheck="false">{}</textarea></div>
+        <div class="row"><button class="btn warn" onclick="regUpdate()">Update (edit draft)</button></div>
+      </div>
+    </section>
+
+    <!-- ============ REVIEWER ============ -->
+    <section class="tab" id="tab-rev">
+      <div class="hint">🔒 REVIEWER/ADMIN token chahiye. Nahi hai toh Auth tab ka hint dekho (DB se role update karo).</div>
+      <div class="card">
+        <h3>Queue</h3>
+        <div class="row"><label>Status filter</label>
+          <select id="revStatus">
+            <option value="">(default: open queue)</option>
+            <option>DRAFT</option><option>SUBMITTED</option><option>UNDER_REVIEW</option>
+            <option>APPROVED</option><option>REJECTED</option><option>ACTION_REQUIRED</option>
+          </select>
+          <button class="btn" onclick="reviewQueue()">Load queue</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Decisions</h3>
+        <div class="row"><label>registrationId</label><input id="revId" class="fill"></div>
+        <div class="row"><label>Comment / reason</label><input id="revComment" class="fill"></div>
+        <div class="row">
+          <button class="btn" onclick="revAssign()">Assign to me</button>
+          <button class="btn ok" onclick="revApprove()">Approve ✅</button>
+          <button class="btn err" onclick="revReject()">Reject</button>
+          <button class="btn warn" onclick="revAction()">Request action</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Verify source identity (POST /sources/{id}/verify)</h3>
+        <div class="row"><label>sourceAccountId</label><input id="revSrcId" class="fill"></div>
+        <div class="row"><label>Method</label>
+          <select id="revMethod">
+            <option>OFFICIAL_EMAIL</option><option>AUTHORIZATION_DOC</option><option>OTP</option>
+            <option>REGISTRATION_API</option><option>INSTITUTIONAL_EMAIL</option><option>MANUAL_REVIEW</option>
+          </select>
+        </div>
+        <div class="row"><label>Result</label>
+          <select id="revResult"><option>PASS</option><option>FAIL</option><option>NEEDS_REVIEW</option></select>
+        </div>
+        <div class="row"><label>Notes</label><input id="revNotes" class="fill"></div>
+        <div class="row"><button class="btn" onclick="verifySource()">Record verification</button></div>
+      </div>
+    </section>
+
+    <!-- ============ ACCOUNTS ============ -->
+    <section class="tab" id="tab-acc">
+      <div class="card">
+        <h3>My source accounts</h3>
+        <div class="hint">Approve hone ke baad yahan account dikhega. <code>sourceAccountId</code> yahin se lo — <b>POST /problems</b> me chahiye.</div>
+        <div class="row"><button class="btn" onclick="accMine()">My accounts</button></div>
+      </div>
+      <div class="card">
+        <h3>Get one account</h3>
+        <div class="row"><label>sourceAccountId</label><input id="accId" class="fill"></div>
+        <div class="row"><button class="btn" onclick="accGet()">Get account</button></div>
+      </div>
+    </section>
+
+    <!-- ============ PROBLEMS ============ -->
+    <section class="tab" id="tab-prob">
+      <div class="card">
+        <h3>Domain list (public)</h3>
+        <div class="row"><button class="btn" onclick="loadDomains()">Load domains</button></div>
+        <div class="hint">Response se domain UUID copy karke <code>domainIds</code> me daalo (pehla = primary).</div>
+      </div>
+      <div class="card">
+        <h3>Submit problem (POST /problems)</h3>
+        <div class="row"><label>sourceAccountId</label><input id="pAccount" class="fill" placeholder="Accounts tab se lo"></div>
+        <div class="row"><label>Title</label><input id="pTitle" class="fill" value="Road repair needed in ward 12"></div>
+        <div class="row"><label>Description</label><input id="pDesc" class="fill" value="Waterlogging every monsoon, potholes since 2 years."></div>
+        <div class="row">
+          <label>Urgency</label>
+          <select id="pUrgency"><option>IMMEDIATE</option><option>SHORT_TERM</option><option>LONG_TERM</option></select>
+          <label>Severity</label>
+          <select id="pSeverity"><option>CRITICAL</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select>
+        </div>
+        <div class="row"><label>Affected pop.</label><input id="pPop" class="fill" value="5000" type="number"></div>
+        <div class="row"><label>Expected outcome</label><input id="pOutcome" class="fill" value="Paved road and storm drain"></div>
+        <div class="row"><label>Existing intervention</label><input id="pExisting" class="fill"></div>
+        <div class="row">
+          <label>State</label><input id="pState" class="fill" value="Madhya Pradesh">
+          <label>District</label><input id="pDistrict" class="fill" value="Bhopal">
+        </div>
+        <div class="row">
+          <label>Block/Tehsil</label><input id="pBlock" class="fill" value="Huzur">
+          <label>Village/Ward</label><input id="pWard" class="fill" value="Ward 12">
+        </div>
+        <div class="row">
+          <label>Pincode</label><input id="pPin" class="fill" value="462001">
+          <label>Lat</label><input id="pLat" class="fill" value="23.2599" type="number" step="any">
+          <label>Lng</label><input id="pLng" class="fill" value="77.4126" type="number" step="any">
+        </div>
+        <div class="row"><label>Landmark</label><input id="pLandmark" class="fill"></div>
+        <div class="row"><label>domainIds (opt)</label><textarea id="pDomains" spellcheck="false" style="min-height:40px">[]</textarea></div>
+        <div class="row"><label>evidence (opt)</label><textarea id="pEvidence" spellcheck="false" style="min-height:40px">[]</textarea></div>
+        <div class="row"><button class="btn primary" onclick="submitProblem()">Submit problem</button></div>
+      </div>
+      <div class="card">
+        <h3>Problem actions</h3>
+        <div class="row"><label>problemId</label><input id="pId" class="fill"></div>
+        <div class="row"><button class="btn" onclick="probGet()">Get</button></div>
+        <div class="row">
+          <label>New status</label>
+          <select id="pNewStatus">
+            <option>SUBMITTED</option><option>SOURCE_VERIFYING</option><option>SOURCE_VERIFIED</option>
+            <option>REGISTERED</option><option>REJECTED</option><option>ARCHIVED</option>
+          </select>
+          <label>expectedVersion</label><input id="pVersion" class="fill" type="number" placeholder="(optional)">
+          <button class="btn warn" onclick="probPatchStatus()">Patch status</button>
+        </div>
+        <hr>
+        <div class="row"><label>Evidence file</label><input id="pEvFile" type="file" class="fill"></div>
+        <div class="row">
+          <label>Type</label>
+          <select id="pEvType">
+            <option>PHOTO</option><option>VIDEO</option><option>DOCUMENT</option>
+            <option>AUDIO</option><option>DATASET</option><option>LOCATION_PIN</option>
+          </select>
+          <button class="btn" onclick="uploadEvidence()">Upload evidence</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ADMIN ============ -->
+    <section class="tab" id="tab-admin">
+      <div class="hint">🔒 ADMIN only. ADMIN account API se nahi banta — DB se banao:<br>
+      <code>docker exec sih26043-pg psql -U sih -d sih26043 -c "UPDATE users SET role='ADMIN' WHERE phone='&lt;phone&gt;';"</code><br>
+      Phir login + verify-otp karke fresh token lo (role JWT me encoded hota hai).</div>
+      <div class="card">
+        <h3>User lookup</h3>
+        <div class="row"><label>userId</label><input id="admUserId" class="fill"></div>
+        <div class="row"><button class="btn" onclick="admGetUser()">Get user</button></div>
+      </div>
+      <div class="card">
+        <h3>Change role</h3>
+        <div class="row"><label>userId</label><input id="admRoleUserId" class="fill"></div>
+        <div class="row">
+          <label>New role</label>
+          <select id="admRole"><option>SUBMITTER</option><option>REVIEWER</option><option>ADMIN</option></select>
+          <button class="btn warn" onclick="admChangeRole()">Change role</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ RAW ============ -->
+    <section class="tab" id="tab-raw">
+      <div class="card">
+        <h3>Generic request</h3>
+        <div class="row">
+          <select id="rawMethod" style="flex:0 0 100px">
+            <option>GET</option><option>POST</option><option>PATCH</option>
+            <option>PUT</option><option>DELETE</option>
+          </select>
+          <input id="rawPath" class="fill" placeholder="/registration/mine">
+        </div>
+        <div class="row"><label>Body (JSON)</label><textarea id="rawBody" spellcheck="false">{}</textarea></div>
+        <div class="row"><button class="btn" onclick="rawSend()">Send</button></div>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="right">
+    <div class="card" style="position:sticky; top:0;">
+      <div class="statusbar">
+        <span id="outReq">—</span>
+        <span id="outStatus" class="badge">no request yet</span>
+      </div>
+      <pre id="out" class="out">Response yahan aayega…</pre>
+    </div>
+  </div>
+</main>
+
+<script>
+/* ---------------- state ---------------- */
+const $ = id => document.getElementById(id);
+const state = {
+  baseUrl: localStorage.getItem('sih_base_url') || 'http://localhost:8080',
+  token: localStorage.getItem('sih_token') || '',
+  refresh: localStorage.getItem('sih_refresh') || '',
+  user: null,
+  lastOtp: null,
+  sourceTypes: []
+};
+$('baseUrl').value = state.baseUrl;
+$('token').value = state.token;
+if (state.refresh) $('aRefresh').value = state.refresh;
+
+function saveBase() {
+  state.baseUrl = $('baseUrl').value.trim();
+  localStorage.setItem('sih_base_url', state.baseUrl);
+  flash('Base URL saved');
+}
+function saveToken() {
+  state.token = $('token').value.trim();
+  localStorage.setItem('sih_token', state.token);
+  flash('Token saved');
+}
+function clearTokens() {
+  state.token = ''; state.refresh = ''; state.user = null;
+  $('token').value = ''; $('aRefresh').value = '';
+  localStorage.removeItem('sih_token'); localStorage.removeItem('sih_refresh');
+  renderUser();
+  flash('Tokens cleared');
+}
+function setTokens(access, refresh, user) {
+  state.token = access || state.token;
+  if (refresh) { state.refresh = refresh; $('aRefresh').value = refresh; }
+  if (user) state.user = user;
+  $('token').value = state.token;
+  localStorage.setItem('sih_token', state.token);
+  if (refresh) localStorage.setItem('sih_refresh', refresh);
+  renderUser();
+}
+function renderUser() {
+  const b = $('roleBadge');
+  b.textContent = state.user
+    ? `${state.user.role} · KYC ${state.user.kycStatus}` + (state.user.linkedSourceId ? ' · linked' : '')
+    : state.token ? 'authenticated (role unknown)' : 'not logged in';
+  b.style.borderColor = state.token ? 'var(--ok)' : '';
+}
+
+/* ---------------- api helper ---------------- */
+async function api(method, path, { body, formData, auth = true } = {}) {
+  const url = state.baseUrl.replace(/\/+$/, '') + path;
+  const headers = {};
+  let payload;
+  if (formData) payload = formData;
+  else if (body !== undefined) { headers['Content-Type'] = 'application/json'; payload = JSON.stringify(body); }
+  if (auth && state.token) headers['Authorization'] = 'Bearer ' + state.token;
+  const res = await fetch(url, { method, headers, body: payload });
+  const text = await res.text();
+  let data; try { data = JSON.parse(text); } catch { data = text; }
+  return { ok: res.ok, status: res.status, data };
+}
+
+function show(req, res) {
+  $('outReq').textContent = req;
+  const st = $('outStatus');
+  st.textContent = 'HTTP ' + res.status + (res.ok ? ' ✓' : ' ✗');
+  st.style.borderColor = res.ok ? 'var(--ok)' : 'var(--err)';
+  st.style.color = res.ok ? 'var(--ok)' : 'var(--err)';
+  $('out').textContent = typeof res.data === 'string'
+    ? (res.data ? res.data : '(empty body)')
+    : JSON.stringify(res.data, null, 2);
+}
+
+function flash(msg) { $('outReq').textContent = msg; }
+
+function jsonParse(text, fallback) {
+  try { return JSON.parse(text); } catch { throw new Error('Invalid JSON:\n' + text); }
+}
+
+/* ---------------- auth ---------------- */
+async function auth(kind) {
+  const phone = $('aPhone').value.trim();
+  const body = { phone };
+  if ($('aEmail').value.trim()) body.email = $('aEmail').value.trim();
+  const res = await api('POST', '/auth/' + kind, { body, auth: false });
+  show(`POST /auth/${kind}`, res);
+  if (res.ok && res.data.challengeId) {
+    state.lastOtp = res.data;
+    flash(`OTP issued. devOtp = ${res.data.devOtp || '(none — prod mode?)'} — "Use devOtp" dabao.`);
+  }
+}
+
+function useDevOtp() {
+  if (!state.lastOtp) { flash('Pehle register/login karo'); return; }
+  $('aChallenge').value = state.lastOtp.challengeId;
+  $('aCode').value = state.lastOtp.devOtp || '';
+  flash('OTP form filled from last response');
+}
+
+async function verifyOtp() {
+  const body = { challengeId: $('aChallenge').value.trim(), code: $('aCode').value.trim() };
+  const res = await api('POST', '/auth/verify-otp', { body, auth: false });
+  show('POST /auth/verify-otp', res);
+  if (res.ok) setTokens(res.data.accessToken, res.data.refreshToken, res.data.user);
+}
+
+async function refreshTok() {
+  const body = { refreshToken: $('aRefresh').value.trim() };
+  const res = await api('POST', '/auth/refresh', { body, auth: false });
+  show('POST /auth/refresh', res);
+  if (res.ok) setTokens(res.data.accessToken, res.data.refreshToken);
+}
+
+async function logout() {
+  const body = { refreshToken: $('aRefresh').value.trim() };
+  const res = await api('POST', '/auth/logout', { body, auth: false });
+  show('POST /auth/logout', res);
+}
+
+/* ---------------- registration ---------------- */
+async function loadSourceTypes() {
+  const res = await api('GET', '/registration/source-types', { auth: false });
+  show('GET /registration/source-types', res);
+  if (!res.ok) return;
+  state.sourceTypes = res.data.categories.flatMap(c => c.types.map(t => ({ ...t, bucket: c.displayName })));
+  const sel = $('regType');
+  sel.innerHTML = '<option value="">-- select source type --</option>' +
+    state.sourceTypes.map(t => `<option value="${t.code}">${t.bucket} · ${t.displayName} (${t.code})</option>`).join('');
+  sel.onchange = () => applyTemplate(sel.value);
+  $('regTypesHint').innerHTML = `${state.sourceTypes.length} types loaded. Required: ` +
+    state.sourceTypes.slice(0, 4).map(t => `<code>${t.code}</code>`).join(' ') + '…';
+}
+
+const TEMPLATES = {
+  DEPARTMENT: { departmentFullName: 'Rural Development Department', ministryName: 'Ministry of Rural Development', organizationName: 'Rural Development Department', nodalOfficerName: 'R. Sharma', nodalOfficerPhone: '9876500001' },
+  PRI:        { priLevel: 'GRAM_PANCHAYAT', priName: 'Gram Panchayat Khajuri', organizationName: 'Gram Panchayat Khajuri', sarpanchName: 'S. Devi' },
+  ULB:        { ulbName: 'Bhopal Municipal Corporation', ulbCode: 'BP-1234', organizationName: 'Bhopal Municipal Corporation' },
+  INDIVIDUAL: { contactNumber: '9876500002', contactPersonName: 'Aarav Kumar', contactEmail: 'aarav@example.com' },
+  RWA:        { rwaName: 'Green Residency RWA', organizationName: 'Green Residency RWA', contactPersonName: 'M. Joshi' },
+  COMPANY:    { companyName: 'Test Industries Pvt Ltd', organizationName: 'Test Industries Pvt Ltd', contactPersonName: 'CEO Test' },
+  STARTUP:    { companyName: 'Test Startup', organizationName: 'Test Startup' },
+  MSME:       { companyName: 'Test MSME', udyamRegistrationNumber: 'UDYAM-MP-01-0000001', organizationName: 'Test MSME' },
+  CSR:        { companyName: 'CSR Foundation', organizationName: 'CSR Foundation' },
+  NGO:        { organizationName: 'Seva Foundation', ngoRegistrationNumber: 'NGO/2024/12345', contactPersonName: 'P. Rao' },
+  SHG:        { organizationName: 'Mahila Shakti SHG' },
+  CBO_COOP:   { organizationName: 'Farmers Cooperative' },
+  UNIVERSITY: { institutionName: 'Test University', organizationName: 'Test University' },
+  RESEARCH_LAB:{ institutionName: 'CSIR Test Lab', organizationName: 'CSIR Test Lab' }
+};
+
+function applyTemplate(type) {
+  const t = TEMPLATES[type];
+  $('regPayload').value = t ? JSON.stringify(t, null, 2) : '{}';
+}
+
+async function createRegistration() {
+  const type = $('regType').value;
+  if (!type) { flash('Pehle source-type select karo'); return; }
+  const body = {
+    sourceType: type,
+    account: { phone: $('regPhone').value.trim(), email: $('regEmail').value.trim() || null },
+    source: jsonParse($('regPayload').value),
+    documents: jsonParse($('regDocs').value)
+  };
+  const res = await api('POST', '/registration', { body, auth: false });
+  show('POST /registration', res);
+  if (res.ok) $('regId').value = res.data.registrationId;
+}
+
+async function regMine() {
+  const res = await api('GET', '/registration/mine');
+  show('GET /registration/mine', res);
+  if (res.ok && res.data.length) {
+    const first = res.data[0];
+    $('regId').value = first.registrationId;
+    $('regEditPayload').value = JSON.stringify(first.source, null, 2);
+  }
+}
+async function regGet()  { show('GET /registration/' + $('regId').value.trim(), await api('GET', '/registration/' + $('regId').value.trim())); }
+async function regStatus(){ show('GET /registration/' + $('regId').value.trim() + '/status (public)', await api('GET', '/registration/' + $('regId').value.trim() + '/status', { auth: false })); }
+async function regHistory(){ show('GET /registration/' + $('regId').value.trim() + '/history', await api('GET', '/registration/' + $('regId').value.trim() + '/history')); }
+async function regSubmit() { show('POST /registration/' + $('regId').value.trim() + '/submit', await api('POST', '/registration/' + $('regId').value.trim() + '/submit')); }
+async function regUpdate() {
+  const id = $('regId').value.trim();
+  const res = await api('PATCH', '/registration/' + id, { body: { source: jsonParse($('regEditPayload').value) } });
+  show('PATCH /registration/' + id, res);
+}
+
+/* ---------------- reviewer ---------------- */
+async function reviewQueue() {
+  const s = $('revStatus').value;
+  const res = await api('GET', '/reviewer/registrations' + (s ? '?status=' + s : ''));
+  show('GET /reviewer/registrations' + (s ? '?status=' + s : ''), res);
+}
+async function revAssign()  { const id=$('revId').value.trim(); show('POST /reviewer/registrations/'+id+'/assign', await api('POST', `/reviewer/registrations/${id}/assign`)); }
+async function revApprove() { const id=$('revId').value.trim(); const c=$('revComment').value.trim(); show('POST /reviewer/registrations/'+id+'/approve', await api('POST', `/reviewer/registrations/${id}/approve`, { body: c ? { comment: c } : undefined })); }
+async function revReject()  { const id=$('revId').value.trim(); show('POST /reviewer/registrations/'+id+'/reject', await api('POST', `/reviewer/registrations/${id}/reject`, { body: { comment: $('revComment').value.trim() } })); }
+async function revAction()  { const id=$('revId').value.trim(); show('POST /reviewer/registrations/'+id+'/request-action', await api('POST', `/reviewer/registrations/${id}/request-action`, { body: { comment: $('revComment').value.trim() } })); }
+async function verifySource() {
+  const id = $('revSrcId').value.trim();
+  const body = { method: $('revMethod').value, result: $('revResult').value };
+  if ($('revNotes').value.trim()) body.notes = $('revNotes').value.trim();
+  show('POST /sources/' + id + '/verify', await api('POST', '/sources/' + id + '/verify', { body }));
+}
+
+/* ---------------- accounts ---------------- */
+async function accMine() {
+  const res = await api('GET', '/source/accounts');
+  show('GET /source/accounts', res);
+  if (res.ok && res.data.length) $('accId').value = res.data[0].sourceAccountId;
+}
+async function accGet() { show('GET /source/accounts/' + $('accId').value.trim(), await api('GET', '/source/accounts/' + $('accId').value.trim())); }
+
+/* ---------------- problems ---------------- */
+async function loadDomains() {
+  const res = await api('GET', '/domains', { auth: false });
+  show('GET /domains (public)', res);
+  if (res.ok && res.data.length) {
+    const d = res.data[0];
+    $('pDomains').value = JSON.stringify([d.domainId || d.id].filter(Boolean));
+  }
+}
+
+async function submitProblem() {
+  const loc = {
+    state: $('pState').value.trim(), district: $('pDistrict').value.trim(),
+    blockTehsil: $('pBlock').value.trim() || null, villageWard: $('pWard').value.trim() || null,
+    pincode: $('pPin').value.trim() || null,
+    latitude: parseFloat($('pLat').value), longitude: parseFloat($('pLng').value),
+    landmark: $('pLandmark').value.trim() || null
+  };
+  const body = {
+    title: $('pTitle').value.trim(),
+    description: $('pDesc').value.trim(),
+    urgency: $('pUrgency').value,
+    severity: $('pSeverity').value,
+    affectedPopulation: $('pPop').value ? parseInt($('pPop').value, 10) : null,
+    expectedOutcome: $('pOutcome').value.trim() || null,
+    existingIntervention: $('pExisting').value.trim() || null,
+    sourceAccountId: $('pAccount').value.trim(),
+    location: loc,
+    domainIds: jsonParse($('pDomains').value),
+    evidence: jsonParse($('pEvidence').value)
+  };
+  const res = await api('POST', '/problems', { body });
+  show('POST /problems', res);
+  if (res.ok) $('pId').value = res.data.problemId;
+}
+async function probGet() { show('GET /problems/' + $('pId').value.trim(), await api('GET', '/problems/' + $('pId').value.trim())); }
+async function probPatchStatus() {
+  const id = $('pId').value.trim();
+  const body = { status: $('pNewStatus').value };
+  const v = $('pVersion').value.trim();
+  if (v) body.expectedVersion = parseInt(v, 10);
+  show('PATCH /problems/' + id + '/status', await api('PATCH', '/problems/' + id + '/status', { body }));
+}
+async function uploadEvidence() {
+  const id = $('pId').value.trim();
+  const file = $('pEvFile').files[0];
+  if (!file) { flash('Pehle file choose karo'); return; }
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('evidenceType', $('pEvType').value);
+  show('POST /problems/' + id + '/evidence (multipart)', await api('POST', '/problems/' + id + '/evidence', { formData: fd }));
+}
+
+/* ---------------- admin ---------------- */
+async function admGetUser() { show('GET /users/' + $('admUserId').value.trim(), await api('GET', '/users/' + $('admUserId').value.trim())); }
+async function admChangeRole() {
+  const id = $('admRoleUserId').value.trim();
+  show('PATCH /users/' + id + '/role', await api('PATCH', '/users/' + id + '/role', { body: { role: $('admRole').value } }));
+}
+
+/* ---------------- raw ---------------- */
+async function rawSend() {
+  const method = $('rawMethod').value;
+  const path = $('rawPath').value.trim();
+  if (!path) { flash('Path required'); return; }
+  const txt = $('rawBody').value.trim();
+  const body = (method === 'GET' || method === 'DELETE' || !txt) ? undefined : jsonParse(txt);
+  show(method + ' ' + path, await api(method, path, { body }));
+}
+
+/* ---------------- tabs ---------------- */
+document.querySelectorAll('#tabs button').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('#tabs button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    $('tab-' + btn.dataset.tab).classList.add('active');
+  };
+});
+
+renderUser();
+</script>
+</body>
+</html>
