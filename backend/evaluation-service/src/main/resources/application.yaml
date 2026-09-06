@@ -28,9 +28,11 @@ app:
     secret: ${JWT_SECRET:}
     issuer: sih26043
     access-token-ttl-minutes: 15
-  # Where problem-service (Step 4+) serves GET /internal/problems/{id}.
+  # Where problem-service is found. With discovery enabled this is the load-balanced
+  # SERVICE ID (no port) resolved through eureka; kept as a property so a local run
+  # can point a non-eureka problem-service at a fixed URL if needed.
   problem-service:
-    base-url: ${PROBLEM_SERVICE_URL:http://localhost:8082}
+    base-url: ${PROBLEM_SERVICE_URL:http://problem-service}
   # Phase 2 routing: how many days an ASSIGNED evaluator has before the lazy
   # deadline expires. Deadlines are enforced on read/submit, not by a scheduler.
   evaluation:
@@ -44,3 +46,12 @@ app:
       max-tokens: 16000
       timeout-seconds: 60
       max-retries: 1
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+  instance:
+    # Register by container/host IP so peers on the same network (or localhost)
+    # can reach us — hostnames inside containers are random container ids.
+    prefer-ip-address: true

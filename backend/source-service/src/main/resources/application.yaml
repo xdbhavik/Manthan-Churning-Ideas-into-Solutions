@@ -41,3 +41,12 @@ app:
   # DEVIATION from design docs (which specify bare SHA-256): a 12-digit
   # Aadhaar is brute-forceable against a plain hash; pepper prevents it.
   identity-pepper: ${IDENTITY_PEPPER:}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+  instance:
+    # Register by container/host IP so peers on the same network (or localhost)
+    # can reach us — hostnames inside containers are random container ids.
+    prefer-ip-address: true

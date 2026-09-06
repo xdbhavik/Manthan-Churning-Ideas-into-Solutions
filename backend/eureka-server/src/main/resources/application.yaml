@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: eureka-server
+
+server:
+  port: 8761
+
+eureka:
+  client:
+    # Standalone registry: it does not register itself nor fetch other registries.
+    register-with-eureka: false
+    fetch-registry: false
+  server:
+    # Demo-friendly: drop stale instances promptly instead of hiding them under
+    # the default 5-minute self-preservation.
+    enable-self-preservation: false
+    eviction-interval-timer-in-ms: 5000

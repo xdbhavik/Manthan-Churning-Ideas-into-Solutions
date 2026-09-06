@@ -25,6 +25,12 @@
 			<version>${project.version}</version>
 		</dependency>
 
+		<!-- Service discovery: register with the eureka-server registry. -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+		</dependency>
+
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>

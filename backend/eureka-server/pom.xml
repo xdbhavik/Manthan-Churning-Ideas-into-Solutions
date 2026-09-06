@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.EDITH</groupId>
+		<artifactId>SIH26043</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+	<artifactId>eureka-server</artifactId>
+	<name>eureka-server</name>
+	<description>Spring Cloud Netflix Eureka service registry (8761). Single node, self-preservation off for the demo.</description>
+
+	<dependencies>
+		<!-- Eureka server 5.0.2 is the Boot-4 line of the Netflix stack (managed by the
+		     spring-cloud-dependencies 2025.1.3 BOM imported in the reactor parent). -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
+		</dependency>
+		<!-- Eureka's dashboard/registration API is a servlet web app; in Boot 4 the
+		     webmvc starter is the explicit variant (starter-web now just delegates to it). -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webmvc</artifactId>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

@@ -47,6 +47,19 @@ services:
       - pgdata:/var/lib/postgresql/data
       - ./db/init:/docker-entrypoint-initdb.d:ro
 
+  # Service registry (Spring Cloud Netflix Eureka). Clients register here and the
+  # two discovery-based internal calls (problem→source, evaluation→problem) resolve
+  # peers through it. Self-preservation is off so stopped instances disappear fast.
+  eureka-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+      args:
+        JAR_FILE: eureka-server/target/eureka-server-0.0.1-SNAPSHOT.jar
+    image: sih26043-eureka-server:step6
+    ports:
+      - "8761:8761"
+
   source-service:
     build:
       context: .
@@ -57,6 +70,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      eureka-server:
+        condition: service_started
     environment:
       SERVER_PORT: "8081"
       DB_URL: jdbc:postgresql://db:5432/sih_source
@@ -65,6 +80,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:-local-dev-only-secret-key-min-32-bytes-change-me!!}
       MOCK_OTP_CODE: ${MOCK_OTP_CODE:-123456}
       IDENTITY_PEPPER: ${IDENTITY_PEPPER:-local-dev-only-identity-pepper-change-me}
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
     ports:
       - "8081:8081"
 
@@ -80,6 +96,8 @@ services:
         condition: service_healthy
       source-service:
         condition: service_started
+      eureka-server:
+        condition: service_started
     environment:
       SERVER_PORT: "8082"
       DB_URL: jdbc:postgresql://db:5432/sih_problem
@@ -87,8 +105,9 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-sih}
       JWT_SECRET: ${JWT_SECRET:-local-dev-only-secret-key-min-32-bytes-change-me!!}
       EVIDENCE_STORAGE_DIR: /data/evidence
-      # source-service serves GET /internal/source-accounts/{id} from Step 5.
-      SOURCE_SERVICE_URL: http://source-service:8081
+      # source-service is resolved through eureka by its service id (load-balanced).
+      SOURCE_SERVICE_URL: http://source-service
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
     ports:
       - "8082:8082"
     volumes:
@@ -106,6 +125,8 @@ services:
         condition: service_healthy
       problem-service:
         condition: service_started
+      eureka-server:
+        condition: service_started
     environment:
       SERVER_PORT: "8083"
       DB_URL: jdbc:postgresql://db:5432/sih_eval
@@ -113,8 +134,9 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-sih}
       JWT_SECRET: ${JWT_SECRET:-local-dev-only-secret-key-min-32-bytes-change-me!!}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-      # problem-service serves GET /internal/problems/{id}.
-      PROBLEM_SERVICE_URL: http://problem-service:8082
+      # problem-service is resolved through eureka by its service id (load-balanced).
+      PROBLEM_SERVICE_URL: http://problem-service
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
     ports:
       - "8083:8083"
 
@@ -125,6 +147,7 @@ services:
       - source-service
       - problem-service
       - evaluation-service
+      - eureka-server
     ports:
       - "8080:8080"
     volumes:

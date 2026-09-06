@@ -41,6 +41,13 @@
 		reverse_proxy evaluation-service:8083
 	}
 
+	# --- Eureka registry REST API (dashboard is on the registry's own port 8761;
+	#     this exposes the /eureka/apps JSON through the gateway for verification). ---
+	@eureka path /eureka /eureka/*
+	handle @eureka {
+		reverse_proxy eureka-server:8761
+	}
+
 	# --- everything else (swagger-ui, /v3/api-docs, /error, OPTIONS preflight,
 	#     any unclaimed prefix) falls through to source-service. ---
 	handle {

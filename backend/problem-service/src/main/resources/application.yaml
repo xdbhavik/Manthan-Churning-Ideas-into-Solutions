@@ -34,6 +34,17 @@ app:
     access-token-ttl-minutes: 15
   evidence:
     storage-dir: ${EVIDENCE_STORAGE_DIR:./data/evidence}
-  # Where source-service (the monolith until Step 5) serves GET /internal/source-accounts/{id}.
+  # Where source-service is found. With discovery enabled this is the load-balanced
+  # SERVICE ID (no port) resolved through eureka; kept as a property so a local run
+  # can point a non-eureka source at a fixed URL if needed.
   source-service:
-    base-url: ${SOURCE_SERVICE_URL:http://localhost:8081}
+    base-url: ${SOURCE_SERVICE_URL:http://source-service}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+  instance:
+    # Register by container/host IP so peers on the same network (or localhost)
+    # can reach us — hostnames inside containers are random container ids.
+    prefer-ip-address: true
