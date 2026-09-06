@@ -9,6 +9,7 @@ import com.EDITH.SIH26043.repository.RefreshTokenRepository;
 import com.EDITH.SIH26043.repository.UserRepository;
 import com.EDITH.SIH26043.security.AuthUser;
 import com.EDITH.SIH26043.security.JwtService;
+import com.EDITH.SIH26043.web.dto.EvaluatorOnboardResponse;
 import com.EDITH.SIH26043.web.dto.OtpRequest;
 import com.EDITH.SIH26043.web.dto.OtpResponse;
 import com.EDITH.SIH26043.web.dto.RefreshRequest;
@@ -50,20 +51,36 @@ public class AuthService {
 
     @Transactional
     public OtpResponse register(OtpRequest req) {
+        createUser(req, UserRole.SUBMITTER);
+        return otpService.issue(req.phone());
+    }
+
+    /**
+     * Admin-issued evaluator account: creates an {@code EVALUATOR} user directly
+     * (no self-registration) and mints the OTP challenge for the evaluator's first
+     * login. The evaluator only ever calls /auth/login + /auth/verify-otp.
+     */
+    @Transactional
+    public EvaluatorOnboardResponse onboardEvaluator(OtpRequest req) {
+        User user = createUser(req, UserRole.EVALUATOR);
+        OtpResponse otp = otpService.issue(req.phone());
+        return new EvaluatorOnboardResponse(user.getUserId(), user.getPhone(), user.getRole(), otp);
+    }
+
+    /** Shared "phone not taken → new user row" path for public and admin onboarding. */
+    private User createUser(OtpRequest req, UserRole role) {
         if (userRepository.existsByPhone(req.phone())) {
-            throw new ApiException(HttpStatus.CONFLICT, "Phone already registered");
+            throw new ApiException(HttpStatus.CONFLICT,
+                    "Phone already registered — use PATCH /users/{id}/role to change an existing user's role");
         }
         User user = new User();
         user.setUserId(UUID.randomUUID());
         user.setPhone(req.phone());
         user.setEmail(req.email());
-        user.setRole(UserRole.SUBMITTER);
+        user.setRole(role);
         user.setKycStatus(KycStatus.UNVERIFIED);
         user.setCreatedAt(Instant.now());
-        userRepository.save(user);
-
-        OtpResponse resp = otpService.issue(req.phone());
-        return resp;
+        return userRepository.save(user);
     }
 
     @Transactional
