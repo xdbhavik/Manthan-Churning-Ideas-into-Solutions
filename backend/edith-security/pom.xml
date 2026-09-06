@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.EDITH</groupId>
+		<artifactId>SIH26043</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+	<artifactId>edith-security</artifactId>
+	<packaging>jar</packaging>
+	<name>edith-security</name>
+	<description>Stateless claim-based JWT kernel: JwtService, JwtAuthFilter, AuthUser principal. No JPA, no Spring Boot autoconfiguration.</description>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.EDITH</groupId>
+			<artifactId>edith-common</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<!-- org.springframework.web.filter.OncePerRequestFilter + HttpStatus. -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+		</dependency>
+		<!-- @Component / @Value on JwtService + JwtAuthFilter. -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+		</dependency>
+		<!-- SecurityContextHolder, UsernamePasswordAuthenticationToken, authorities. -->
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-core</artifactId>
+		</dependency>
+		<!-- Filter/Jakarta types used by OncePerRequestFilter. Provided: the runtime container ships it. -->
+		<dependency>
+			<groupId>jakarta.servlet</groupId>
+			<artifactId>jakarta.servlet-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<!-- HMAC JWT sign/verify. Matches the 10.x line Spring Security 7 (Boot 4.1) resolves. -->
+		<dependency>
+			<groupId>com.nimbusds</groupId>
+			<artifactId>nimbus-jose-jwt</artifactId>
+			<version>10.9.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+	</dependencies>
+
+</project>
