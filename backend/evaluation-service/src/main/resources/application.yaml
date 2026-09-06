@@ -28,9 +28,9 @@ app:
     secret: ${JWT_SECRET:}
     issuer: sih26043
     access-token-ttl-minutes: 15
-  # Where problem-service (the monolith until Step 4) serves GET /internal/problems/{id}.
+  # Where problem-service (Step 4+) serves GET /internal/problems/{id}.
   problem-service:
-    base-url: ${PROBLEM_SERVICE_URL:http://localhost:8081}
+    base-url: ${PROBLEM_SERVICE_URL:http://localhost:8082}
   llm:
     # Anthropic Claude SDK (Phase 2 problem analysis). Empty key → heuristic
     # fallback; the service must boot and the pipeline must route without a key.

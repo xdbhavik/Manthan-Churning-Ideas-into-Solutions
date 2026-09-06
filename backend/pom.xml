@@ -20,6 +20,7 @@
 		<module>edith-security</module>
 		<module>app</module>
 		<module>evaluation-service</module>
+		<module>problem-service</module>
 	</modules>
 
 	<properties>

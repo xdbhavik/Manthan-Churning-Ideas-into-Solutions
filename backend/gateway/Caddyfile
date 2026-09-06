@@ -4,9 +4,10 @@
 # RELATIVE API paths — so the gateway contract is "same paths, one port":
 # path prefixes below are forwarded verbatim, only the upstream host changes.
 #
-# Step 3: the evaluation pipeline is extracted to `evaluation-service` (:8083);
-# everything else still lands on the monolith (`app` on :8081). Steps 4-5 will
-# point the problem and source matcher groups at their own services.
+# Step 4: the problem aggregate is extracted to `problem-service` (:8082);
+# the evaluation pipeline is on `evaluation-service` (:8083). Everything else
+# still lands on the monolith (`app` on :8081) until Step 5 renames it to
+# source-service.
 
 :8080 {
 	encode gzip
@@ -18,9 +19,9 @@
 	}
 
 	# --- problem-service route set (domains, problems, problem-scoped audit) ---
-	@problem path /domains /domains/* /problems /problems/* /audit*
+	@problem path /domains /domains/* /problems /problems/* /audit /audit*
 	handle @problem {
-		reverse_proxy app:8081
+		reverse_proxy problem-service:8082
 	}
 
 	# --- evaluation-service route set ---

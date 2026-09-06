@@ -11,9 +11,8 @@ import java.util.UUID;
  * Declarative HTTP client for problem-service's internal context endpoint.
  * Implemented as a {@code RestClient}-backed proxy (see {@link ProblemClientConfig}).
  *
- * <p>{@code GET /internal/problems/{id}} is served by the monolith until Step 4,
- * then by problem-service. It is intentionally NOT routed through the public
- * gateway.</p>
+ * <p>{@code GET /internal/problems/{id}} is served by problem-service (Step 4+).
+ * It is intentionally NOT routed through the public gateway.</p>
  */
 @HttpExchange
 public interface ProblemContextApi {

@@ -1,28 +1,25 @@
 package com.EDITH.SIH26043.service;
 
+import com.EDITH.SIH26043.client.SourceAccountGateway;
 import com.EDITH.SIH26043.entity.Problem;
-import com.EDITH.SIH26043.entity.SourceAccount;
-import com.EDITH.SIH26043.enums.AccountVerificationStatus;
 import com.EDITH.SIH26043.enums.KycStatus;
-import com.EDITH.SIH26043.enums.SourceAccountStatus;
 import com.EDITH.SIH26043.enums.SourceBucket;
 import com.EDITH.SIH26043.enums.SubEntityType;
 import com.EDITH.SIH26043.enums.Urgency;
 import com.EDITH.SIH26043.enums.UserRole;
 import com.EDITH.SIH26043.exception.ApiException;
+import com.EDITH.SIH26043.internal.SourceAccountResponse;
 import com.EDITH.SIH26043.repository.DomainRepository;
 import com.EDITH.SIH26043.repository.EvidenceRepository;
 import com.EDITH.SIH26043.repository.LocationRepository;
 import com.EDITH.SIH26043.repository.ProblemDomainRepository;
 import com.EDITH.SIH26043.repository.ProblemRepository;
-import com.EDITH.SIH26043.repository.SourceAccountRepository;
 import com.EDITH.SIH26043.security.AuthUser;
 import com.EDITH.SIH26043.web.dto.ProblemSubmitRequest;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpStatus;
 
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,11 +33,15 @@ import static org.mockito.Mockito.when;
  * The source-verification gate on POST /problems: a problem may only be filed
  * through an ACTIVE + VERIFIED account the caller owns, and its bucket and
  * sub-entity type come from that account rather than from the request body.
+ *
+ * <p>Since Step 4 the account lives in source-service, so the gate is exercised
+ * through {@link SourceAccountGateway} (an internal HTTP call) instead of a
+ * local repository.</p>
  */
 class ProblemCollectionEngineTest {
 
     private final ProblemRepository problemRepository = mock(ProblemRepository.class);
-    private final SourceAccountRepository sourceAccountRepository = mock(SourceAccountRepository.class);
+    private final SourceAccountGateway sourceAccountGateway = mock(SourceAccountGateway.class);
     private final LocationRepository locationRepository = mock(LocationRepository.class);
     private final ProblemDomainRepository problemDomainRepository = mock(ProblemDomainRepository.class);
     private final DomainRepository domainRepository = mock(DomainRepository.class);
@@ -48,14 +49,15 @@ class ProblemCollectionEngineTest {
     private final AuditService auditService = mock(AuditService.class);
 
     private final ProblemCollectionEngine engine = new ProblemCollectionEngine(
-            problemRepository, sourceAccountRepository, locationRepository,
+            problemRepository, sourceAccountGateway, locationRepository,
             problemDomainRepository, domainRepository, evidenceRepository, auditService);
 
     @Test
     void unknownAccountIsNotFound() {
         AuthUser me = user();
         UUID missing = UUID.randomUUID();
-        when(sourceAccountRepository.findById(missing)).thenReturn(Optional.empty());
+        when(sourceAccountGateway.fetch(missing)).thenThrow(new ApiException(HttpStatus.NOT_FOUND,
+                "Source account not found"));
 
         assertThatThrownBy(() -> engine.receiveSubmission(request(missing), me, "127.0.0.1"))
                 .isInstanceOf(ApiException.class)
@@ -68,12 +70,11 @@ class ProblemCollectionEngineTest {
     @Test
     void anotherUsersAccountIsForbidden() {
         AuthUser me = user();
-        SourceAccount other = account(UUID.randomUUID(),
-                SourceAccountStatus.ACTIVE, AccountVerificationStatus.VERIFIED);
-        when(sourceAccountRepository.findById(other.getSourceAccountId())).thenReturn(Optional.of(other));
+        SourceAccountResponse other = account(UUID.randomUUID(), "ACTIVE", "VERIFIED");
+        when(sourceAccountGateway.fetch(other.sourceAccountId())).thenReturn(other);
 
         assertThatThrownBy(() -> engine.receiveSubmission(
-                request(other.getSourceAccountId()), me, "127.0.0.1"))
+                request(other.sourceAccountId()), me, "127.0.0.1"))
                 .isInstanceOf(ApiException.class)
                 .hasMessageContaining("SOURCE_NOT_OWNED");
 
@@ -83,12 +84,11 @@ class ProblemCollectionEngineTest {
     @Test
     void unverifiedAccountCannotSubmit() {
         AuthUser me = user();
-        SourceAccount pending = account(me.getUserId(),
-                SourceAccountStatus.PENDING, AccountVerificationStatus.UNVERIFIED);
-        when(sourceAccountRepository.findById(pending.getSourceAccountId())).thenReturn(Optional.of(pending));
+        SourceAccountResponse pending = account(me.getUserId(), "PENDING", "UNVERIFIED");
+        when(sourceAccountGateway.fetch(pending.sourceAccountId())).thenReturn(pending);
 
         assertThatThrownBy(() -> engine.receiveSubmission(
-                request(pending.getSourceAccountId()), me, "127.0.0.1"))
+                request(pending.sourceAccountId()), me, "127.0.0.1"))
                 .isInstanceOf(ApiException.class)
                 .hasMessageContaining("SOURCE_NOT_VERIFIED")
                 .extracting(ex -> ((ApiException) ex).getStatus())
@@ -101,12 +101,11 @@ class ProblemCollectionEngineTest {
     @Test
     void suspendedAccountCannotSubmit() {
         AuthUser me = user();
-        SourceAccount suspended = account(me.getUserId(),
-                SourceAccountStatus.SUSPENDED, AccountVerificationStatus.VERIFIED);
-        when(sourceAccountRepository.findById(suspended.getSourceAccountId())).thenReturn(Optional.of(suspended));
+        SourceAccountResponse suspended = account(me.getUserId(), "SUSPENDED", "VERIFIED");
+        when(sourceAccountGateway.fetch(suspended.sourceAccountId())).thenReturn(suspended);
 
         assertThatThrownBy(() -> engine.receiveSubmission(
-                request(suspended.getSourceAccountId()), me, "127.0.0.1"))
+                request(suspended.sourceAccountId()), me, "127.0.0.1"))
                 .isInstanceOf(ApiException.class)
                 .hasMessageContaining("SOURCE_NOT_VERIFIED");
 
@@ -116,19 +115,18 @@ class ProblemCollectionEngineTest {
     @Test
     void verifiedAccountSuppliesBucketAndTypeAndSource() {
         AuthUser me = user();
-        SourceAccount active = account(me.getUserId(),
-                SourceAccountStatus.ACTIVE, AccountVerificationStatus.VERIFIED);
-        when(sourceAccountRepository.findById(active.getSourceAccountId())).thenReturn(Optional.of(active));
+        SourceAccountResponse active = account(me.getUserId(), "ACTIVE", "VERIFIED");
+        when(sourceAccountGateway.fetch(active.sourceAccountId())).thenReturn(active);
 
-        engine.receiveSubmission(request(active.getSourceAccountId()), me, "127.0.0.1");
+        engine.receiveSubmission(request(active.sourceAccountId()), me, "127.0.0.1");
 
         ArgumentCaptor<Problem> saved = ArgumentCaptor.forClass(Problem.class);
         verify(problemRepository).save(saved.capture());
         Problem p = saved.getValue();
         assertThat(p.getSourceBucket()).isEqualTo(SourceBucket.GOVT);
         assertThat(p.getSubEntityType()).isEqualTo(SubEntityType.DEPARTMENT);
-        assertThat(p.getSourceId()).isEqualTo(active.getSourceId());
-        assertThat(p.getSourceAccountId()).isEqualTo(active.getSourceAccountId());
+        assertThat(p.getSourceId()).isEqualTo(active.sourceId());
+        assertThat(p.getSourceAccountId()).isEqualTo(active.sourceAccountId());
         assertThat(p.getSubmittedByUserId()).isEqualTo(me.getUserId());
     }
 
@@ -137,17 +135,11 @@ class ProblemCollectionEngineTest {
                 UserRole.SUBMITTER, KycStatus.UNVERIFIED);
     }
 
-    private SourceAccount account(UUID ownerUserId, SourceAccountStatus status,
-                                 AccountVerificationStatus verification) {
-        SourceAccount a = new SourceAccount();
-        a.setSourceAccountId(UUID.randomUUID());
-        a.setOwnerUserId(ownerUserId);
-        a.setSourceId(UUID.randomUUID());
-        a.setSourceBucket(SourceBucket.GOVT);
-        a.setSourceType(SubEntityType.DEPARTMENT);
-        a.setStatus(status);
-        a.setVerificationStatus(verification);
-        return a;
+    private SourceAccountResponse account(UUID ownerUserId, String status, String verification) {
+        boolean canSubmit = "ACTIVE".equals(status) && "VERIFIED".equals(verification);
+        return new SourceAccountResponse(
+                UUID.randomUUID(), ownerUserId, UUID.randomUUID(),
+                status, verification, "GOVT", "DEPARTMENT", "Dept of Water", canSubmit);
     }
 
     private ProblemSubmitRequest request(UUID sourceAccountId) {

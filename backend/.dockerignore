@@ -5,6 +5,7 @@
 **/target/*
 !app/target/app-0.0.1-SNAPSHOT.jar
 !evaluation-service/target/evaluation-service-0.0.1-SNAPSHOT.jar
+!problem-service/target/problem-service-0.0.1-SNAPSHOT.jar
 **/data
 actor-ui
 registration-wizard

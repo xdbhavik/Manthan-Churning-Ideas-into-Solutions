@@ -1,20 +1,22 @@
 package com.EDITH.SIH26043.service;
 
+import com.EDITH.SIH26043.client.SourceAccountGateway;
 import com.EDITH.SIH26043.entity.Evidence;
 import com.EDITH.SIH26043.entity.Location;
 import com.EDITH.SIH26043.entity.Problem;
 import com.EDITH.SIH26043.entity.ProblemDomain;
 import com.EDITH.SIH26043.entity.ProblemDomainId;
-import com.EDITH.SIH26043.entity.SourceAccount;
 import com.EDITH.SIH26043.enums.AuditAction;
 import com.EDITH.SIH26043.enums.ProblemStatus;
+import com.EDITH.SIH26043.enums.SourceBucket;
+import com.EDITH.SIH26043.enums.SubEntityType;
 import com.EDITH.SIH26043.exception.ApiException;
+import com.EDITH.SIH26043.internal.SourceAccountResponse;
 import com.EDITH.SIH26043.repository.DomainRepository;
 import com.EDITH.SIH26043.repository.EvidenceRepository;
 import com.EDITH.SIH26043.repository.LocationRepository;
 import com.EDITH.SIH26043.repository.ProblemDomainRepository;
 import com.EDITH.SIH26043.repository.ProblemRepository;
-import com.EDITH.SIH26043.repository.SourceAccountRepository;
 import com.EDITH.SIH26043.security.AuthUser;
 import com.EDITH.SIH26043.web.dto.ProblemSubmitRequest;
 import org.springframework.http.HttpStatus;
@@ -32,14 +34,15 @@ import java.util.UUID;
  * logging.
  *
  * <p>It never creates a source. Sources are born in Module A (registration +
- * reviewer approval); this engine only attaches a problem to an account that
- * already passed through it.</p>
+ * reviewer approval, source-service); this engine only attaches a problem to an
+ * account that already passed through it, authorizing the submission against
+ * source-service's {@code GET /internal/source-accounts/{id}}.</p>
  */
 @Service
 public class ProblemCollectionEngine {
 
     private final ProblemRepository problemRepository;
-    private final SourceAccountRepository sourceAccountRepository;
+    private final SourceAccountGateway sourceAccountGateway;
     private final LocationRepository locationRepository;
     private final ProblemDomainRepository problemDomainRepository;
     private final DomainRepository domainRepository;
@@ -47,14 +50,14 @@ public class ProblemCollectionEngine {
     private final AuditService auditService;
 
     public ProblemCollectionEngine(ProblemRepository problemRepository,
-                                   SourceAccountRepository sourceAccountRepository,
+                                   SourceAccountGateway sourceAccountGateway,
                                    LocationRepository locationRepository,
                                    ProblemDomainRepository problemDomainRepository,
                                    DomainRepository domainRepository,
                                    EvidenceRepository evidenceRepository,
                                    AuditService auditService) {
         this.problemRepository = problemRepository;
-        this.sourceAccountRepository = sourceAccountRepository;
+        this.sourceAccountGateway = sourceAccountGateway;
         this.locationRepository = locationRepository;
         this.problemDomainRepository = problemDomainRepository;
         this.domainRepository = domainRepository;
@@ -64,7 +67,7 @@ public class ProblemCollectionEngine {
 
     @Transactional
     public Problem receiveSubmission(ProblemSubmitRequest req, AuthUser submitter, String ip) {
-        SourceAccount account = requireSubmittableAccount(req.sourceAccountId(), submitter);
+        SourceAccountResponse account = requireSubmittableAccount(req.sourceAccountId(), submitter);
 
         Location location = mapLocation(req.location());
         locationRepository.save(location);
@@ -73,13 +76,13 @@ public class ProblemCollectionEngine {
         problem.setProblemId(UUID.randomUUID());
         problem.setTitle(req.title());
         problem.setDescription(req.description());
-        problem.setSourceBucket(account.getSourceBucket());
-        problem.setSubEntityType(account.getSourceType());
+        problem.setSourceBucket(SourceBucket.valueOf(account.sourceBucket()));
+        problem.setSubEntityType(SubEntityType.valueOf(account.sourceType()));
         problem.setStatus(ProblemStatus.SUBMITTED);
         problem.setUrgency(req.urgency());
         problem.setSeverity(req.severity());
-        problem.setSourceId(account.getSourceId());
-        problem.setSourceAccountId(account.getSourceAccountId());
+        problem.setSourceId(account.sourceId());
+        problem.setSourceAccountId(account.sourceAccountId());
         problem.setLocationId(location.getLocationId());
         problem.setAffectedPopulation(req.affectedPopulation());
         problem.setExpectedOutcome(req.expectedOutcome());
@@ -109,17 +112,16 @@ public class ProblemCollectionEngine {
      * suspended account is a 403 SOURCE_NOT_VERIFIED -- never a silent downgrade
      * to an unverified submission.
      */
-    private SourceAccount requireSubmittableAccount(UUID accountId, AuthUser submitter) {
-        SourceAccount account = sourceAccountRepository.findById(accountId)
-                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Source account not found"));
-        if (!account.getOwnerUserId().equals(submitter.getUserId())) {
+    private SourceAccountResponse requireSubmittableAccount(UUID accountId, AuthUser submitter) {
+        SourceAccountResponse account = sourceAccountGateway.fetch(accountId);
+        if (!account.ownerUserId().equals(submitter.getUserId())) {
             throw new ApiException(HttpStatus.FORBIDDEN,
                     "SOURCE_NOT_OWNED: this source account belongs to another user");
         }
         if (!account.canSubmit()) {
             throw new ApiException(HttpStatus.FORBIDDEN,
-                    "SOURCE_NOT_VERIFIED: source account is " + account.getStatus()
-                            + "/" + account.getVerificationStatus()
+                    "SOURCE_NOT_VERIFIED: source account is " + account.status()
+                            + "/" + account.verificationStatus()
                             + "; an approved registration is required before submitting problems");
         }
         return account;

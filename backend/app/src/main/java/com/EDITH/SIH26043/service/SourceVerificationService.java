@@ -1,10 +1,8 @@
 package com.EDITH.SIH26043.service;
 
 import com.EDITH.SIH26043.entity.SourceVerification;
-import com.EDITH.SIH26043.enums.ProblemStatus;
 import com.EDITH.SIH26043.enums.VerificationResult;
 import com.EDITH.SIH26043.exception.ApiException;
-import com.EDITH.SIH26043.repository.ProblemRepository;
 import com.EDITH.SIH26043.repository.ProblemSourceRepository;
 import com.EDITH.SIH26043.repository.SourceVerificationRepository;
 import com.EDITH.SIH26043.security.AuthUser;
@@ -18,24 +16,25 @@ import java.util.UUID;
 
 /**
  * Records a source identity verification (doc 05 sec 8). On PASS, the source is
- * marked verified and any problem awaiting source verification advances.
+ * marked verified.
+ *
+ * <p>Step 4 retired the legacy side-effect of also advancing problem rows
+ * (SOURCE_VERIFYING → SOURCE_VERIFIED): since the {@code source_account} spine
+ * gates submission on an already VERIFIED account, a problem is never submitted
+ * while its source is still awaiting verification, so there is nothing to
+ * advance here. Problem status transitions now happen only via
+ * {@code PATCH /problems/{id}/status} on problem-service.</p>
  */
 @Service
 public class SourceVerificationService {
 
     private final SourceVerificationRepository verificationRepository;
     private final ProblemSourceRepository sourceRepository;
-    private final ProblemRepository problemRepository;
-    private final AuditService auditService;
 
     public SourceVerificationService(SourceVerificationRepository verificationRepository,
-                                     ProblemSourceRepository sourceRepository,
-                                     ProblemRepository problemRepository,
-                                     AuditService auditService) {
+                                     ProblemSourceRepository sourceRepository) {
         this.verificationRepository = verificationRepository;
         this.sourceRepository = sourceRepository;
-        this.problemRepository = problemRepository;
-        this.auditService = auditService;
     }
 
     @Transactional
@@ -57,17 +56,6 @@ public class SourceVerificationService {
         if (req.result() == VerificationResult.PASS) {
             source.setVerifiedSource(true);
             sourceRepository.save(source);
-            // advance any problem that is waiting on source verification
-            problemRepository.findAll().stream()
-                    .filter(p -> p.getSourceId().equals(sourceId)
-                            && p.getStatus() == ProblemStatus.SOURCE_VERIFYING)
-                    .forEach(p -> {
-                        p.setStatus(ProblemStatus.SOURCE_VERIFIED);
-                        problemRepository.save(p);
-                        auditService.record(p.getProblemId(),
-                                com.EDITH.SIH26043.enums.AuditAction.SOURCE_VERIFIED,
-                                reviewer.getUserId(), p, p, ip);
-                    });
         }
         return v;
     }

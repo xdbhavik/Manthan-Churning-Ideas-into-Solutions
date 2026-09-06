@@ -18,6 +18,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -94,6 +95,10 @@ class EvaluationIntakeServiceTest {
     void successCreatesCycleInReceivedWithHistoryAndAudit() {
         when(problemGateway.fetch(problemId)).thenReturn(problem("REGISTERED"));
         when(cycleRepository.existsByProblemId(problemId)).thenReturn(false);
+        // save() on an @Version-defaulted entity goes through merge() and returns
+        // the (managed) instance; the mock must hand the argument back so the
+        // reassigned cycle carries an id for the history row.
+        when(cycleRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         EvaluationCycle cycle = service.start(problemId, actor, "127.0.0.1");
 
