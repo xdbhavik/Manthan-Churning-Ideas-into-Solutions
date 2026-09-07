@@ -200,6 +200,45 @@ class EvaluationRoutingServiceTest {
     }
 
     @Test
+    void aRerouteSkipsTheEvaluatorWhoAlreadyHadThisCycle() {
+        givenCycle(EvaluationStatus.ROUTING);
+        givenProblem("GOVT");
+        EvaluatorProfile declined = activeProfile(EvaluatorType.GOVERNMENT, 5);
+        EvaluatorProfile fresh = activeProfile(EvaluatorType.GOVERNMENT, 5);
+        when(profileRepository.findByEvaluatorTypeAndActiveIsTrue(EvaluatorType.GOVERNMENT))
+                .thenReturn(List.of(declined, fresh));
+        // The declined assignment no longer counts as open work, so on load alone the
+        // decliner would win again — and UNIQUE (cycle_id, evaluator_profile_id) would blow up.
+        givenOpenLoad(declined.getProfileId(), 0);
+        givenOpenLoad(fresh.getProfileId(), 3);
+        givenCycleAssignments(declined.getProfileId());
+        givenSaveAssignsId();
+
+        RouteOutcomeResponse outcome = service.route(cycleId, actor, "127.0.0.1");
+
+        assertThat(outcome.routed()).isTrue();
+        assertThat(outcome.profileId()).isEqualTo(fresh.getProfileId());
+    }
+
+    @Test
+    void aRerouteWithNobodyLeftKeepsCycleRouting() {
+        givenCycle(EvaluationStatus.ROUTING);
+        givenProblem("GOVT");
+        EvaluatorProfile onlyOne = activeProfile(EvaluatorType.GOVERNMENT, 5);
+        when(profileRepository.findByEvaluatorTypeAndActiveIsTrue(EvaluatorType.GOVERNMENT))
+                .thenReturn(List.of(onlyOne));
+        givenOpenLoad(onlyOne.getProfileId(), 0);
+        givenCycleAssignments(onlyOne.getProfileId());
+
+        RouteOutcomeResponse outcome = service.route(cycleId, actor, "127.0.0.1");
+
+        assertThat(outcome.routed()).isFalse();
+        assertThat(outcome.message()).contains("already assigned to this cycle");
+        verify(assignmentRepository, never()).save(any());
+        verify(statusService, never()).transition(any(), any(), any(), anyString());
+    }
+
+    @Test
     void unknownCycleIsNotFound() {
         when(cycleRepository.findById(cycleId)).thenReturn(Optional.empty());
 
@@ -238,6 +277,21 @@ class EvaluationRoutingServiceTest {
     private void givenOpenLoad(UUID profileId, long openAssignments) {
         when(assignmentRepository.countByEvaluatorProfileIdAndStatusIn(
                 eq(profileId), anyCollection())).thenReturn(openAssignments);
+    }
+
+    /** Profiles that already hold an assignment for this cycle (a decline left one behind). */
+    private void givenCycleAssignments(UUID... profileIds) {
+        List<EvaluationAssignment> existing = java.util.Arrays.stream(profileIds)
+                .map(profileId -> {
+                    EvaluationAssignment assignment = new EvaluationAssignment();
+                    assignment.setAssignmentId(UUID.randomUUID());
+                    assignment.setCycleId(cycleId);
+                    assignment.setEvaluatorProfileId(profileId);
+                    assignment.setStatus(AssignmentStatus.DECLINED);
+                    return assignment;
+                })
+                .toList();
+        when(assignmentRepository.findByCycleId(cycleId)).thenReturn(existing);
     }
 
     /** @PrePersist normally fills the id; a mocked save does not — emulate it. */

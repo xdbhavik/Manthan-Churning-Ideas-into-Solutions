@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIH26043 · Evaluator Console</title>
+<link rel="stylesheet" href="actor.css">
+<style>
+  /* evaluator-only bits (scorecard + queue list) */
+  .asg{border:1px solid var(--border);border-radius:6px;padding:8px;margin-bottom:6px;background:var(--panel2)}
+  .asg.sel{border-color:var(--accent)}
+  .crit{border-left:2px solid var(--border);padding:6px 0 6px 8px;margin-bottom:8px}
+  .crit .row{margin-bottom:0}
+  .mono{font-family:"Cascadia Code",Consolas,monospace;font-size:11px;color:var(--muted);word-break:break-all}
+</style>
+</head>
+<body data-actor="EVALUATOR">
+
+<header>
+  <h1>🧪 SIH26043 Test Console <span class="who">· Evaluator</span></h1>
+  <label>Base URL</label>
+  <input id="baseUrl" style="width:200px">
+  <button class="btn" onclick="saveBase()">Save</button>
+  <span id="roleBadge" class="badge"></span>
+  <div style="flex:1 1 100%;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <label>JWT</label>
+    <input id="token" style="flex:1;min-width:200px;font-family:monospace;font-size:11px" placeholder="evaluator access token">
+    <button class="btn sm" onclick="saveToken()">Save</button>
+    <button class="btn sm err" onclick="clearTokens()">Clear</button>
+  </div>
+</header>
+
+<nav class="personas">
+  <a data-actor="SUBMITTER" href="submitter.html">🙋 Submitter</a>
+  <a data-actor="REVIEWER" href="reviewer.html">🔍 Reviewer</a>
+  <a data-actor="ADMIN" href="admin.html">🛡️ Admin</a>
+  <a data-actor="EVALUATOR" href="evaluator.html">🧑‍⚖️ Evaluator</a>
+</nav>
+
+<main>
+  <div class="left">
+    <div id="roleNote" class="role-note"></div>
+
+    <!-- ======= AUTH (evaluator account) ======= -->
+    <div class="card">
+      <h3>Login (evaluator OTP token)</h3>
+      <div class="hint">EVALUATOR role DB me hona chahiye — ADMIN <code>POST /users/evaluators</code> se account banata hai, phir <code>POST /evaluation/evaluator-profiles</code> se profile bindta hai. Seeded test account: <code>9700000001</code>.</div>
+      <div class="row"><label>Phone</label><input id="aPhone" placeholder="9700000001" value="9700000001"></div>
+      <div class="row"><label>Email</label><input id="aEmail" placeholder="optional"></div>
+      <div class="row">
+        <button class="btn primary" onclick="auth('login')">Login</button>
+        <button class="btn" onclick="auth('register')">Register</button>
+      </div>
+      <div class="row"><label>challengeId</label><input id="aChallenge"></div>
+      <div class="row"><label>Code</label><input id="aCode"></div>
+      <div class="row">
+        <button class="btn primary" onclick="verifyOtp()">Verify OTP</button>
+        <button class="btn warn" onclick="useDevOtp()">Use devOtp</button>
+      </div>
+      <div class="row"><label>refreshToken</label><input id="aRefresh" class="fill"></div>
+      <div class="row"><button class="btn" onclick="refreshTok()">Refresh</button><button class="btn" onclick="logout()">Logout</button></div>
+    </div>
+
+    <!-- ======= WHO AM I ======= -->
+    <div class="card">
+      <h3>My evaluator profile</h3>
+      <div class="hint">Konsa pool (GOVERNMENT / INDUSTRY / …) score karte ho aur kitna workload. 404 aaye to profile onboard nahi hui — ADMIN console se karwao.</div>
+      <div class="row">
+        <button class="btn" onclick="myProfile()">GET /me/profile</button>
+        <button class="btn" onclick="myCriteria()">GET /me/criteria</button>
+      </div>
+    </div>
+
+    <!-- ======= WORK QUEUE ======= -->
+    <div class="card">
+      <h3>My work queue</h3>
+      <div class="row">
+        <label>Status filter</label>
+        <select id="qStatus" style="flex:1">
+          <option value="">(sab)</option>
+          <option>ASSIGNED</option><option>IN_PROGRESS</option><option>SUBMITTED</option>
+          <option>DECLINED</option><option>EXPIRED</option><option>REVIEWED</option>
+        </select>
+        <button class="btn primary" onclick="loadQueue()">Load queue</button>
+      </div>
+      <div class="hint">Queue sirf is service ke DB se banta hai, is liye problem-service down ho to bhi list aayegi. Khaali hai? Admin console se <code>start → analyze</code> chalao — auto-route tumhare pool ko assign karega.</div>
+      <div id="queue"></div>
+    </div>
+
+    <!-- ======= ONE ASSIGNMENT: CONTEXT + ACTIONS ======= -->
+    <div class="card">
+      <h3>Assignment · accept / decline</h3>
+      <div class="row"><label>assignmentId</label><input id="asgId" class="fill" placeholder="queue se 'Use this' dabao"></div>
+      <div class="row">
+        <button class="btn" onclick="loadAssignment()">Open (scoring screen)</button>
+        <button class="btn ok" onclick="acceptAsg()">Accept ✅</button>
+        <button class="btn err" onclick="declineAsg()">Decline</button>
+      </div>
+      <div class="row"><label>Decline reason</label><input id="dReason" class="fill" placeholder="e.g. conflict of interest"></div>
+      <div class="hint">Accept: ASSIGNED → IN_PROGRESS (dobara accept karna no-op hai). Decline: cycle wapas ROUTING chala jata hai, aur re-route tumhe skip karta hai. Deadline ke baad accept/submit → assignment EXPIRED (409).</div>
+    </div>
+
+    <!-- ======= PROBLEM + AI CONTEXT ======= -->
+    <div class="card">
+      <h3>Problem under evaluation</h3>
+      <div id="problemBox"><div class="hint">Assignment open karo.</div></div>
+      <hr>
+      <div id="aiBox"><div class="hint">AI profile yahan aayega (advisory only — score pe asar nahi daalna chahiye).</div></div>
+    </div>
+
+    <!-- ======= SCORECARD ======= -->
+    <div class="card">
+      <h3>Scorecard (submit)</h3>
+      <div class="hint">All-or-nothing: pool ke <b>har active criterion</b> ka score chahiye, ek hi baar, aur criterion ke apne <code>maxScore</code> se zyada nahi. Koi score khaali chhodo to backend "incomplete — Missing: …" 400 dega.</div>
+      <div id="scorecard"><div class="hint">Assignment open karo ya "GET /me/criteria" se blank form lo.</div></div>
+      <div class="row"><label>Feedback</label><textarea id="sFeedback" spellcheck="false" placeholder="overall feedback (optional)"></textarea></div>
+      <div class="row"><label>Recommendation</label><input id="sRecommendation" class="fill" placeholder="e.g. Prioritize for pilot"></div>
+      <div class="row">
+        <button class="btn warn" onclick="autoFill()">Fill all = 7 (test)</button>
+        <button class="btn primary" onclick="submitScores()">Submit scorecard 🧮</button>
+      </div>
+      <div class="hint">Aakhri open assignment submit hone par cycle EVALUATION_COMPLETED ho jata hai — response ke <code>cycleStatus</code> me dikhega.</div>
+    </div>
+
+    <!-- ======= RAW ======= -->
+    <div class="card">
+      <h3>Raw (any endpoint with this evaluator token)</h3>
+      <div class="row">
+        <select id="rawMethod" class="sm2">
+          <option>GET</option><option>POST</option><option>PATCH</option><option>PUT</option><option>DELETE</option>
+        </select>
+        <input id="rawPath" class="fill" placeholder="/evaluation/me/assignments">
+      </div>
+      <div class="row"><label>Body</label><textarea id="rawBody" spellcheck="false">{}</textarea></div>
+      <div class="row"><button class="btn" onclick="rawSend()">Send</button></div>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="card" style="position:sticky;top:0">
+      <div class="statusbar"><span id="outReq">—</span><span id="outStatus" class="badge">no request yet</span></div>
+      <pre id="out" class="out">Response yahan aayega…</pre>
+    </div>
+  </div>
+</main>
+
+<script src="actor-core.js"></script>
+<script>
+/* ---------- evaluator ops (all under /evaluation/me, scoped to the JWT) ---------- */
+const ME = '/evaluation/me';
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt = d => d ? new Date(d).toLocaleString() : '—';
+
+/* profile + blank scorecard */
+async function myProfile(){ show('GET '+ME+'/profile', await api('GET', ME+'/profile')); }
+async function myCriteria(){
+  const res = await api('GET', ME+'/criteria');
+  show('GET '+ME+'/criteria', res);
+  if (res.ok) renderCriteria(res.data);
+}
+
+/* work queue */
+async function loadQueue(){
+  const s = $('qStatus').value;
+  const path = ME+'/assignments' + (s ? '?status='+s : '');
+  const res = await api('GET', path);
+  show('GET '+path, res);
+  const box = $('queue');
+  if (!res.ok || !Array.isArray(res.data)){ box.innerHTML = '<div class="hint err">Queue load nahi hua — response pane dekho.</div>'; return; }
+  if (!res.data.length){ box.innerHTML = '<div class="hint">Koi assignment nahi.</div>'; return; }
+  box.innerHTML = res.data.map(a => `
+    <div class="asg">
+      <div><b>${esc(a.status)}</b>${a.overdue ? ' <span class="err">· overdue</span>' : ''}
+           · ${a.criteriaScored}/${a.criteriaTotal} scored · cycle ${esc(a.cycleStatus)}</div>
+      <div class="mono">${esc(a.assignmentId)}</div>
+      <div class="hint" style="margin:2px 0">deadline ${fmt(a.deadline)} · assigned ${fmt(a.assignedAt)}</div>
+      <button class="btn sm" onclick="pick('${a.assignmentId}')">Use this</button>
+    </div>`).join('');
+}
+function pick(id){ $('asgId').value = id; loadAssignment(); }
+
+/* one assignment: full scoring screen */
+async function loadAssignment(){
+  const id = $('asgId').value.trim();
+  if (!id){ flash('assignmentId chahiye'); return; }
+  const res = await api('GET', ME+'/assignments/'+id);
+  show('GET '+ME+'/assignments/'+id, res);
+  if (!res.ok) return;
+  const d = res.data;
+  const p = d.problem;
+  $('problemBox').innerHTML = p
+    ? `<b>${esc(p.title)}</b>
+       <div class="hint">${esc(p.status)} · bucket ${esc(p.sourceBucket)} · urgency ${esc(p.urgency)} · severity ${esc(p.severity)}
+           · domains ${(p.domains||[]).map(esc).join(', ') || '—'} · evidence ${p.evidenceCount}</div>
+       <div>${esc(p.description)}</div>
+       ${p.expectedOutcome ? `<div class="hint">Expected outcome: ${esc(p.expectedOutcome)}</div>` : ''}`
+    : '<div class="hint warn">problem-service se body nahi mili (problem = null) — criteria form phir bhi chalega.</div>';
+  $('aiBox').innerHTML = d.analysis
+    ? `<div class="hint">AI profile (advisory only — score pe asar nahi):</div><pre class="out">${esc(JSON.stringify(d.analysis, null, 2))}</pre>`
+    : '<div class="hint">AI analysis is cycle ke liye nahi hui.</div>';
+  renderCriteria(d.criteria);
+  $('sFeedback').value = d.feedback || '';
+  $('sRecommendation').value = d.recommendation || '';
+}
+
+/* criteria → editable rows (works for both the blank form and a saved one) */
+function renderCriteria(criteria){
+  const box = $('scorecard');
+  if (!Array.isArray(criteria) || !criteria.length){ box.innerHTML = '<div class="hint err">Criteria nahi mile — pool me active criterion hai?</div>'; return; }
+  box.innerHTML = criteria.map(c => `
+    <div class="crit" data-key="${esc(c.criterionKey)}">
+      <div><b>${esc(c.criterionLabel)}</b> <span class="hint">${esc(c.criterionKey)} · max ${c.maxScore}</span></div>
+      ${c.description ? `<div class="hint" style="margin:2px 0">${esc(c.description)}</div>` : ''}
+      <div class="row">
+        <input class="cScore" type="number" min="1" max="${c.maxScore}" style="flex:0 0 90px"
+               placeholder="1-${c.maxScore}" value="${c.myScore ?? ''}">
+        <input class="cComment" placeholder="comment (optional)" value="${esc(c.myComment ?? '')}">
+      </div>
+    </div>`).join('');
+}
+function autoFill(){
+  document.querySelectorAll('#scorecard .crit .cScore').forEach(i => {
+    i.value = Math.min(7, parseInt(i.max, 10) || 10);
+  });
+  flash('Sab scores 7 (ya criterion ka max) par set — ab Submit karo');
+}
+
+/* accept / decline / submit */
+async function acceptAsg(){
+  const id = $('asgId').value.trim();
+  show('POST '+ME+'/assignments/'+id+'/accept', await api('POST', ME+'/assignments/'+id+'/accept'));
+  loadQueue();
+}
+async function declineAsg(){
+  const id = $('asgId').value.trim();
+  const reason = $('dReason').value.trim();
+  show('POST '+ME+'/assignments/'+id+'/decline',
+       await api('POST', ME+'/assignments/'+id+'/decline', { body: reason ? { reason } : {} }));
+  loadQueue();
+}
+async function submitScores(){
+  const id = $('asgId').value.trim();
+  if (!id){ flash('assignmentId chahiye'); return; }
+  // Blank scores are dropped, not sent as null — that way the backend answers with the
+  // friendly "incomplete — Missing: …" instead of a bean-validation error.
+  const scores = [...document.querySelectorAll('#scorecard .crit')].flatMap(el => {
+    const raw = el.querySelector('.cScore').value.trim();
+    if (!raw) return [];
+    const comment = el.querySelector('.cComment').value.trim();
+    return [{ criterionKey: el.dataset.key, score: parseInt(raw, 10), ...(comment ? { comment } : {}) }];
+  });
+  const body = { scores };
+  if ($('sFeedback').value.trim()) body.feedback = $('sFeedback').value.trim();
+  if ($('sRecommendation').value.trim()) body.recommendation = $('sRecommendation').value.trim();
+  show('POST '+ME+'/assignments/'+id+'/submit',
+       await api('POST', ME+'/assignments/'+id+'/submit', { body }));
+  loadQueue();
+}
+</script>
+</body>
+</html>

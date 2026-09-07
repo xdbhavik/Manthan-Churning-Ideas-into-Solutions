@@ -1,7 +1,7 @@
 /* ============================================================
- * SIH26043 actor-ui — SHARED ENGINE (loaded by all 3 actor pages)
+ * SIH26043 actor-ui — SHARED ENGINE (loaded by all 4 actor pages)
  *
- * Every actor (SUBMITTER / REVIEWER / ADMIN) keeps its OWN token in
+ * Every actor (SUBMITTER / REVIEWER / ADMIN / EVALUATOR) keeps its OWN token in
  * localStorage, keyed by actor, so switching persona never mixes JWTs.
  * This file provides: state + token mgmt, api()/show(), OTP auth flow,
  * persona nav, and a generic Raw request card. Actor-specific endpoint
@@ -11,7 +11,8 @@
 const $ = id => document.getElementById(id);
 
 const ACTOR = (document.body && document.body.dataset.actor) || 'SUBMITTER';
-const ACTOR_LABEL = { SUBMITTER: 'Submitter', REVIEWER: 'Reviewer', ADMIN: 'Admin' }[ACTOR];
+const ACTOR_LABEL = { SUBMITTER: 'Submitter', REVIEWER: 'Reviewer', ADMIN: 'Admin',
+                      EVALUATOR: 'Evaluator' }[ACTOR];
 
 /* ---- per-actor local keys ---- */
 function k(suffix) { return 'sih_' + ACTOR.toLowerCase() + '_' + suffix; }

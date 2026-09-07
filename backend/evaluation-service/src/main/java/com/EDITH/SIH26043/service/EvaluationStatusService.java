@@ -44,7 +44,10 @@ public class EvaluationStatusService {
             // Analysis failed → retry the analysis step (no audit loop).
             Map.entry(EvaluationStatus.ANALYSIS_FAILED, EnumSet.of(EvaluationStatus.ANALYZING)),
             Map.entry(EvaluationStatus.ROUTING, EnumSet.of(EvaluationStatus.EVALUATION_IN_PROGRESS)),
-            Map.entry(EvaluationStatus.EVALUATION_IN_PROGRESS, EnumSet.of(EvaluationStatus.EVALUATION_COMPLETED)),
+            // Back to ROUTING when every assignment was declined/expired — the problem is
+            // still unevaluated, so it must be re-routable to a different evaluator.
+            Map.entry(EvaluationStatus.EVALUATION_IN_PROGRESS, EnumSet.of(
+                    EvaluationStatus.EVALUATION_COMPLETED, EvaluationStatus.ROUTING)),
             Map.entry(EvaluationStatus.EVALUATION_COMPLETED, EnumSet.of(EvaluationStatus.SCORES_AGGREGATED)),
             // Re-aggregation after a disagreement is reviewed/resolved.
             Map.entry(EvaluationStatus.SCORES_AGGREGATED, EnumSet.of(

@@ -26,7 +26,9 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Phase 2 routing step: hands a problem to the least-loaded active evaluator of
@@ -43,6 +45,10 @@ import java.util.UUID;
  * audit row records the handoff. When no active profile of the matching pool is
  * under its {@code max_workload}, the cycle stays {@code ROUTING} and the caller
  * may retry later — a {@code routed=false} outcome, never an error.</p>
+ *
+ * <p>Routing the same cycle again (after a decline sent it back to {@code ROUTING})
+ * skips every profile that already holds an assignment for it, so the problem
+ * moves to a genuinely different evaluator.</p>
  */
 @Service
 public class EvaluationRoutingService {
@@ -97,9 +103,18 @@ public class EvaluationRoutingService {
         ProblemContextResponse problem = problemGateway.fetch(cycle.getProblemId());
         EvaluatorType pool = poolFor(problem.sourceBucket());
 
-        EvaluatorProfile chosen = leastLoadedCandidate(pool);
+        // Anyone who already holds an assignment for this cycle is out: either they are
+        // still working on it, or they declined/expired it. Re-assigning them would also
+        // violate UNIQUE (cycle_id, evaluator_profile_id).
+        Set<UUID> alreadyTried = assignmentRepository.findByCycleId(cycleId).stream()
+                .map(EvaluationAssignment::getEvaluatorProfileId)
+                .collect(Collectors.toSet());
+
+        EvaluatorProfile chosen = leastLoadedCandidate(pool, alreadyTried);
         if (chosen == null) {
-            return notRouted("no active " + pool + " evaluator under max_workload");
+            return notRouted("no active " + pool + " evaluator under max_workload"
+                    + (alreadyTried.isEmpty() ? ""
+                    : " (excluding " + alreadyTried.size() + " already assigned to this cycle)"));
         }
 
         Instant now = Instant.now();
@@ -125,11 +140,19 @@ public class EvaluationRoutingService {
                 chosen.getProfileId(), pool.name(), comment);
     }
 
-    /** Lowest open-load active profile strictly under its max_workload; ties → first. */
-    private EvaluatorProfile leastLoadedCandidate(EvaluatorType pool) {
+    /**
+     * Lowest open-load active profile strictly under its max_workload; ties → first.
+     *
+     * @param exclude profiles already assigned to the cycle (a re-route must pick
+     *                someone new, not the evaluator who just declined)
+     */
+    private EvaluatorProfile leastLoadedCandidate(EvaluatorType pool, Set<UUID> exclude) {
         EvaluatorProfile chosen = null;
         long chosenLoad = 0;
         for (EvaluatorProfile candidate : profileRepository.findByEvaluatorTypeAndActiveIsTrue(pool)) {
+            if (exclude.contains(candidate.getProfileId())) {
+                continue;
+            }
             long openLoad = assignmentRepository.countByEvaluatorProfileIdAndStatusIn(
                     candidate.getProfileId(), OPEN_STATUSES);
             if (openLoad < candidate.getMaxWorkload()
