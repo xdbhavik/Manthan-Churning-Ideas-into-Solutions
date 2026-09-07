@@ -1,5 +1,5 @@
-# Keep the docker build context tiny: the thin Dockerfile.app only needs the
-# pre-packaged app jar (plus this file). Everything else is excluded.
+# Keep the docker build context tiny: the thin Dockerfile.service only needs one
+# pre-packaged service jar (plus this file). Everything else is excluded.
 .git
 **/.git
 **/target/*

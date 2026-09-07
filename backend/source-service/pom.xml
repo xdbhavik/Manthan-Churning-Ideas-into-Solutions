@@ -10,7 +10,7 @@
 	</parent>
 	<artifactId>source-service</artifactId>
 	<name>source-service</name>
-	<description>Source-service (auth/identity, source registration &amp; accounts). The former monolith `app`, re-based onto its own sih_source DB.</description>
+	<description>Source service (auth/identity, source registration &amp; accounts) on DB sih_source.</description>
 
 	<dependencies>
 		<!-- Shared kernel jars. -->

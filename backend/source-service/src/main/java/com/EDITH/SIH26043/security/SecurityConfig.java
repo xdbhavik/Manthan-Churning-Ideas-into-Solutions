@@ -54,8 +54,8 @@ public class SecurityConfig {
                                 "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
                         // Public: Spring error dispatch (so RFC-7807 errors reach callers)
                         .requestMatchers("/error").permitAll()
-                        // Service-to-service: evaluation-service fetches problem context
-                        // here until Step 4. Not routed through the public gateway.
+                        // Service-to-service: problem-service fetches source-account
+                        // context here. Not routed through the public gateway.
                         .requestMatchers("/internal/**").permitAll()
                         // Everything else requires a valid token
                         .anyRequest().authenticated())

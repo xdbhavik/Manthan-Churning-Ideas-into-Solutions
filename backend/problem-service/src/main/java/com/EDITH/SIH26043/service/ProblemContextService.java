@@ -20,8 +20,7 @@ import java.util.UUID;
 
 /**
  * Assembles the service-to-service problem snapshot served at
- * {@code GET /internal/problems/{id}} (moved here with the problem aggregate in
- * Step 4; previously the monolith served it).
+ * {@code GET /internal/problems/{id}}.
  *
  * <p>The payload is the evaluation pipeline's whole read model: status (intake
  * validates REGISTERED) plus the AI-analysis context (title/description/bucket,

@@ -22,8 +22,8 @@ import java.util.UUID;
  * future cross-service timeline can stitch them together.
  *
  * <p>This table lives in the {@code sih_eval} database only — it has no FK to a
- * shared audit log (the pre-split global {@code audit_log} belonged to the
- * monolith's problem database).</p>
+ * shared audit log; problem-service keeps its own {@code audit_log} in
+ * {@code sih_problem}.</p>
  */
 @Entity
 @Table(name = "audit_log")

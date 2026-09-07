@@ -34,9 +34,9 @@ import static org.mockito.Mockito.when;
  * through an ACTIVE + VERIFIED account the caller owns, and its bucket and
  * sub-entity type come from that account rather than from the request body.
  *
- * <p>Since Step 4 the account lives in source-service, so the gate is exercised
- * through {@link SourceAccountGateway} (an internal HTTP call) instead of a
- * local repository.</p>
+ * <p>The account lives in source-service, so the gate is exercised through
+ * {@link SourceAccountGateway} (an internal HTTP call) instead of a local
+ * repository.</p>
  */
 class ProblemCollectionEngineTest {
 

@@ -3,9 +3,9 @@ package com.EDITH.SIH26043.internal;
 import java.util.UUID;
 
 /**
- * Service-to-service snapshot of a source account, served by source-service (or
- * the monolith until Step 5) over {@code GET /internal/source-accounts/{id}} and
- * consumed by problem-service to authorize problem submissions.
+ * Service-to-service snapshot of a source account, served by source-service over
+ * {@code GET /internal/source-accounts/{id}} and consumed by problem-service to
+ * authorize problem submissions.
  *
  * <p>Enum-valued fields travel as their {@code name()} strings so the two
  * services never need to agree on a persisted representation. {@code canSubmit}

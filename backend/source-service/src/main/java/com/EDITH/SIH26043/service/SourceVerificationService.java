@@ -18,11 +18,11 @@ import java.util.UUID;
  * Records a source identity verification (doc 05 sec 8). On PASS, the source is
  * marked verified.
  *
- * <p>Step 4 retired the legacy side-effect of also advancing problem rows
- * (SOURCE_VERIFYING → SOURCE_VERIFIED): since the {@code source_account} spine
- * gates submission on an already VERIFIED account, a problem is never submitted
- * while its source is still awaiting verification, so there is nothing to
- * advance here. Problem status transitions now happen only via
+ * <p>Verification has no side-effect on problem rows (no
+ * SOURCE_VERIFYING → SOURCE_VERIFIED advance): since the {@code source_account}
+ * spine gates submission on an already VERIFIED account, a problem is never
+ * submitted while its source is still awaiting verification, so there is nothing
+ * to advance here. Problem status transitions happen only via
  * {@code PATCH /problems/{id}/status} on problem-service.</p>
  */
 @Service

@@ -1,4 +1,5 @@
-# SIH26043 demo stack — Step 5 (all three services extracted, monolith retired).
+# SIH26043 demo stack — microservices only; there is no application monolith.
+# Each service owns its own database and talks to peers over HTTP.
 #
 # Topology:
 #   gateway (:8080, Caddy)  ──►  source-service (:8081, db sih_source)
@@ -17,8 +18,7 @@
 #     docker compose up -d --build
 #
 # The per-service databases (sih_source / sih_problem / sih_eval) are created on
-# a FRESH db volume via db/init. If you have an existing volume from an earlier
-# step, create the new ones manually:
+# a FRESH db volume via db/init. On an existing volume, create them manually:
 #     docker compose up -d db
 #     docker exec sih26043-pg psql -U sih -d postgres -c "CREATE DATABASE sih_source"
 #
@@ -53,20 +53,20 @@ services:
   eureka-server:
     build:
       context: .
-      dockerfile: Dockerfile.app
+      dockerfile: Dockerfile.service
       args:
         JAR_FILE: eureka-server/target/eureka-server-0.0.1-SNAPSHOT.jar
-    image: sih26043-eureka-server:step6
+    image: sih26043-eureka-server:local
     ports:
       - "8761:8761"
 
   source-service:
     build:
       context: .
-      dockerfile: Dockerfile.app
+      dockerfile: Dockerfile.service
       args:
         JAR_FILE: source-service/target/source-service-0.0.1-SNAPSHOT.jar
-    image: sih26043-source-service:step5
+    image: sih26043-source-service:local
     depends_on:
       db:
         condition: service_healthy
@@ -87,10 +87,10 @@ services:
   problem-service:
     build:
       context: .
-      dockerfile: Dockerfile.app
+      dockerfile: Dockerfile.service
       args:
         JAR_FILE: problem-service/target/problem-service-0.0.1-SNAPSHOT.jar
-    image: sih26043-problem-service:step5
+    image: sih26043-problem-service:local
     depends_on:
       db:
         condition: service_healthy
@@ -116,10 +116,10 @@ services:
   evaluation-service:
     build:
       context: .
-      dockerfile: Dockerfile.app
+      dockerfile: Dockerfile.service
       args:
         JAR_FILE: evaluation-service/target/evaluation-service-0.0.1-SNAPSHOT.jar
-    image: sih26043-evaluation-service:step5
+    image: sih26043-evaluation-service:local
     depends_on:
       db:
         condition: service_healthy

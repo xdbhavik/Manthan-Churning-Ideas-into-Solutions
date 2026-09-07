@@ -10,7 +10,7 @@
 	</parent>
 	<artifactId>evaluation-service</artifactId>
 	<name>evaluation-service</name>
-	<description>Step 3 strangler extraction: the Phase-2 evaluation pipeline (8083, DB sih_eval).</description>
+	<description>Phase-2 evaluation pipeline service (8083, DB sih_eval).</description>
 
 	<dependencies>
 		<!-- Shared kernel jars. -->

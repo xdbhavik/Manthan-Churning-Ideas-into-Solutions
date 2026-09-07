@@ -4,11 +4,11 @@
 # RELATIVE API paths — so the gateway contract is "same paths, one port":
 # path prefixes below are forwarded verbatim, only the upstream host changes.
 #
-# Step 5 (final): all three services are standalone, each on its own DB.
+# Three standalone services, each on its own database:
 #   source-service (:8081)   — auth/identity, source registration & accounts
 #   problem-service (:8082)  — problems, domains, problem-scoped audit
 #   evaluation-service (:8083) — evaluation pipeline
-# The old monolith (`app`) is retired.
+# There is no application monolith — every route below lands on one of the three.
 #
 # Every public endpoint must be listed as BOTH the bare prefix and the `/*` glob:
 # Caddy's `path` matcher treats `/x/*` as "under /x/" and does NOT match the bare

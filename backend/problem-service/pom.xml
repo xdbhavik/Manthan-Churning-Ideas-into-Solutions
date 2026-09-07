@@ -10,7 +10,7 @@
 	</parent>
 	<artifactId>problem-service</artifactId>
 	<name>problem-service</name>
-	<description>Step 4 strangler extraction: the problem aggregate (8082, DB sih_problem). Owns domain/problem/location/evidence/problem_domain + problem-scoped audit; authorizes submissions against source-service via GET /internal/source-accounts/{id}.</description>
+	<description>Problem aggregate service (8082, DB sih_problem). Owns domain/problem/location/evidence/problem_domain + problem-scoped audit; authorizes submissions against source-service via GET /internal/source-accounts/{id}.</description>
 
 	<dependencies>
 		<!-- Shared kernel jars. -->

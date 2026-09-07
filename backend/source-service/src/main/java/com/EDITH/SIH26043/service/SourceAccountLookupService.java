@@ -12,8 +12,7 @@ import java.util.UUID;
 
 /**
  * Assembles the service-to-service source-account snapshot served at
- * {@code GET /internal/source-accounts/{id}} (served by the monolith until Step
- * 5, when it moves with the source aggregate into source-service).
+ * {@code GET /internal/source-accounts/{id}}.
  *
  * <p>The payload is what problem-service needs to authorize a submission:
  * ownership, status/verification (via {@code canSubmit}, mirroring

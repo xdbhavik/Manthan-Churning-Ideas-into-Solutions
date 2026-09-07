@@ -11,9 +11,8 @@ import java.util.UUID;
  * Declarative HTTP client for source-service's internal source-account endpoint.
  * Implemented as a {@code RestClient}-backed proxy (see {@link SourceAccountClientConfig}).
  *
- * <p>{@code GET /internal/source-accounts/{id}} is served by the monolith until
- * Step 5, then by source-service. It is intentionally NOT routed through the
- * public gateway.</p>
+ * <p>{@code GET /internal/source-accounts/{id}} is served by source-service and
+ * is intentionally NOT routed through the public gateway.</p>
  */
 @HttpExchange
 public interface SourceAccountApi {

@@ -4,9 +4,8 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Service-to-service snapshot of a problem, served by problem-service (or the
- * monolith until Step 4) over {@code GET /internal/problems/{id}} and consumed
- * by evaluation-service.
+ * Service-to-service snapshot of a problem, served by problem-service over
+ * {@code GET /internal/problems/{id}} and consumed by evaluation-service.
  *
  * <p>Carries everything the evaluation pipeline needs without a shared database:
  * the {@code status} (intake validates REGISTERED) plus the full AI-analysis
