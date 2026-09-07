@@ -37,3 +37,6 @@ build/
 
 ### Runtime uploads (app.evidence.storage-dir) ###
 /data/
+
+### Local secrets (compose auto-loads .env) ###
+.env

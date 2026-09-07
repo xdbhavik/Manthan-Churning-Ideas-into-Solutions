@@ -84,7 +84,8 @@ public class EvaluationAdminController {
             summary = "🤖 Run AI problem analysis",
             description = """
                     Builds the problem context (location, domains, evidence count) and asks
-                    Claude for a structured problem profile. When the model is unreachable or
+                    the configured LLM (OpenAI-compatible local model) for a structured problem
+                    profile. When the model is unreachable or
                     returns unusable JSON, a deterministic heuristic profile is stored instead,
                     so the pipeline never blocks on the network. The profile is advisory: it
                     never contributes to the evaluation score. Idempotent — re-running replaces

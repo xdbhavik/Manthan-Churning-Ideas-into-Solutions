@@ -35,7 +35,7 @@ public class ProblemAnalysis {
     @Column(name = "cycle_id", nullable = false, unique = true)
     private UUID cycleId;
 
-    /** 'claude' | 'heuristic'. */
+    /** 'openai-compatible' | 'heuristic'. */
     @Column(name = "provider", nullable = false, length = 50)
     private String provider;
 

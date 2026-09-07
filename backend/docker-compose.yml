@@ -133,7 +133,15 @@ services:
       DB_USERNAME: ${DB_USERNAME:-sih}
       DB_PASSWORD: ${DB_PASSWORD:-sih}
       JWT_SECRET: ${JWT_SECRET:-local-dev-only-secret-key-min-32-bytes-change-me!!}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      # Local OpenAI-compatible LLM (agentrouter on the host). host.docker.internal
+      # reaches the host from inside the container; a bare localhost would target
+      # the container itself and fail.
+      # The API key is a real credential, so it is NOT defaulted here — put it in
+      # .env (gitignored, auto-loaded by compose) as OPENAI_API_KEY=sk-…
+      # An empty key is safe: analysis falls back to the deterministic heuristic.
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-http://host.docker.internal:20128/v1}
+      OPENAI_MODEL: ${OPENAI_MODEL:-agentrouter/deepseek-v4-flash}
       # problem-service is resolved through eureka by its service id (load-balanced).
       PROBLEM_SERVICE_URL: http://problem-service
       EUREKA_SERVER_URL: http://eureka-server:8761/eureka/

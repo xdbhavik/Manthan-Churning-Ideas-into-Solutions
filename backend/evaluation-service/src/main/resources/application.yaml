@@ -38,14 +38,25 @@ app:
   evaluation:
     assignment-deadline-days: 7
   llm:
-    # Anthropic Claude SDK (Phase 2 problem analysis). Empty key → heuristic
-    # fallback; the service must boot and the pipeline must route without a key.
-    anthropic:
-      api-key: ${ANTHROPIC_API_KEY:}
-      model: ${ANTHROPIC_MODEL:claude-opus-5}
-      max-tokens: 16000
+    # OpenAI-compatible local model (Phase 2 problem analysis) — currently
+    # agentrouter/deepseek-v4-flash on the host. Empty key → heuristic fallback;
+    # the service must boot and the pipeline must route without a key.
+    # NOTE: inside docker the host is reached as host.docker.internal, so
+    # docker-compose overrides base-url accordingly.
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      base-url: ${OPENAI_BASE_URL:http://localhost:20128/v1}
+      model: ${OPENAI_MODEL:agentrouter/deepseek-v4-flash}
+      # Reasoning model: reasoning_content is billed against max_tokens before the
+      # answer is emitted, so a 4k budget can be spent entirely on thinking and
+      # return empty content (finish_reason=length). 8k leaves headroom.
+      max-tokens: 8192
       timeout-seconds: 60
       max-retries: 1
+      temperature: 0.2
+      # Ask the server for a JSON object (chat/completions response_format). Some
+      # OpenAI-compatible routers reject the field; set false to rely on prompt only.
+      json-response-format: true
 
 eureka:
   client:

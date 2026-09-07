@@ -35,7 +35,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Phase 2 analysis step (S3): the LLM profile is persisted when Claude answers,
+ * Phase 2 analysis step (S3): the LLM profile is persisted when the model answers,
  * the deterministic heuristic is persisted when it does not, and either way the
  * cycle advances to ROUTING so the pipeline never blocks on the network.
  */
@@ -84,14 +84,14 @@ class ProblemAnalysisServiceTest {
     void llmSuccessIsPersistedAndCycleAdvancesToRouting() {
         givenCycle(EvaluationStatus.RECEIVED);
         givenProblem();
-        when(analysisClient.analyze(any(ProblemContext.class))).thenReturn(Optional.of(claudeResult()));
+        when(analysisClient.analyze(any(ProblemContext.class))).thenReturn(Optional.of(llmResult()));
         when(analysisRepository.findByCycleId(cycleId)).thenReturn(Optional.empty());
 
         ProblemAnalysis row = service.analyze(cycleId, actor, "127.0.0.1");
 
         assertThat(row.getCycleId()).isEqualTo(cycleId);
-        assertThat(row.getProvider()).isEqualTo("claude");
-        assertThat(row.getModel()).isEqualTo("claude-opus-5");
+        assertThat(row.getProvider()).isEqualTo("openai-compatible");
+        assertThat(row.getModel()).isEqualTo("agentrouter/deepseek-v4-flash");
         assertThat(row.getProblemCategory()).isEqualTo("WATER_SUPPLY");
         assertThat(row.getImpactAreas()).containsExactly("HEALTH", "LIVELIHOOD");
         assertThat(row.getStatus()).isEqualTo(AnalysisStatus.SUCCESS);
@@ -102,10 +102,10 @@ class ProblemAnalysisServiceTest {
 
         verify(analysisRepository).save(row);
         verify(statusService).transition(eq(cycleId), eq(EvaluationStatus.ROUTING), eq(actor),
-                org.mockito.ArgumentMatchers.contains("claude"));
+                org.mockito.ArgumentMatchers.contains("openai-compatible"));
         verify(auditService).record(eq("PROBLEM"), eq(problemId), eq(AuditAction.EVALUATION_ANALYZED),
                 eq(actor), isNull(), anyMap(), eq("127.0.0.1"));
-        // Claude answered, so the deterministic classifier is never consulted.
+        // LLM answered, so the deterministic classifier is never consulted.
         verify(fallback, never()).analyze(any());
     }
 
@@ -136,12 +136,12 @@ class ProblemAnalysisServiceTest {
         existing.setCycleId(cycleId);
         existing.setProvider("heuristic");
         when(analysisRepository.findByCycleId(cycleId)).thenReturn(Optional.of(existing));
-        when(analysisClient.analyze(any(ProblemContext.class))).thenReturn(Optional.of(claudeResult()));
+        when(analysisClient.analyze(any(ProblemContext.class))).thenReturn(Optional.of(llmResult()));
 
         ProblemAnalysis row = service.analyze(cycleId, actor, "127.0.0.1");
 
         assertThat(row).isSameAs(existing);
-        assertThat(row.getProvider()).isEqualTo("claude");
+        assertThat(row.getProvider()).isEqualTo("openai-compatible");
         // The cycle was already ANALYZING, so no redundant entry transition fired.
         verify(statusService, never()).transition(eq(cycleId), eq(EvaluationStatus.ANALYZING),
                 any(), org.mockito.ArgumentMatchers.anyString());
@@ -151,7 +151,7 @@ class ProblemAnalysisServiceTest {
     void failedAnalysisRetryReentersAnalyzing() {
         givenCycle(EvaluationStatus.ANALYSIS_FAILED);
         givenProblem();
-        when(analysisClient.analyze(any(ProblemContext.class))).thenReturn(Optional.of(claudeResult()));
+        when(analysisClient.analyze(any(ProblemContext.class))).thenReturn(Optional.of(llmResult()));
         when(analysisRepository.findByCycleId(cycleId)).thenReturn(Optional.empty());
 
         service.analyze(cycleId, actor, "127.0.0.1");
@@ -192,10 +192,10 @@ class ProblemAnalysisServiceTest {
                 null, null, List.of(), 0));
     }
 
-    private static AnalysisResult claudeResult() {
+    private static AnalysisResult llmResult() {
         return new AnalysisResult("WATER_SUPPLY", "Water & Sanitation", "WATER",
                 List.of("HEALTH", "LIVELIHOOD"), "HIGH", "REGIONAL", "MEDIUM", "HIGH",
-                "Aging pipeline, high public impact.", "claude", "claude-opus-5",
+                "Aging pipeline, high public impact.", "openai-compatible", "agentrouter/deepseek-v4-flash",
                 AnalysisStatus.SUCCESS, Map.of("problemCategory", "WATER_SUPPLY"), null);
     }
 
@@ -204,6 +204,6 @@ class ProblemAnalysisServiceTest {
                 List.of("HEALTH"), "MEDIUM", "MEDIUM", "MEDIUM", "MEDIUM",
                 "Heuristic profile.", "heuristic", "heuristic",
                 AnalysisStatus.HEURISTIC_FALLBACK, Map.of(),
-                "Claude analysis unavailable; deterministic fallback applied");
+                "LLM analysis unavailable; deterministic fallback applied");
     }
 }

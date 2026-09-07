@@ -11,7 +11,7 @@ import java.util.Set;
 
 /**
  * Deterministic keyword/severity/urgency classifier used when the LLM is
- * unavailable (§13.5). Produces the same JSON shape as the Claude client so the
+ * unavailable (§13.5). Produces the same JSON shape as the LLM client so the
  * pipeline never blocks on the network. Status is {@code HEURISTIC_FALLBACK}.
  */
 @Service
@@ -86,7 +86,7 @@ public class HeuristicAnalysisFallback {
                 "heuristic",
                 AnalysisStatus.HEURISTIC_FALLBACK,
                 raw,
-                "Claude analysis unavailable; deterministic fallback applied");
+                "LLM analysis unavailable; deterministic fallback applied");
     }
 
     private String textOf(ProblemContext context) {

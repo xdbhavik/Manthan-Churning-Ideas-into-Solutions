@@ -45,7 +45,7 @@ public class OpenApiConfig {
 ### 🏭 Evaluation Engine (microservice)
 
 ADMIN/REVIEWER pipeline for the Smart India Hackathon (SIH) 26043 platform:
-intake → AI problem analysis (Claude with deterministic heuristic fallback) →
+intake → AI problem analysis (OpenAI-compatible LLM with deterministic heuristic fallback) →
 routing → aggregation → prioritization → Phase-3 handoff.
 
 Problem data (title, location, domains, evidence count, status) is **not** stored
