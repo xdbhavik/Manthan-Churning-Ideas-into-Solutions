@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-error-container": "#93000a", "on-tertiary-fixed": "#002114", "status-submitted-bg": "#EFF6FF", "status-action-text": "#9A3412", "secondary": "#4059aa", "outline-variant": "#c4c6ce", "surface-container-lowest": "#ffffff", "status-review-border": "#DDD6FE", "tertiary-fixed-dim": "#68dba9", "status-action-border": "#FED7AA", "surface": "#f8f9ff", "text-muted": "#64748B", "border-hairline": "#E2E8F0", "gov-emerald": "#059669", "secondary-container": "#8fa7fe", "background": "#f8f9ff", "on-primary": "#ffffff", "error": "#ba1a1a", "saffron-accent": "#E05A10", "outline": "#74777e", "secondary-fixed-dim": "#b6c4ff", "status-approved-bg": "#ECFDF5", "status-review-text": "#5B21B6", "surface-tint": "#49607e", "tertiary-fixed": "#85f8c4", "tertiary-container": "#002a1b", "ashoka-blue": "#0A2540", "surface-bright": "#f8f9ff", "secondary-fixed": "#dce1ff", "on-secondary-container": "#1d3989", "on-tertiary-fixed-variant": "#005137", "surface-container-high": "#dce9ff", "inverse-surface": "#213145", "status-approved-border": "#A7F3D0", "on-surface": "#0b1c30", "on-background": "#0b1c30", "on-surface-variant": "#43474d", "status-review-bg": "#F5F3FF", "status-submitted-border": "#BFDBFE", "on-secondary-fixed-variant": "#264191", "text-primary": "#0F172A", "surface-container": "#e5eeff", "status-approved-text": "#065F46", "on-secondary": "#ffffff", "on-primary-fixed-variant": "#314865", "primary-container": "#0a2540", "surface-crisp": "#FFFFFF", "border-strong": "#CBD5E1", "primary-fixed": "#d2e4ff", "inverse-primary": "#b0c8eb", "on-tertiary": "#ffffff", "primary": "#000f22", "text-secondary": "#475569", "on-secondary-fixed": "#00164e", "inverse-on-surface": "#eaf1ff", "status-submitted-text": "#1E40AF", "surface-container-low": "#eff4ff", "surface-dim": "#cbdbf5", "primary-fixed-dim": "#b0c8eb", "surface-muted": "#F1F5F9", "surface-container-highest": "#d3e4fe", "on-primary-container": "#768dad", "institutional-navy": "#1E3A8A", "on-primary-fixed": "#001c37", "surface-variant": "#d3e4fe", "on-error": "#ffffff", "error-container": "#ffdad6", "on-tertiary-container": "#1a9e70", "status-action-bg": "#FFF7ED", "surface-subtle": "#F8FAFC", "tertiary": "#001209" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "space-xl": "2rem", "space-base": "1rem", "form-max-width": "42rem", "space-md": "0.75rem", "space-lg": "1.5rem", "space-sm": "0.5rem", "space-xs": "0.25rem", "space-2xs": "0.125rem", "gutter-mobile": "1rem", "gutter-desktop": "1.5rem", "space-3xl": "4rem", "space-2xl": "3rem", "container-max-width": "72rem" }, "fontFamily": { "body-md": ["Noto Sans"], "headline-xl": ["Noto Sans"], "body-lg": ["Noto Sans"], "headline-sm": ["Noto Sans"], "label-sm": ["Noto Sans"], "body-sm": ["Noto Sans"], "headline-md": ["Noto Sans"], "headline-lg": ["Noto Sans"], "label-lg": ["Noto Sans"], "label-md": ["Noto Sans"], "headline-xl-mobile": ["Noto Sans"], "mono-code": ["JetBrains Mono"] }, "fontSize": { "body-md": ["14px", { "lineHeight": "22px", "letterSpacing": "0em", "fontWeight": "400" }], "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "body-lg": ["16px", { "lineHeight": "26px", "letterSpacing": "0em", "fontWeight": "400" }], "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" }], "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "700" }], "body-sm": ["12px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "400" }], "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "700" }], "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }], "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }], "headline-xl-mobile": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700" }], "mono-code": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500" }] } } } };</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased min-h-screen"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-crisp z-50 flex flex-col justify-between border-r border-border-hairline"><div class="flex flex-col"><div class="h-16 px-space-base flex items-center gap-space-sm border-b border-border-hairline bg-surface-subtle"><span class="material-symbols-outlined text-ashoka-blue text-[20px]">verified_user</span><div class="flex flex-col"><span class="font-label-md text-label-md text-ashoka-blue uppercase tracking-wider">Evaluation Desk</span><span class="font-mono-code text-body-sm text-text-muted">ID: EVAL-7729</span></div></div><div class="p-space-base"><div class="font-label-sm text-label-sm text-text-muted uppercase mb-space-xs tracking-wider">Role Scope</div><div class="flex items-center justify-between p-space-xs px-space-sm bg-status-approved-bg rounded border border-status-approved-border"><div class="flex items-center gap-space-xs"><span class="w-2 h-2 rounded-full bg-gov-emerald"></span><span class="font-label-md text-label-md text-status-approved-text">EVALUATOR</span></div><span class="material-symbols-outlined text-status-approved-text text-[16px]">lock</span></div></div><nav class="flex flex-col gap-space-2xs px-space-sm" data-active-classes="bg-surface-muted text-ashoka-blue font-semibold border-l-2 border-ashoka-blue"><a aria-current="page" class="flex items-center gap-space-sm px-space-sm py-space-xs transition-colors bg-surface-muted text-ashoka-blue font-semibold border-l-2 border-ashoka-blue" data-path="evaluation-dossiers" href="#"><span class="material-symbols-outlined text-[18px]">assignment</span>Assigned Dossiers</a><a class="flex items-center gap-space-sm px-space-sm py-space-xs text-text-secondary hover:bg-surface-subtle hover:text-on-surface transition-colors font-label-lg text-label-lg" data-path="statutory-kyc-queue" href="#"><span class="material-symbols-outlined text-[18px]">badge</span>Statutory Identity</a><a class="flex items-center gap-space-sm px-space-sm py-space-xs text-text-secondary hover:bg-surface-subtle hover:text-on-surface transition-colors font-label-lg text-label-lg" data-path="scoring-matrix" href="#"><span class="material-symbols-outlined text-[18px]">fact_check</span>Scoring Matrix</a><a class="flex items-center gap-space-sm px-space-sm py-space-xs text-text-secondary hover:bg-surface-subtle hover:text-on-surface transition-colors font-label-lg text-label-lg" data-path="deficiency-notices" href="#"><span class="material-symbols-outlined text-[18px]">notification_important</span>Deficiency Notices</a><a class="flex items-center gap-space-sm px-space-sm py-space-xs text-text-secondary hover:bg-surface-subtle hover:text-on-surface transition-colors font-label-lg text-label-lg" data-path="audit-trail-timeline" href="#"><span class="material-symbols-outlined text-[18px]">history_toggle_off</span>Audit Timeline</a></nav></div><div class="p-space-base border-t border-border-hairline bg-surface-subtle flex flex-col gap-space-xs"><div class="flex items-center justify-between text-text-muted font-label-sm text-label-sm"><span class="font-mono-code">NODE-IN-BLR-01</span><span class="text-gov-emerald flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-gov-emerald"></span>SECURE</span></div><div class="font-body-sm text-body-sm text-text-muted">SIH26043 Statutory Compliance Engine</div></div></aside><div class="pl-64 flex flex-col min-h-screen"><header class="fixed top-0 left-64 right-0 h-16 bg-surface-crisp border-b border-border-hairline z-40 px-space-lg flex items-center justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex items-center gap-space-md"><img alt="Brand logo. - Primary color: #0a2540 - Font: notoSans - Mode: light - Roundness: rounded-sm" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XI9nSKj4rsNvj5snYwu2dgdHUz78RhkH0lBCnRaOqOhtGnUNsQysd2e-ypOuKlSsYysXy2FIHwfOUDz-A2woFf2EtzFja2lz78uLpqLmnkym8ETOpXDZgnvhksjEwmkaYB2i8oVLyAs2dWDy8YybtL3lXV3EqS1D7-QblRnnArH1wpH6sUx1rzDl42N69jr-q2OnNXQAez7NlBGgcbxjLoGVDeFY8sCARpMLHHdQFKMxwE4E19VnntFgX0"/><div class="flex items-center gap-space-sm"><span class="font-headline-sm text-headline-sm text-ashoka-blue tracking-tight">SIH26043 Evaluation Service</span><span class="font-mono-code text-[11px] px-space-xs py-0.5 rounded bg-surface-muted text-text-secondary border border-border-hairline uppercase tracking-wider">STAGING // v2.4-PROD-EVAL</span></div></div><div class="flex items-center gap-space-md"><nav class="hidden xl:flex items-center bg-surface-muted p-space-2xs rounded border border-border-hairline" data-active-classes="bg-ashoka-blue text-on-primary font-bold"><a class="px-space-sm py-1 rounded text-text-secondary hover:text-ashoka-blue font-label-md text-label-md transition-colors" data-path="submitter-workspace" href="#">Submitter</a><a class="px-space-sm py-1 rounded text-text-secondary hover:text-ashoka-blue font-label-md text-label-md transition-colors" data-path="reviewer-workspace" href="#">Reviewer</a><a aria-current="page" class="px-space-sm py-1 rounded transition-colors bg-ashoka-blue text-on-primary font-bold" data-path="evaluation-dossiers" href="#">Evaluator</a><a class="px-space-sm py-1 rounded text-text-secondary hover:text-ashoka-blue font-label-md text-label-md transition-colors" data-path="admin-control" href="#">Admin</a></nav><div class="h-6 w-px bg-border-hairline"></div><div class="flex items-center gap-space-sm"><div class="text-right hidden sm:flex flex-col"><span class="font-label-md text-label-md text-text-primary">Dr. Aris Thorne</span><span class="font-mono-code text-[11px] text-text-muted">EVAL-7729</span></div><span class="px-2 py-0.5 rounded-full font-label-sm text-label-sm bg-status-review-bg text-status-review-text border border-status-review-border uppercase tracking-wider">EVALUATOR</span><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><button class="p-space-xs rounded text-text-muted hover:text-error hover:bg-error-container/20 transition-colors ml-space-2xs" title="Logout" type="button"><span class="material-symbols-outlined text-[20px]">logout</span></button></div></div></header><div class="pt-16 flex-1 flex flex-col bg-surface"><div class="w-full px-space-lg pt-space-base flex flex-col gap-space-xs"><div class="flex items-center justify-between px-space-base py-space-xs bg-status-approved-bg border border-status-approved-border rounded text-status-approved-text font-body-sm text-body-sm" id="global-success-banner"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-gov-emerald text-[18px]">check_circle</span><span>Evaluation session active: Signed in via Statutory National ID Gateway (UIDAI Verified Session). All audits logged.</span></div><button class="text-status-approved-text hover:text-text-primary" onclick="document.getElementById('global-success-banner').style.display='none'" type="button"><span class="material-symbols-outlined text-[16px]">close</span></button></div><div class="hidden items-center justify-between px-space-base py-space-xs bg-status-action-bg border border-status-action-border rounded text-status-action-text font-body-sm text-body-sm" id="global-error-banner"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-saffron-accent text-[18px]">warning</span><span id="global-error-message">Action Required: 3 dossiers require compliance resubmission inspection within the active cycle window.</span></div><button class="text-status-action-text hover:text-text-primary" onclick="document.getElementById('global-error-banner').style.display='none'" type="button"><span class="material-symbols-outlined text-[16px]">close</span></button></div></div><main class="w-full px-space-lg py-space-base flex-1"><div class="flex flex-col w-full">
+<div class="w-full mb-space-base">
+<div class="flex flex-col xl:flex-row xl:items-center justify-between gap-space-md pb-space-base">
+<div class="flex flex-col gap-space-2xs">
+<div class="flex items-center gap-space-sm flex-wrap">
+<span class="font-mono-code text-label-sm text-text-muted uppercase tracking-wider">SIH26043 / STATUTORY EVALUATION</span>
+<span class="w-1 h-1 rounded-full bg-border-strong"></span>
+<span class="font-mono-code text-label-sm text-secondary uppercase tracking-widest">DOSSIER REF: #HEI-2024-8841-B</span>
+<span class="px-2 py-0.5 rounded-full font-label-sm text-label-sm bg-status-approved-bg text-status-approved-text uppercase tracking-wider shadow-sm">UIDAI Verified</span>
+</div>
+<div class="flex items-center gap-space-md">
+<h1 class="font-headline-lg text-headline-lg text-ashoka-blue tracking-tight">Evaluator Scoring &amp; Rubric Matrix</h1>
+<span class="px-space-sm py-0.5 rounded font-mono-code text-label-sm bg-primary text-on-primary font-semibold tracking-wider uppercase">Stage 3 of 5</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary max-w-3xl">
+          Conducting formal statutory peer-appraisal under Higher Education Institution criteria schema. Scores and evaluator commentary automatically synchronize with tamper-evident audit logs.
+        </p>
+</div>
+<div class="flex items-center gap-space-sm self-start xl:self-auto shrink-0">
+<button class="flex items-center gap-space-xs px-space-md py-2 rounded bg-surface-crisp text-ashoka-blue font-label-md text-label-md shadow-sm hover:bg-surface-subtle transition-colors" id="load-criteria-btn" type="button">
+<span class="material-symbols-outlined text-[18px]">cloud_download</span>
+<span>Load Criteria</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-2 rounded bg-primary text-on-primary font-label-md text-label-md shadow-sm hover:bg-ashoka-blue transition-colors" id="refresh-criteria-btn" type="button">
+<span class="material-symbols-outlined text-[18px]" id="refresh-icon">sync</span>
+<span>Refresh Criteria</span>
+</button>
+</div>
+</div>
+<!-- Pool Schema Navigator -->
+<div class="bg-surface-container-low rounded-xl p-space-base shadow-sm mb-space-lg">
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-ashoka-blue text-on-primary flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[22px]">account_balance</span>
+</div>
+<div>
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Active Scoring Pool</span>
+<span class="w-1.5 h-1.5 rounded-full bg-gov-emerald"></span>
+<span class="font-mono-code text-[11px] text-gov-emerald font-bold tracking-wider">ACTIVE SCHEMA LOADED</span>
+</div>
+<div class="font-headline-sm text-headline-sm text-text-primary">
+              HEI Pool • Higher Education Institution
+            </div>
+</div>
+</div>
+<!-- Pool Badges / Selectors -->
+<div class="flex items-center gap-space-xs overflow-x-auto py-1">
+<button class="group flex items-center gap-space-xs px-space-sm py-1.5 rounded-lg bg-surface-crisp text-text-muted hover:text-ashoka-blue hover:bg-surface-container transition-all shadow-sm shrink-0" type="button">
+<span class="material-symbols-outlined text-[16px] text-text-muted group-hover:text-ashoka-blue">domain</span>
+<span class="font-label-md text-label-md">Government</span>
+<span class="font-mono-code text-[10px] px-1 rounded bg-surface-muted text-text-muted">GOV</span>
+</button>
+<button class="group flex items-center gap-space-xs px-space-sm py-1.5 rounded-lg bg-surface-crisp text-text-muted hover:text-ashoka-blue hover:bg-surface-container transition-all shadow-sm shrink-0" type="button">
+<span class="material-symbols-outlined text-[16px] text-text-muted group-hover:text-ashoka-blue">precision_manufacturing</span>
+<span class="font-label-md text-label-md">Industry</span>
+<span class="font-mono-code text-[10px] px-1 rounded bg-surface-muted text-text-muted">IND</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-sm py-1.5 rounded-lg bg-ashoka-blue text-on-primary shadow-sm shrink-0" type="button">
+<span class="material-symbols-outlined text-[16px] text-tertiary-fixed">school</span>
+<span class="font-label-md text-label-md">HEI Pool</span>
+<span class="font-mono-code text-[10px] px-1.5 py-0.5 rounded bg-surface-container-highest/30 text-on-primary uppercase font-bold">Current</span>
+</button>
+<button class="group flex items-center gap-space-xs px-space-sm py-1.5 rounded-lg bg-surface-crisp text-text-muted hover:text-ashoka-blue hover:bg-surface-container transition-all shadow-sm shrink-0" type="button">
+<span class="material-symbols-outlined text-[16px] text-text-muted group-hover:text-ashoka-blue">person_pin</span>
+<span class="font-label-md text-label-md">Citizen</span>
+<span class="font-mono-code text-[10px] px-1 rounded bg-surface-muted text-text-muted">CTZ</span>
+</button>
+<button class="group flex items-center gap-space-xs px-space-sm py-1.5 rounded-lg bg-surface-crisp text-text-muted hover:text-ashoka-blue hover:bg-surface-container transition-all shadow-sm shrink-0" type="button">
+<span class="material-symbols-outlined text-[16px] text-text-muted group-hover:text-ashoka-blue">groups</span>
+<span class="font-label-md text-label-md">Community</span>
+<span class="font-mono-code text-[10px] px-1 rounded bg-surface-muted text-text-muted">COM</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Summary Hero Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-space-md mb-space-lg">
+<div class="bg-surface-crisp rounded-xl p-space-base shadow-sm flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center shrink-0">
+<!-- Circular Progress Ring SVG -->
+<svg class="w-9 h-9 transform -rotate-90" viewbox="0 0 36 36">
+<circle class="text-surface-muted" cx="18" cy="18" fill="none" r="14" stroke="currentColor" stroke-width="3"></circle>
+<circle class="text-gov-emerald" cx="18" cy="18" fill="none" r="14" stroke="currentColor" stroke-dasharray="88" stroke-dashoffset="8.8" stroke-linecap="round" stroke-width="3"></circle>
+</svg>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Aggregate Score</span>
+<div class="flex items-baseline gap-1">
+<span class="font-headline-lg text-headline-lg text-text-primary">90</span>
+<span class="font-label-md text-label-md text-text-muted">/ 100</span>
+</div>
+<span class="font-mono-code text-[11px] text-gov-emerald font-semibold">90.0% Statutory Grade A</span>
+</div>
+</div>
+<div class="bg-surface-crisp rounded-xl p-space-base shadow-sm flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-status-approved-bg text-gov-emerald flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[24px]">checklist</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Criteria Completed</span>
+<div class="flex items-baseline gap-1">
+<span class="font-headline-lg text-headline-lg text-text-primary">5</span>
+<span class="font-label-md text-label-md text-text-muted">/ 5 Evaluated</span>
+</div>
+<span class="font-mono-code text-[11px] text-gov-emerald font-semibold">100% Schema Coverage</span>
+</div>
+</div>
+<div class="bg-surface-crisp rounded-xl p-space-base shadow-sm flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-surface-container-high text-secondary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[24px]">verified</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Validation Threshold</span>
+<div class="flex items-baseline gap-1">
+<span class="font-headline-lg text-headline-lg text-text-primary">≥ 75</span>
+<span class="font-label-md text-label-md text-text-muted">Required</span>
+</div>
+<span class="font-mono-code text-[11px] text-secondary font-semibold">+15 Points Over Benchmark</span>
+</div>
+</div>
+<div class="bg-surface-crisp rounded-xl p-space-base shadow-sm flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-surface-muted text-text-muted flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[24px]">schedule</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Audit Timestamp</span>
+<div class="flex items-baseline gap-1">
+<span class="font-mono-code text-label-lg text-text-primary">14:32:09 IST</span>
+</div>
+<span class="font-mono-code text-[11px] text-text-muted">Hash: #SHA256-78E2</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Primary Rubric Section & Criteria Panel Cards -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+<!-- Left Column: Criteria Cards Stream (Sorted by sortOrder 1-5) -->
+<div class="lg:col-span-8 flex flex-col gap-space-md" id="criteria-container">
+<!-- Card 1: Technical Validity (sortOrder: 1) -->
+<article class="bg-surface-crisp rounded-xl shadow-sm p-space-lg flex flex-col gap-space-md hover:shadow-md transition-shadow" data-key="HEI_TECH_VALIDITY" data-sort-order="1">
+<div class="flex items-start justify-between gap-space-sm flex-wrap">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-lg bg-ashoka-blue text-on-primary flex items-center justify-center font-mono-code font-bold text-label-md">
+              01
+            </div>
+<div>
+<div class="flex items-center gap-space-xs">
+<span class="font-mono-code text-[11px] px-1.5 py-0.5 rounded bg-surface-muted text-text-secondary font-bold">sortOrder: 1</span>
+<span class="font-mono-code text-[11px] text-text-muted">HEI_TECH_VALIDITY</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-ashoka-blue font-bold">Technical Validity</h2>
+</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="px-2.5 py-1 rounded-full bg-status-approved-bg text-status-approved-text font-mono-code text-label-sm uppercase font-bold tracking-wider">
+              Scored: 22 / 25
+            </span>
+</div>
+</div>
+<p class="font-body-md text-body-md text-text-secondary leading-relaxed">
+          Rigor of scientific principles, methodology validity, and technological robustness under field conditions.
+        </p>
+<!-- Dynamic Score Control & Progress Bar -->
+<div class="bg-surface-subtle p-space-sm rounded-lg flex flex-col gap-space-xs">
+<div class="flex items-center justify-between text-body-sm font-label-md text-text-primary">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-gov-emerald">trending_up</span>
+              Evaluation Benchmark (Max 25 pts)
+            </span>
+<span class="font-mono-code text-ashoka-blue font-bold">88.0% Ratio</span>
+</div>
+<div class="w-full bg-surface-muted rounded-full h-2 overflow-hidden">
+<div class="bg-ashoka-blue h-2 rounded-full" style="width: 88%"></div>
+</div>
+</div>
+<!-- Existing Evaluator Remarks Block -->
+<div class="bg-surface-container-low rounded-lg p-space-sm flex flex-col gap-space-2xs">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-ashoka-blue uppercase font-bold tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">comment</span>
+              Recorded Evaluator Comment
+            </span>
+<span class="font-mono-code text-[11px] text-text-muted">Signed: EVAL-7729</span>
+</div>
+<p class="font-body-md text-body-md text-text-primary italic">
+            “Methodology demonstrates sound acoustic sensing algorithms with verified signal-to-noise thresholds.”
+          </p>
+</div>
+<div class="flex items-center justify-between pt-space-xs">
+<div class="flex items-center gap-space-xs text-text-muted font-body-sm">
+<span class="material-symbols-outlined text-[16px] text-gov-emerald">check_circle</span>
+<span>Statutory Verification Complete</span>
+</div>
+<button class="font-label-md text-label-md text-ashoka-blue hover:text-secondary flex items-center gap-0.5" type="button">
+<span>Edit Criterion Score</span>
+<span class="material-symbols-outlined text-[16px]">edit_note</span>
+</button>
+</div>
+</article>
+<!-- Card 2: Research Potential (sortOrder: 2) -->
+<article class="bg-surface-crisp rounded-xl shadow-sm p-space-lg flex flex-col gap-space-md hover:shadow-md transition-shadow" data-key="HEI_RESEARCH_POTENTIAL" data-sort-order="2">
+<div class="flex items-start justify-between gap-space-sm flex-wrap">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-lg bg-ashoka-blue text-on-primary flex items-center justify-center font-mono-code font-bold text-label-md">
+              02
+            </div>
+<div>
+<div class="flex items-center gap-space-xs">
+<span class="font-mono-code text-[11px] px-1.5 py-0.5 rounded bg-surface-muted text-text-secondary font-bold">sortOrder: 2</span>
+<span class="font-mono-code text-[11px] text-text-muted">HEI_RESEARCH_POTENTIAL</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-ashoka-blue font-bold">Research Potential</h2>
+</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="px-2.5 py-1 rounded-full bg-status-approved-bg text-status-approved-text font-mono-code text-label-sm uppercase font-bold tracking-wider">
+              Scored: 18 / 20
+            </span>
+</div>
+</div>
+<p class="font-body-md text-body-md text-text-secondary leading-relaxed">
+          Potential for generating peer-reviewed intellectual property, patentable novelty, or academic benchmark data.
+        </p>
+<!-- Score Bar -->
+<div class="bg-surface-subtle p-space-sm rounded-lg flex flex-col gap-space-xs">
+<div class="flex items-center justify-between text-body-sm font-label-md text-text-primary">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-gov-emerald">trending_up</span>
+              Evaluation Benchmark (Max 20 pts)
+            </span>
+<span class="font-mono-code text-ashoka-blue font-bold">90.0% Ratio</span>
+</div>
+<div class="w-full bg-surface-muted rounded-full h-2 overflow-hidden">
+<div class="bg-ashoka-blue h-2 rounded-full" style="width: 90%"></div>
+</div>
+</div>
+<!-- Existing Evaluator Remarks -->
+<div class="bg-surface-container-low rounded-lg p-space-sm flex flex-col gap-space-2xs">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-ashoka-blue uppercase font-bold tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">comment</span>
+              Recorded Evaluator Comment
+            </span>
+<span class="font-mono-code text-[11px] text-text-muted">Signed: EVAL-7729</span>
+</div>
+<p class="font-body-md text-body-md text-text-primary italic">
+            “Novel hybrid transducer configuration suitable for high-impact publication.”
+          </p>
+</div>
+<div class="flex items-center justify-between pt-space-xs">
+<div class="flex items-center gap-space-xs text-text-muted font-body-sm">
+<span class="material-symbols-outlined text-[16px] text-gov-emerald">check_circle</span>
+<span>Statutory Verification Complete</span>
+</div>
+<button class="font-label-md text-label-md text-ashoka-blue hover:text-secondary flex items-center gap-0.5" type="button">
+<span>Edit Criterion Score</span>
+<span class="material-symbols-outlined text-[16px]">edit_note</span>
+</button>
+</div>
+</article>
+<!-- Card 3: Innovation (sortOrder: 3) -->
+<article class="bg-surface-crisp rounded-xl shadow-sm p-space-lg flex flex-col gap-space-md hover:shadow-md transition-shadow" data-key="HEI_INNOVATION" data-sort-order="3">
+<div class="flex items-start justify-between gap-space-sm flex-wrap">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-lg bg-ashoka-blue text-on-primary flex items-center justify-center font-mono-code font-bold text-label-md">
+              03
+            </div>
+<div>
+<div class="flex items-center gap-space-xs">
+<span class="font-mono-code text-[11px] px-1.5 py-0.5 rounded bg-surface-muted text-text-secondary font-bold">sortOrder: 3</span>
+<span class="font-mono-code text-[11px] text-text-muted">HEI_INNOVATION</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-ashoka-blue font-bold">Innovation</h2>
+</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="px-2.5 py-1 rounded-full bg-status-approved-bg text-status-approved-text font-mono-code text-label-sm uppercase font-bold tracking-wider">
+              Scored: 19 / 20
+            </span>
+</div>
+</div>
+<p class="font-body-md text-body-md text-text-secondary leading-relaxed">
+          Uniqueness of approach compared to conventional state-of-the-art benchmarks.
+        </p>
+<!-- Score Bar -->
+<div class="bg-surface-subtle p-space-sm rounded-lg flex flex-col gap-space-xs">
+<div class="flex items-center justify-between text-body-sm font-label-md text-text-primary">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-gov-emerald">trending_up</span>
+              Evaluation Benchmark (Max 20 pts)
+            </span>
+<span class="font-mono-code text-ashoka-blue font-bold">95.0% Ratio</span>
+</div>
+<div class="w-full bg-surface-muted rounded-full h-2 overflow-hidden">
+<div class="bg-gov-emerald h-2 rounded-full" style="width: 95%"></div>
+</div>
+</div>
+<!-- Remarks -->
+<div class="bg-surface-container-low rounded-lg p-space-sm flex flex-col gap-space-2xs">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-ashoka-blue uppercase font-bold tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">comment</span>
+              Recorded Evaluator Comment
+            </span>
+<span class="font-mono-code text-[11px] text-text-muted">Signed: EVAL-7729</span>
+</div>
+<p class="font-body-md text-body-md text-text-primary italic">
+            “First application of passive edge-compute filtering in rural borehole telemetry.”
+          </p>
+</div>
+<div class="flex items-center justify-between pt-space-xs">
+<div class="flex items-center gap-space-xs text-text-muted font-body-sm">
+<span class="material-symbols-outlined text-[16px] text-gov-emerald">check_circle</span>
+<span>Statutory Verification Complete</span>
+</div>
+<button class="font-label-md text-label-md text-ashoka-blue hover:text-secondary flex items-center gap-0.5" type="button">
+<span>Edit Criterion Score</span>
+<span class="material-symbols-outlined text-[16px]">edit_note</span>
+</button>
+</div>
+</article>
+<!-- Card 4: Scientific Feasibility (sortOrder: 4) -->
+<article class="bg-surface-crisp rounded-xl shadow-sm p-space-lg flex flex-col gap-space-md hover:shadow-md transition-shadow" data-key="HEI_SCIENTIFIC_FEASIBILITY" data-sort-order="4">
+<div class="flex items-start justify-between gap-space-sm flex-wrap">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-lg bg-ashoka-blue text-on-primary flex items-center justify-center font-mono-code font-bold text-label-md">
+              04
+            </div>
+<div>
+<div class="flex items-center gap-space-xs">
+<span class="font-mono-code text-[11px] px-1.5 py-0.5 rounded bg-surface-muted text-text-secondary font-bold">sortOrder: 4</span>
+<span class="font-mono-code text-[11px] text-text-muted">HEI_SCIENTIFIC_FEASIBILITY</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-ashoka-blue font-bold">Scientific Feasibility</h2>
+</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="px-2.5 py-1 rounded-full bg-status-approved-bg text-status-approved-text font-mono-code text-label-sm uppercase font-bold tracking-wider">
+              Scored: 17 / 20
+            </span>
+</div>
+</div>
+<p class="font-body-md text-body-md text-text-secondary leading-relaxed">
+          Feasibility of physical and material science assumptions under real environmental stress.
+        </p>
+<!-- Score Bar -->
+<div class="bg-surface-subtle p-space-sm rounded-lg flex flex-col gap-space-xs">
+<div class="flex items-center justify-between text-body-sm font-label-md text-text-primary">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-gov-emerald">trending_up</span>
+              Evaluation Benchmark (Max 20 pts)
+            </span>
+<span class="font-mono-code text-ashoka-blue font-bold">85.0% Ratio</span>
+</div>
+<div class="w-full bg-surface-muted rounded-full h-2 overflow-hidden">
+<div class="bg-ashoka-blue h-2 rounded-full" style="width: 85%"></div>
+</div>
+</div>
+<!-- Remarks -->
+<div class="bg-surface-container-low rounded-lg p-space-sm flex flex-col gap-space-2xs">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-ashoka-blue uppercase font-bold tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">comment</span>
+              Recorded Evaluator Comment
+            </span>
+<span class="font-mono-code text-[11px] text-text-muted">Signed: EVAL-7729</span>
+</div>
+<p class="font-body-md text-body-md text-text-primary italic">
+            “Sensor degradation in saline groundwater requires conformal coating verification.”
+          </p>
+</div>
+<div class="flex items-center justify-between pt-space-xs">
+<div class="flex items-center gap-space-xs text-text-muted font-body-sm">
+<span class="material-symbols-outlined text-[16px] text-gov-emerald">check_circle</span>
+<span>Statutory Verification Complete</span>
+</div>
+<button class="font-label-md text-label-md text-ashoka-blue hover:text-secondary flex items-center gap-0.5" type="button">
+<span>Edit Criterion Score</span>
+<span class="material-symbols-outlined text-[16px]">edit_note</span>
+</button>
+</div>
+</article>
+<!-- Card 5: Knowledge Gap (sortOrder: 5) -->
+<article class="bg-surface-crisp rounded-xl shadow-sm p-space-lg flex flex-col gap-space-md hover:shadow-md transition-shadow" data-key="HEI_KNOWLEDGE_GAP" data-sort-order="5">
+<div class="flex items-start justify-between gap-space-sm flex-wrap">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-lg bg-ashoka-blue text-on-primary flex items-center justify-center font-mono-code font-bold text-label-md">
+              05
+            </div>
+<div>
+<div class="flex items-center gap-space-xs">
+<span class="font-mono-code text-[11px] px-1.5 py-0.5 rounded bg-surface-muted text-text-secondary font-bold">sortOrder: 5</span>
+<span class="font-mono-code text-[11px] text-text-muted">HEI_KNOWLEDGE_GAP</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-ashoka-blue font-bold">Knowledge Gap</h2>
+</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="px-2.5 py-1 rounded-full bg-status-approved-bg text-status-approved-text font-mono-code text-label-sm uppercase font-bold tracking-wider">
+              Scored: 14 / 15
+            </span>
+</div>
+</div>
+<p class="font-body-md text-body-md text-text-secondary leading-relaxed">
+          Directly addresses under-studied regional hydrologic phenomena and institutional data deficits.
+        </p>
+<!-- Score Bar -->
+<div class="bg-surface-subtle p-space-sm rounded-lg flex flex-col gap-space-xs">
+<div class="flex items-center justify-between text-body-sm font-label-md text-text-primary">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-gov-emerald">trending_up</span>
+              Evaluation Benchmark (Max 15 pts)
+            </span>
+<span class="font-mono-code text-ashoka-blue font-bold">93.3% Ratio</span>
+</div>
+<div class="w-full bg-surface-muted rounded-full h-2 overflow-hidden">
+<div class="bg-gov-emerald h-2 rounded-full" style="width: 93.3%"></div>
+</div>
+</div>
+<!-- Remarks -->
+<div class="bg-surface-container-low rounded-lg p-space-sm flex flex-col gap-space-2xs">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-ashoka-blue uppercase font-bold tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">comment</span>
+              Recorded Evaluator Comment
+            </span>
+<span class="font-mono-code text-[11px] text-text-muted">Signed: EVAL-7729</span>
+</div>
+<p class="font-body-md text-body-md text-text-primary italic">
+            “Fills crucial gap in aquifer recharge velocity mapping.”
+          </p>
+</div>
+<div class="flex items-center justify-between pt-space-xs">
+<div class="flex items-center gap-space-xs text-text-muted font-body-sm">
+<span class="material-symbols-outlined text-[16px] text-gov-emerald">check_circle</span>
+<span>Statutory Verification Complete</span>
+</div>
+<button class="font-label-md text-label-md text-ashoka-blue hover:text-secondary flex items-center gap-0.5" type="button">
+<span>Edit Criterion Score</span>
+<span class="material-symbols-outlined text-[16px]">edit_note</span>
+</button>
+</div>
+</article>
+</div>
+<!-- Right Column: Institutional Dossier Sidebar & Scoring Inspector -->
+<div class="lg:col-span-4 flex flex-col gap-space-md">
+<!-- HEI Pool Reference Inspector -->
+<div class="bg-surface-crisp rounded-xl p-space-lg shadow-sm flex flex-col gap-space-base">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider font-bold">Pool Reference Registry</span>
+<span class="px-2 py-0.5 rounded font-mono-code text-[10px] bg-secondary-fixed text-on-secondary-container font-semibold">DOC-REF-02</span>
+</div>
+<div class="flex flex-col gap-space-xs">
+<h3 class="font-headline-sm text-headline-sm text-ashoka-blue">Higher Education Rubric Standards</h3>
+<p class="font-body-sm text-body-sm text-text-secondary leading-normal">
+            Mandated by National Research Council statutory guidelines. Criteria ensure university-led innovations satisfy academic rigor before capital deployment.
+          </p>
+</div>
+<!-- Schema Score Weights Breakdown -->
+<div class="bg-surface-subtle p-space-sm rounded-lg flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Scoring Weight Distribution</span>
+<div class="flex flex-col gap-space-2xs">
+<div class="flex items-center justify-between text-body-sm">
+<span class="text-text-primary">1. Technical Validity</span>
+<span class="font-mono-code font-semibold text-ashoka-blue">25 pts (25%)</span>
+</div>
+<div class="flex items-center justify-between text-body-sm">
+<span class="text-text-primary">2. Research Potential</span>
+<span class="font-mono-code font-semibold text-ashoka-blue">20 pts (20%)</span>
+</div>
+<div class="flex items-center justify-between text-body-sm">
+<span class="text-text-primary">3. Innovation</span>
+<span class="font-mono-code font-semibold text-ashoka-blue">20 pts (20%)</span>
+</div>
+<div class="flex items-center justify-between text-body-sm">
+<span class="text-text-primary">4. Scientific Feasibility</span>
+<span class="font-mono-code font-semibold text-ashoka-blue">20 pts (20%)</span>
+</div>
+<div class="flex items-center justify-between text-body-sm">
+<span class="text-text-primary">5. Knowledge Gap</span>
+<span class="font-mono-code font-semibold text-ashoka-blue">15 pts (15%)</span>
+</div>
+</div>
+<div class="h-px bg-surface-muted my-1"></div>
+<div class="flex items-center justify-between text-body-sm font-bold text-ashoka-blue">
+<span>Total Evaluated Ceiling</span>
+<span class="font-mono-code">100 pts</span>
+</div>
+</div>
+<!-- Institutional Dossier Evidence Preview -->
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider font-bold">Attached Submission Evidence</span>
+<div class="relative overflow-hidden rounded-lg shadow-sm">
+<img class="w-full h-36 object-cover" data-alt="High precision acoustic telemetry device prototype resting on an engineering testbed bench at an Indian Institute of Technology water sensor laboratory, showing stainless steel transducer probes and printed circuit board under cool technical LED lighting with deep navy and emerald tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFuBvJDFDxl-__eRz2Za-9tZ_Oo5L41Nnxx02Yudn6dS7TmCC4jaaB_iYRJ0kmIjxnuNJhmWwlMyJiJY7WF6ADAg7L-FI4uZFQHs1Xnim4PUAv8T6XbG20Y09rxhmxFh9Qyqa5ODWSemWPqPcLVwOhXvNeFw7CMXvHwqxiFqEFhUSlr4f--88ROMpgfp57QNjldZJkMRMRbqtDwfJXAUdVNAFgYGmon7vyyWjMs9IKBX0uw-MTQjuVUg"/>
+<div class="absolute inset-0 bg-gradient-to-t from-ashoka-blue/90 via-transparent to-transparent flex items-end p-space-sm">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-primary font-bold">Telemetry Sensor Prototype v2.1</span>
+<span class="font-mono-code text-[11px] text-tertiary-fixed">Lab Report: IIT-M-HYD-781.pdf (4.8 MB)</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-space-xs">
+<div class="relative overflow-hidden rounded-lg shadow-sm">
+<img class="w-full h-28 object-cover" data-alt="Microscopic crystallography imagery and hydrologic salinity stress test charts displayed on an institutional laboratory dual monitor workstation with clean analytical interfaces, deep blue charts and emerald data markers" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtttC29tVGNiioKj8bt8GhX9DXc5y3WiB0ZTC6MBezalX_NwtZnwXeV1wQYmz_dB9gPyCZEpEniEqbrOydtOIIltiLxkDizwpS6NSk4-zsXl2mksgJ2icbJOYLnSzXAYGNqWT85T_dfjAePR_P8i3U7THCTviWnzj_fRXThUMqTX2-u0gR68eFMakpMR2XbwCTMGiAYke5o_dm41x9d7uwBR1ALZpmCH97dHbL1f21Jt20omzi29wtaw"/>
+<div class="absolute inset-0 bg-gradient-to-t from-ashoka-blue/90 via-transparent to-transparent flex items-end p-space-sm">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-primary font-bold">Saline Stress Analysis Scan</span>
+<span class="font-mono-code text-[11px] text-tertiary-fixed">Peer Annexure: ANNEX-SCI-04.pdf (2.1 MB)</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Final Sign-off & Submission CTA -->
+<div class="pt-space-xs flex flex-col gap-space-sm">
+<button class="w-full py-2.5 px-space-md rounded bg-gov-emerald text-on-primary font-label-md text-label-md font-bold shadow-sm hover:opacity-95 transition-opacity flex items-center justify-center gap-space-xs" type="button">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+<span>Attest &amp; Commit Scores</span>
+</button>
+<button class="w-full py-2 px-space-md rounded bg-surface-muted text-text-secondary font-label-md text-label-md hover:bg-surface-container transition-colors flex items-center justify-center gap-space-xs" type="button">
+<span class="material-symbols-outlined text-[18px]">print</span>
+<span>Download Statutory Audit Sheet</span>
+</button>
+</div>
+</div>
+<!-- Evaluator Integrity Banner -->
+<div class="bg-surface-crisp rounded-xl p-space-base shadow-sm flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-ashoka-blue text-[20px] shrink-0 mt-0.5">security</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-ashoka-blue font-bold">Cryptographic Evaluation Lock</span>
+<span class="font-body-sm text-body-sm text-text-secondary mt-0.5">
+            Peer scores become immutable upon attestation under SIH26043 Section 14(b) Sovereign Data Guidelines.
+          </span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+  (function() {
+    const refreshBtn = document.getElementById('refresh-criteria-btn');
+    const refreshIcon = document.getElementById('refresh-icon');
+    const loadBtn = document.getElementById('load-criteria-btn');
+    const container = document.getElementById('criteria-container');
+
+    if (refreshBtn && refreshIcon) {
+      refreshBtn.addEventListener('click', () => {
+        refreshIcon.classList.add('animate-spin');
+        setTimeout(() => {
+          refreshIcon.classList.remove('animate-spin');
+          showToast('Criteria schema re-synchronized from Nodal Server (HEI Standard v2.4)');
+        }, 600);
+      });
+    }
+
+    if (loadBtn) {
+      loadBtn.addEventListener('click', () => {
+        showToast('5 HEI Evaluation criteria loaded and indexed by sortOrder');
+      });
+    }
+
+    function showToast(msg) {
+      const banner = document.getElementById('global-success-banner');
+      if (banner) {
+        const textSpan = banner.querySelector('span:nth-child(2)');
+        if (textSpan) textSpan.textContent = msg;
+        banner.style.display = 'flex';
+        setTimeout(() => {
+          banner.style.display = 'none';
+        }, 3500);
+      }
+    }
+  })();
+</script></main></div></div></body></html>

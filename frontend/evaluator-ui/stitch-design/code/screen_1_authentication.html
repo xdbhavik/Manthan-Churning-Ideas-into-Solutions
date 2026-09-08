@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-error-container": "#93000a", "on-tertiary-fixed": "#002114", "status-submitted-bg": "#EFF6FF", "status-action-text": "#9A3412", "secondary": "#4059aa", "outline-variant": "#c4c6ce", "surface-container-lowest": "#ffffff", "status-review-border": "#DDD6FE", "tertiary-fixed-dim": "#68dba9", "status-action-border": "#FED7AA", "surface": "#f8f9ff", "text-muted": "#64748B", "border-hairline": "#E2E8F0", "gov-emerald": "#059669", "secondary-container": "#8fa7fe", "background": "#f8f9ff", "on-primary": "#ffffff", "error": "#ba1a1a", "saffron-accent": "#E05A10", "outline": "#74777e", "secondary-fixed-dim": "#b6c4ff", "status-approved-bg": "#ECFDF5", "status-review-text": "#5B21B6", "surface-tint": "#49607e", "tertiary-fixed": "#85f8c4", "tertiary-container": "#002a1b", "ashoka-blue": "#0A2540", "surface-bright": "#f8f9ff", "secondary-fixed": "#dce1ff", "on-secondary-container": "#1d3989", "on-tertiary-fixed-variant": "#005137", "surface-container-high": "#dce9ff", "inverse-surface": "#213145", "status-approved-border": "#A7F3D0", "on-surface": "#0b1c30", "on-background": "#0b1c30", "on-surface-variant": "#43474d", "status-review-bg": "#F5F3FF", "status-submitted-border": "#BFDBFE", "on-secondary-fixed-variant": "#264191", "text-primary": "#0F172A", "surface-container": "#e5eeff", "status-approved-text": "#065F46", "on-secondary": "#ffffff", "on-primary-fixed-variant": "#314865", "primary-container": "#0a2540", "surface-crisp": "#FFFFFF", "border-strong": "#CBD5E1", "primary-fixed": "#d2e4ff", "inverse-primary": "#b0c8eb", "on-tertiary": "#ffffff", "primary": "#000f22", "text-secondary": "#475569", "on-secondary-fixed": "#00164e", "inverse-on-surface": "#eaf1ff", "status-submitted-text": "#1E40AF", "surface-container-low": "#eff4ff", "surface-dim": "#cbdbf5", "primary-fixed-dim": "#b0c8eb", "surface-muted": "#F1F5F9", "surface-container-highest": "#d3e4fe", "on-primary-container": "#768dad", "institutional-navy": "#1E3A8A", "on-primary-fixed": "#001c37", "surface-variant": "#d3e4fe", "on-error": "#ffffff", "error-container": "#ffdad6", "on-tertiary-container": "#1a9e70", "status-action-bg": "#FFF7ED", "surface-subtle": "#F8FAFC", "tertiary": "#001209" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "space-xl": "2rem", "space-base": "1rem", "form-max-width": "42rem", "space-md": "0.75rem", "space-lg": "1.5rem", "space-sm": "0.5rem", "space-xs": "0.25rem", "space-2xs": "0.125rem", "gutter-mobile": "1rem", "gutter-desktop": "1.5rem", "space-3xl": "4rem", "space-2xl": "3rem", "container-max-width": "72rem" }, "fontFamily": { "body-md": ["Noto Sans"], "headline-xl": ["Noto Sans"], "body-lg": ["Noto Sans"], "headline-sm": ["Noto Sans"], "label-sm": ["Noto Sans"], "body-sm": ["Noto Sans"], "headline-md": ["Noto Sans"], "headline-lg": ["Noto Sans"], "label-lg": ["Noto Sans"], "label-md": ["Noto Sans"], "headline-xl-mobile": ["Noto Sans"], "mono-code": ["JetBrains Mono"] }, "fontSize": { "body-md": ["14px", { "lineHeight": "22px", "letterSpacing": "0em", "fontWeight": "400" }], "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "body-lg": ["16px", { "lineHeight": "26px", "letterSpacing": "0em", "fontWeight": "400" }], "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" }], "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "700" }], "body-sm": ["12px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "400" }], "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "700" }], "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }], "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }], "headline-xl-mobile": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700" }], "mono-code": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500" }] } } } };</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased min-h-screen"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-crisp z-50 flex flex-col justify-between border-r border-border-hairline"><div class="flex flex-col"><div class="h-16 px-space-base flex items-center gap-space-sm border-b border-border-hairline bg-surface-subtle"><span class="material-symbols-outlined text-ashoka-blue text-[20px]">verified_user</span><div class="flex flex-col"><span class="font-label-md text-label-md text-ashoka-blue uppercase tracking-wider">Evaluation Desk</span><span class="font-mono-code text-body-sm text-text-muted">ID: EVAL-7729</span></div></div><div class="p-space-base"><div class="font-label-sm text-label-sm text-text-muted uppercase mb-space-xs tracking-wider">Role Scope</div><div class="flex items-center justify-between p-space-xs px-space-sm bg-status-approved-bg rounded border border-status-approved-border"><div class="flex items-center gap-space-xs"><span class="w-2 h-2 rounded-full bg-gov-emerald"></span><span class="font-label-md text-label-md text-status-approved-text">EVALUATOR</span></div><span class="material-symbols-outlined text-status-approved-text text-[16px]">lock</span></div></div><nav class="flex flex-col gap-space-2xs px-space-sm" data-active-classes="bg-surface-muted text-ashoka-blue font-semibold border-l-2 border-ashoka-blue"><a aria-current="page" class="flex items-center gap-space-sm px-space-sm py-space-xs transition-colors bg-surface-muted text-ashoka-blue font-semibold border-l-2 border-ashoka-blue" data-path="evaluation-dossiers" href="#"><span class="material-symbols-outlined text-[18px]">assignment</span>Assigned Dossiers</a><a class="flex items-center gap-space-sm px-space-sm py-space-xs text-text-secondary hover:bg-surface-subtle hover:text-on-surface transition-colors font-label-lg text-label-lg" data-path="statutory-kyc-queue" href="#"><span class="material-symbols-outlined text-[18px]">badge</span>Statutory Identity</a><a class="flex items-center gap-space-sm px-space-sm py-space-xs text-text-secondary hover:bg-surface-subtle hover:text-on-surface transition-colors font-label-lg text-label-lg" data-path="scoring-matrix" href="#"><span class="material-symbols-outlined text-[18px]">fact_check</span>Scoring Matrix</a><a class="flex items-center gap-space-sm px-space-sm py-space-xs text-text-secondary hover:bg-surface-subtle hover:text-on-surface transition-colors font-label-lg text-label-lg" data-path="deficiency-notices" href="#"><span class="material-symbols-outlined text-[18px]">notification_important</span>Deficiency Notices</a><a class="flex items-center gap-space-sm px-space-sm py-space-xs text-text-secondary hover:bg-surface-subtle hover:text-on-surface transition-colors font-label-lg text-label-lg" data-path="audit-trail-timeline" href="#"><span class="material-symbols-outlined text-[18px]">history_toggle_off</span>Audit Timeline</a></nav></div><div class="p-space-base border-t border-border-hairline bg-surface-subtle flex flex-col gap-space-xs"><div class="flex items-center justify-between text-text-muted font-label-sm text-label-sm"><span class="font-mono-code">NODE-IN-BLR-01</span><span class="text-gov-emerald flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-gov-emerald"></span>SECURE</span></div><div class="font-body-sm text-body-sm text-text-muted">SIH26043 Statutory Compliance Engine</div></div></aside><div class="pl-64 flex flex-col min-h-screen"><header class="fixed top-0 left-64 right-0 h-16 bg-surface-crisp border-b border-border-hairline z-40 px-space-lg flex items-center justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex items-center gap-space-md"><img alt="Brand logo. - Primary color: #0a2540 - Font: notoSans - Mode: light - Roundness: rounded-sm" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XI9nSKj4rsNvj5snYwu2dgdHUz78RhkH0lBCnRaOqOhtGnUNsQysd2e-ypOuKlSsYysXy2FIHwfOUDz-A2woFf2EtzFja2lz78uLpqLmnkym8ETOpXDZgnvhksjEwmkaYB2i8oVLyAs2dWDy8YybtL3lXV3EqS1D7-QblRnnArH1wpH6sUx1rzDl42N69jr-q2OnNXQAez7NlBGgcbxjLoGVDeFY8sCARpMLHHdQFKMxwE4E19VnntFgX0"/><div class="flex items-center gap-space-sm"><span class="font-headline-sm text-headline-sm text-ashoka-blue tracking-tight">SIH26043 Evaluation Service</span><span class="font-mono-code text-[11px] px-space-xs py-0.5 rounded bg-surface-muted text-text-secondary border border-border-hairline uppercase tracking-wider">STAGING // v2.4-PROD-EVAL</span></div></div><div class="flex items-center gap-space-md"><nav class="hidden xl:flex items-center bg-surface-muted p-space-2xs rounded border border-border-hairline" data-active-classes="bg-ashoka-blue text-on-primary font-bold"><a class="px-space-sm py-1 rounded text-text-secondary hover:text-ashoka-blue font-label-md text-label-md transition-colors" data-path="submitter-workspace" href="#">Submitter</a><a class="px-space-sm py-1 rounded text-text-secondary hover:text-ashoka-blue font-label-md text-label-md transition-colors" data-path="reviewer-workspace" href="#">Reviewer</a><a aria-current="page" class="px-space-sm py-1 rounded transition-colors bg-ashoka-blue text-on-primary font-bold" data-path="evaluation-dossiers" href="#">Evaluator</a><a class="px-space-sm py-1 rounded text-text-secondary hover:text-ashoka-blue font-label-md text-label-md transition-colors" data-path="admin-control" href="#">Admin</a></nav><div class="h-6 w-px bg-border-hairline"></div><div class="flex items-center gap-space-sm"><div class="text-right hidden sm:flex flex-col"><span class="font-label-md text-label-md text-text-primary">Dr. Aris Thorne</span><span class="font-mono-code text-[11px] text-text-muted">EVAL-7729</span></div><span class="px-2 py-0.5 rounded-full font-label-sm text-label-sm bg-status-review-bg text-status-review-text border border-status-review-border uppercase tracking-wider">EVALUATOR</span><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><button class="p-space-xs rounded text-text-muted hover:text-error hover:bg-error-container/20 transition-colors ml-space-2xs" title="Logout" type="button"><span class="material-symbols-outlined text-[20px]">logout</span></button></div></div></header><div class="pt-16 flex-1 flex flex-col bg-surface"><div class="w-full px-space-lg pt-space-base flex flex-col gap-space-xs"><div class="flex items-center justify-between px-space-base py-space-xs bg-status-approved-bg border border-status-approved-border rounded text-status-approved-text font-body-sm text-body-sm" id="global-success-banner"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-gov-emerald text-[18px]">check_circle</span><span>Evaluation session active: Signed in via Statutory National ID Gateway (UIDAI Verified Session). All audits logged.</span></div><button class="text-status-approved-text hover:text-text-primary" onclick="document.getElementById('global-success-banner').style.display='none'" type="button"><span class="material-symbols-outlined text-[16px]">close</span></button></div><div class="hidden items-center justify-between px-space-base py-space-xs bg-status-action-bg border border-status-action-border rounded text-status-action-text font-body-sm text-body-sm" id="global-error-banner"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-saffron-accent text-[18px]">warning</span><span id="global-error-message">Action Required: 3 dossiers require compliance resubmission inspection within the active cycle window.</span></div><button class="text-status-action-text hover:text-text-primary" onclick="document.getElementById('global-error-banner').style.display='none'" type="button"><span class="material-symbols-outlined text-[16px]">close</span></button></div></div><main class="w-full px-space-lg py-space-base flex-1"><div class="flex flex-col w-full">
+<div class="w-full mb-space-base">
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-sm bg-surface-container-low p-space-md rounded-lg shadow-sm">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded bg-primary-container flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[24px]">vpn_key</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-sm text-headline-sm text-text-primary">Statutory Identity Gateway &amp; Token Broker</span>
+<span class="font-mono-code text-label-sm px-space-xs py-0.5 rounded bg-surface-container text-ashoka-blue">RFC-6749 / OIDC-IN</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary">Evaluator multi-factor authentication, cryptographic state verification, and session delegation pipeline.</p>
+</div>
+</div>
+<div class="flex items-center gap-space-sm bg-surface-crisp px-space-sm py-space-xs rounded shadow-sm">
+<span class="font-label-sm text-label-sm text-text-muted uppercase">Context Simulation:</span>
+<div class="flex items-center gap-space-2xs bg-surface-muted p-space-2xs rounded">
+<button class="px-space-xs py-0.5 rounded font-label-sm text-label-sm bg-ashoka-blue text-on-primary transition-all" id="btn-state-unauth" onclick="switchSimState('unauth')" type="button">1. Initial Login</button>
+<button class="px-space-xs py-0.5 rounded font-label-sm text-label-sm text-text-secondary hover:text-ashoka-blue transition-all" id="btn-state-otp" onclick="switchSimState('otp')" type="button">2. OTP Challenge</button>
+<button class="px-space-xs py-0.5 rounded font-label-sm text-label-sm text-text-secondary hover:text-ashoka-blue transition-all" id="btn-state-auth" onclick="switchSimState('auth')" type="button">3. Active Session</button>
+</div>
+</div>
+</div>
+</div>
+<div class="w-full mb-space-base bg-status-action-bg rounded-lg p-space-md shadow-sm" id="statutory-error-banner">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-saffron-accent text-[22px] mt-0.5">error_outline</span>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-lg text-label-lg text-status-action-text uppercase tracking-wider">Statutory Pre-Condition Exception</span>
+<span class="font-mono-code text-label-sm px-space-xs py-0.5 rounded bg-status-action-border text-status-action-text">HTTP 404 EVALUATOR_PROFILE_NOT_FOUND</span>
+</div>
+<p class="font-body-md text-body-md text-text-primary mt-space-2xs">Evaluator role present but no evaluator profile onboarded yet — Profile Required before receiving assignments.</p>
+<span class="font-mono-code text-body-sm text-text-muted mt-space-2xs">Resolution Directive: Contact Ministry Nodal Registrar or complete biometric onboarding node dossier ref: IND-NDLS-2025-EVAL.</span>
+</div>
+</div>
+<button class="text-status-action-text hover:text-primary transition-colors p-1" onclick="document.getElementById('statutory-error-banner').style.display='none'" title="Dismiss Notice" type="button">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
+<div class="xl:col-span-7 flex flex-col gap-space-base">
+<div class="bg-surface-crisp rounded-lg shadow-sm overflow-hidden">
+<div class="bg-surface-subtle px-space-lg py-space-md flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-ashoka-blue text-[20px]">badge</span>
+<div>
+<span class="font-headline-sm text-headline-sm text-ashoka-blue block">Evaluator Identity Credentials</span>
+<span class="font-body-sm text-body-sm text-text-muted">Digital India UIDAI / Ministry Statutory Gateway Verification</span>
+</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="px-space-sm py-1 rounded font-label-md text-label-md bg-ashoka-blue text-on-primary shadow-sm transition-colors" id="tab-login" onclick="toggleAuthMode('login')" type="button">Login</button>
+<button class="px-space-sm py-1 rounded font-label-md text-label-md bg-surface-muted text-text-secondary hover:text-ashoka-blue transition-colors" id="tab-register" onclick="toggleAuthMode('register')" type="button">Register</button>
+</div>
+</div>
+<div class="p-space-lg flex flex-col gap-space-md">
+<div>
+<div class="flex items-center justify-between mb-space-xs">
+<label class="font-label-lg text-label-lg text-text-primary" for="phone-input">
+                Mobile Number <span aria-hidden="true" class="text-saffron-accent">*</span>
+</label>
+<span class="font-body-sm text-body-sm text-text-muted">Mandatory 10 digits</span>
+</div>
+<div class="flex rounded shadow-sm">
+<span class="inline-flex items-center px-space-md rounded-l bg-surface-muted text-text-primary font-mono-code text-body-md select-none font-semibold">
+                +91
+              </span>
+<input class="w-full h-10 px-space-sm bg-surface-crisp rounded-r font-mono-code text-body-md text-text-primary placeholder:text-text-muted focus:outline-none focus:bg-surface-subtle" id="phone-input" maxlength="10" placeholder="98765 43210" type="tel" value="9845012345"/>
+</div>
+</div>
+<div>
+<div class="flex items-center justify-between mb-space-xs">
+<label class="font-label-lg text-label-lg text-text-primary" for="email-input">
+                Official Email Address <span class="font-body-sm text-body-sm text-text-muted">(Optional)</span>
+</label>
+<span class="font-label-sm text-label-sm text-gov-emerald flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">domain</span> NIC / GOV.IN PREFERRED
+              </span>
+</div>
+<div class="relative rounded shadow-sm">
+<input class="w-full h-10 px-space-sm bg-surface-crisp rounded font-body-md text-text-primary placeholder:text-text-muted focus:outline-none focus:bg-surface-subtle" id="email-input" placeholder="aris.thorne@nic.in" type="email" value="dr.aris.thorne@evaluation.gov.in"/>
+<div class="absolute inset-y-0 right-0 flex items-center pr-space-sm pointer-events-none text-text-muted">
+<span class="material-symbols-outlined text-[18px]">mail</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-xs">
+<div class="flex items-center gap-space-xs text-text-muted font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-gov-emerald text-[16px]">verified</span>
+<span>Encrypted via SHA-256 OTP Node</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<button class="hidden px-space-md h-10 rounded bg-surface-muted text-ashoka-blue font-label-lg text-label-lg hover:bg-surface-container-high transition-colors" id="btn-register-action" onclick="simulateDispatch('register')" type="button">
+                Register Entity
+              </button>
+<button class="px-space-lg h-10 rounded bg-primary-container text-on-primary font-label-lg text-label-lg hover:bg-institutional-navy transition-all shadow-sm flex items-center gap-space-xs" id="btn-login-action" onclick="simulateDispatch('login')" type="button">
+<span>Dispatch OTP</span>
+<span class="material-symbols-outlined text-[18px]">send</span>
+</button>
+</div>
+</div>
+</div>
+<div class="bg-surface-subtle p-space-lg flex flex-col gap-space-md" id="otp-section-card">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-xs pb-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-saffron-accent animate-pulse"></span>
+<span class="font-headline-sm text-headline-sm text-text-primary">OTP Challenge Verification</span>
+<span class="font-label-sm text-label-sm px-space-xs py-0.5 rounded bg-status-action-bg text-status-action-text font-bold">AWAITING 6 DIGITS</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-label-sm text-text-muted">TTL:</span>
+<span class="font-mono-code text-body-sm text-saffron-accent font-bold" id="otp-timer">04:47</span>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm items-center bg-surface-crisp p-space-sm rounded">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-text-muted uppercase">OTP Challenge ID (System Generated)</span>
+<span class="font-mono-code text-body-md text-ashoka-blue font-bold tracking-wider" id="otp-challenge-id">CHLG-99420-IN-2025</span>
+</div>
+<div class="flex items-center justify-start sm:justify-end gap-space-xs">
+<span class="font-body-sm text-body-sm text-text-muted">Node:</span>
+<span class="font-mono-code text-body-sm px-space-xs py-0.5 rounded bg-surface-container text-text-secondary">UIDAI-AUTH-GW-04</span>
+</div>
+</div>
+<div>
+<div class="flex items-center justify-between mb-space-xs">
+<label class="font-label-lg text-label-lg text-text-primary">Enter 6-Digit Verification Code</label>
+<button class="flex items-center gap-space-2xs px-space-sm py-1 rounded bg-status-action-bg text-status-action-text hover:bg-status-action-border font-label-sm text-label-sm transition-colors shadow-sm" onclick="triggerDevOtp()" type="button">
+<span class="material-symbols-outlined text-[14px]">bug_report</span>
+<span>Use devOtp</span>
+<span class="px-1 bg-saffron-accent text-on-primary rounded text-[9px] uppercase">Dev Only</span>
+</button>
+</div>
+<div class="flex items-center justify-between gap-space-xs max-w-sm" id="otp-inputs-row">
+<input class="otp-cell w-12 h-12 text-center font-mono-code text-headline-md text-text-primary bg-surface-crisp rounded shadow-sm focus:outline-none focus:bg-surface-container-low" maxlength="1" pattern="[0-9]" type="text" value="8"/>
+<input class="otp-cell w-12 h-12 text-center font-mono-code text-headline-md text-text-primary bg-surface-crisp rounded shadow-sm focus:outline-none focus:bg-surface-container-low" maxlength="1" pattern="[0-9]" type="text" value="4"/>
+<input class="otp-cell w-12 h-12 text-center font-mono-code text-headline-md text-text-primary bg-surface-crisp rounded shadow-sm focus:outline-none focus:bg-surface-container-low" maxlength="1" pattern="[0-9]" type="text" value="1"/>
+<input class="otp-cell w-12 h-12 text-center font-mono-code text-headline-md text-text-primary bg-surface-crisp rounded shadow-sm focus:outline-none focus:bg-surface-container-low" maxlength="1" pattern="[0-9]" type="text" value="9"/>
+<input class="otp-cell w-12 h-12 text-center font-mono-code text-headline-md text-text-primary bg-surface-crisp rounded shadow-sm focus:outline-none focus:bg-surface-container-low" maxlength="1" pattern="[0-9]" type="text" value="0"/>
+<input class="otp-cell w-12 h-12 text-center font-mono-code text-headline-md text-text-primary bg-surface-crisp rounded shadow-sm focus:outline-none focus:bg-surface-container-low" maxlength="1" pattern="[0-9]" type="text" value="2"/>
+</div>
+</div>
+<div class="flex flex-wrap items-center justify-between gap-space-sm pt-space-xs">
+<div class="flex items-center gap-space-xs font-body-sm text-body-sm text-text-muted">
+<span>Didn't receive code?</span>
+<button class="text-ashoka-blue font-label-md text-label-md hover:underline" type="button">Resend Challenge</button>
+</div>
+<button class="px-space-xl h-10 rounded bg-gov-emerald text-on-primary font-label-lg text-label-lg hover:bg-emerald-700 transition-all shadow-sm flex items-center gap-space-xs" id="btn-verify-otp" onclick="verifyOtpFlow()" type="button">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+<span>Verify OTP</span>
+</button>
+</div>
+</div>
+</div>
+<div class="bg-surface-crisp rounded-lg p-space-md shadow-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-secondary text-[20px]">policy</span>
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg text-text-primary">Statutory Authority Notice</span>
+<span class="font-body-sm text-body-sm text-text-muted">SIH26043 Evaluation Service strictly adheres to CERT-In &amp; IT Act 2000 Section 43A guidelines.</span>
+</div>
+</div>
+<span class="font-mono-code text-label-sm text-text-muted">AUDIT VERIFIED</span>
+</div>
+</div>
+</div>
+<div class="xl:col-span-5 flex flex-col gap-space-base">
+<div class="bg-surface-crisp rounded-lg shadow-sm p-space-lg flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-ashoka-blue text-[20px]">lock</span>
+<span class="font-headline-sm text-headline-sm text-ashoka-blue">Cryptographic Token Vault</span>
+</div>
+<span class="font-label-sm text-label-sm px-space-sm py-0.5 rounded-full bg-status-approved-bg text-status-approved-text" id="session-status-badge">
+            ACTIVE SESSION
+          </span>
+</div>
+<div class="bg-surface-muted p-space-sm rounded flex flex-col gap-space-2xs">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Storage &amp; Signing Telemetry</span>
+<span class="material-symbols-outlined text-gov-emerald text-[16px]">security</span>
+</div>
+<div class="font-mono-code text-body-sm text-text-primary font-bold flex items-center gap-space-xs">
+<span class="w-2 h-2 rounded-full bg-gov-emerald"></span>
+<span id="storage-indicator-text">Session Secure Storage: JWT RS256 Active / Expiring in 42m</span>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 rounded overflow-hidden mt-1">
+<div class="bg-gov-emerald h-full w-3/4"></div>
+</div>
+</div>
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<label class="font-label-md text-label-md text-text-primary flex items-center gap-space-2xs">
+<span class="material-symbols-outlined text-text-secondary text-[16px]">key</span>
+<span>Refresh Token</span>
+</label>
+<span class="font-mono-code text-[11px] text-text-muted">Auto-rotates in 6d 23h</span>
+</div>
+<div class="relative">
+<input class="w-full h-10 px-space-sm pr-space-xl bg-surface-subtle font-mono-code text-body-sm text-text-secondary rounded select-all focus:outline-none" id="refresh-token-display" readonly="" type="text" value="rt_eval_0a2540_9845012345_b38c291dca094f6e89ab"/>
+<button class="absolute inset-y-0 right-0 px-space-sm flex items-center text-text-muted hover:text-text-primary" onclick="navigator.clipboard.writeText(document.getElementById('refresh-token-display').value)" title="Copy Token" type="button">
+<span class="material-symbols-outlined text-[16px]">content_copy</span>
+</button>
+</div>
+</div>
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<label class="font-label-md text-label-md text-text-primary flex items-center gap-space-2xs">
+<span class="material-symbols-outlined text-text-secondary text-[16px]">token</span>
+<span>Access Token (Bearer Header)</span>
+</label>
+<span class="font-mono-code text-[11px] text-gov-emerald">SIGNATURE VALID</span>
+</div>
+<div class="relative">
+<textarea class="w-full p-space-sm bg-surface-subtle font-mono-code text-body-sm text-text-secondary rounded resize-none select-all focus:outline-none" id="access-token-display" readonly="" rows="3">eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImV2YWwtMjAyNS0wMSJ9.eyJzdWIiOiJFVkFMLTc3MjkiLCJyb2xlIjoiRVZBTFVBVE9SIiwicGhvbmUiOiIrOTE5ODQ1MDEyMzQ1IiwiaWF0IjoxNzM5MDc1MDAwLCJleHAiOjE3MzkwNzc1MjB9.O1_4D-Vq...</textarea>
+</div>
+</div>
+<div class="flex flex-wrap items-center justify-between gap-space-sm pt-space-xs">
+<button class="px-space-md h-10 rounded bg-secondary text-on-secondary font-label-md text-label-md hover:bg-institutional-navy transition-all shadow-sm flex items-center gap-space-xs" id="btn-refresh-token" onclick="refreshAuthSession()" type="button">
+<span class="material-symbols-outlined text-[16px]">autorenew</span>
+<span>Refresh token</span>
+</button>
+<button class="px-space-md h-10 rounded bg-surface-muted text-error hover:bg-error-container hover:text-on-error-container font-label-md text-label-md transition-colors flex items-center gap-space-xs" id="btn-logout" onclick="performLogout()" type="button">
+<span class="material-symbols-outlined text-[16px]">logout</span>
+<span>Logout</span>
+</button>
+</div>
+</div>
+<div class="bg-surface-subtle rounded-lg shadow-sm p-space-lg flex flex-col gap-space-md relative overflow-hidden">
+<div class="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-status-action-border opacity-30 pointer-events-none"></div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-saffron-accent text-[20px]">construction</span>
+<span class="font-headline-sm text-headline-sm text-text-primary">Development &amp; Token Diagnostics</span>
+</div>
+<span class="font-label-sm text-label-sm px-space-xs py-0.5 rounded bg-status-action-bg text-status-action-text font-bold">DEV/TEST ONLY</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary">Subpanel instrumentation for evaluation pipeline integration tests. Bypass cellular SMS gateways, clear sandbox cryptostores, and test error boundaries.</p>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
+<div class="p-space-sm bg-surface-crisp rounded flex flex-col gap-space-2xs">
+<span class="font-label-sm text-label-sm text-text-muted uppercase">Bypass Utility</span>
+<div class="flex items-center justify-between mt-1">
+<button class="px-space-sm py-1.5 rounded bg-surface-container text-ashoka-blue hover:bg-surface-container-high font-label-sm text-label-sm transition-colors flex items-center gap-space-2xs" onclick="triggerDevOtp()" type="button">
+<span class="material-symbols-outlined text-[16px]">key</span>
+<span>Inject devOtp</span>
+</button>
+<span class="font-mono-code text-[11px] text-text-muted">Code: 841902</span>
+</div>
+</div>
+<div class="p-space-sm bg-surface-crisp rounded flex flex-col gap-space-2xs">
+<span class="font-label-sm text-label-sm text-text-muted uppercase">Sandbox Cleanup</span>
+<div class="flex items-center justify-between mt-1">
+<button class="px-space-sm py-1.5 rounded bg-status-action-bg text-status-action-text hover:bg-status-action-border font-label-sm text-label-sm transition-colors flex items-center gap-space-2xs" id="btn-clear-tokens" onclick="clearTokensDiagnostic()" type="button">
+<span class="material-symbols-outlined text-[16px]">delete_sweep</span>
+<span>Clear tokens</span>
+</button>
+<span class="font-label-sm text-label-sm px-1.5 bg-saffron-accent text-on-primary rounded text-[9px]">DEV ONLY</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-crisp p-space-sm rounded flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-text-muted text-[16px]">info</span>
+<span class="font-mono-code text-body-sm text-text-muted">STATE_REG_KEY: EVAL_SANDBOX_STAGING</span>
+</div>
+<button class="font-label-sm text-label-sm text-secondary hover:underline" onclick="document.getElementById('statutory-error-banner').style.display='block'" type="button">
+            Trigger HTTP 404 Notice
+          </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+  function switchSimState(state) {
+    const btnUnauth = document.getElementById('btn-state-unauth');
+    const btnOtp = document.getElementById('btn-state-otp');
+    const btnAuth = document.getElementById('btn-state-auth');
+    
+    [btnUnauth, btnOtp, btnAuth].forEach(b => {
+      b.className = 'px-space-xs py-0.5 rounded font-label-sm text-label-sm text-text-secondary hover:text-ashoka-blue transition-all';
+    });
+
+    const otpCard = document.getElementById('otp-section-card');
+    const tokenDisplay = document.getElementById('refresh-token-display');
+    const accessDisplay = document.getElementById('access-token-display');
+    const statusBadge = document.getElementById('session-status-badge');
+    const storageText = document.getElementById('storage-indicator-text');
+    const errorBanner = document.getElementById('statutory-error-banner');
+
+    if (state === 'unauth') {
+      btnUnauth.className = 'px-space-xs py-0.5 rounded font-label-sm text-label-sm bg-ashoka-blue text-on-primary transition-all';
+      otpCard.classList.add('opacity-40', 'pointer-events-none');
+      tokenDisplay.value = '(None - Authenticate via OTP)';
+      accessDisplay.value = '(No active bearer token in session store)';
+      statusBadge.className = 'font-label-sm text-label-sm px-space-sm py-0.5 rounded-full bg-status-action-bg text-status-action-text';
+      statusBadge.textContent = 'UNAUTHENTICATED';
+      storageText.textContent = 'Session Storage: Empty / No Active Bearer';
+      errorBanner.style.display = 'none';
+    } else if (state === 'otp') {
+      btnOtp.className = 'px-space-xs py-0.5 rounded font-label-sm text-label-sm bg-ashoka-blue text-on-primary transition-all';
+      otpCard.classList.remove('opacity-40', 'pointer-events-none');
+      tokenDisplay.value = '(Pending OTP Challenge Resolution)';
+      accessDisplay.value = '(Awaiting Cryptographic Signature Verification)';
+      statusBadge.className = 'font-label-sm text-label-sm px-space-sm py-0.5 rounded-full bg-status-review-bg text-status-review-text';
+      statusBadge.textContent = 'CHALLENGE PENDING';
+      storageText.textContent = 'Session Storage: Staging Token Challenge CHLG-99420-IN-2025';
+      errorBanner.style.display = 'none';
+    } else if (state === 'auth') {
+      btnAuth.className = 'px-space-xs py-0.5 rounded font-label-sm text-label-sm bg-ashoka-blue text-on-primary transition-all';
+      otpCard.classList.remove('opacity-40', 'pointer-events-none');
+      tokenDisplay.value = 'rt_eval_0a2540_9845012345_b38c291dca094f6e89ab';
+      accessDisplay.value = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImV2YWwtMjAyNS0wMSJ9.eyJzdWIiOiJFVkFMLTc3MjkiLCJyb2xlIjoiRVZBTFVBVE9SIiwicGhvbmUiOiIrOTE5ODQ1MDEyMzQ1IiwiaWF0IjoxNzM5MDc1MDAwLCJleHAiOjE3MzkwNzc1MjB9.O1_4D-Vq...';
+      statusBadge.className = 'font-label-sm text-label-sm px-space-sm py-0.5 rounded-full bg-status-approved-bg text-status-approved-text';
+      statusBadge.textContent = 'ACTIVE SESSION';
+      storageText.textContent = 'Session Secure Storage: JWT RS256 Active / Expiring in 42m';
+      errorBanner.style.display = 'block';
+    }
+  }
+
+  function toggleAuthMode(mode) {
+    const tabLogin = document.getElementById('tab-login');
+    const tabRegister = document.getElementById('tab-register');
+    const btnLoginAction = document.getElementById('btn-login-action');
+    const btnRegisterAction = document.getElementById('btn-register-action');
+
+    if (mode === 'login') {
+      tabLogin.className = 'px-space-sm py-1 rounded font-label-md text-label-md bg-ashoka-blue text-on-primary shadow-sm transition-colors';
+      tabRegister.className = 'px-space-sm py-1 rounded font-label-md text-label-md bg-surface-muted text-text-secondary hover:text-ashoka-blue transition-colors';
+      btnLoginAction.classList.remove('hidden');
+      btnRegisterAction.classList.add('hidden');
+    } else {
+      tabRegister.className = 'px-space-sm py-1 rounded font-label-md text-label-md bg-ashoka-blue text-on-primary shadow-sm transition-colors';
+      tabLogin.className = 'px-space-sm py-1 rounded font-label-md text-label-md bg-surface-muted text-text-secondary hover:text-ashoka-blue transition-colors';
+      btnRegisterAction.classList.remove('hidden');
+      btnLoginAction.classList.add('hidden');
+    }
+  }
+
+  function simulateDispatch(type) {
+    const challengeId = 'CHLG-' + Math.floor(10000 + Math.random() * 90000) + '-IN-2025';
+    document.getElementById('otp-challenge-id').textContent = challengeId;
+    switchSimState('otp');
+  }
+
+  function triggerDevOtp() {
+    const sample = ['8', '4', '1', '9', '0', '2'];
+    const cells = document.querySelectorAll('#otp-inputs-row .otp-cell');
+    cells.forEach((cell, idx) => {
+      cell.value = sample[idx] || '';
+    });
+  }
+
+  function verifyOtpFlow() {
+    switchSimState('auth');
+  }
+
+  function refreshAuthSession() {
+    const accessDisplay = document.getElementById('access-token-display');
+    const rand = Math.random().toString(36).substring(7);
+    accessDisplay.value = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzkxMDAwMDAsInJhbmQiOiIn + rand + 'In0.REFRESHED_SIG_' + rand;
+    const storageText = document.getElementById('storage-indicator-text');
+    storageText.textContent = 'Session Secure Storage: JWT RS256 Active / Expiring in 60m (Just Refreshed)';
+  }
+
+  function performLogout() {
+    switchSimState('unauth');
+  }
+
+  function clearTokensDiagnostic() {
+    document.getElementById('refresh-token-display').value = '';
+    document.getElementById('access-token-display').value = '';
+    const cells = document.querySelectorAll('#otp-inputs-row .otp-cell');
+    cells.forEach(c => c.value = '');
+    switchSimState('unauth');
+  }
+
+  // Handle individual OTP inputs auto-advance
+  document.querySelectorAll('#otp-inputs-row .otp-cell').forEach((input, index, inputs) => {
+    input.addEventListener('input', (e) => {
+      if (e.target.value.length === 1 && index < inputs.length - 1) {
+        inputs[index + 1].focus();
+      }
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !e.target.value && index > 0) {
+        inputs[index - 1].focus();
+      }
+    });
+  });
+</script></main></div></div></body></html>

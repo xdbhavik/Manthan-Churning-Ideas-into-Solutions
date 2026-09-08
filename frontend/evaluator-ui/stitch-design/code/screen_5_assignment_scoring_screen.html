@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-error-container": "#93000a", "on-tertiary-fixed": "#002114", "status-submitted-bg": "#EFF6FF", "status-action-text": "#9A3412", "secondary": "#4059aa", "outline-variant": "#c4c6ce", "surface-container-lowest": "#ffffff", "status-review-border": "#DDD6FE", "tertiary-fixed-dim": "#68dba9", "status-action-border": "#FED7AA", "surface": "#f8f9ff", "text-muted": "#64748B", "border-hairline": "#E2E8F0", "gov-emerald": "#059669", "secondary-container": "#8fa7fe", "background": "#f8f9ff", "on-primary": "#ffffff", "error": "#ba1a1a", "saffron-accent": "#E05A10", "outline": "#74777e", "secondary-fixed-dim": "#b6c4ff", "status-approved-bg": "#ECFDF5", "status-review-text": "#5B21B6", "surface-tint": "#49607e", "tertiary-fixed": "#85f8c4", "tertiary-container": "#002a1b", "ashoka-blue": "#0A2540", "surface-bright": "#f8f9ff", "secondary-fixed": "#dce1ff", "on-secondary-container": "#1d3989", "on-tertiary-fixed-variant": "#005137", "surface-container-high": "#dce9ff", "inverse-surface": "#213145", "status-approved-border": "#A7F3D0", "on-surface": "#0b1c30", "on-background": "#0b1c30", "on-surface-variant": "#43474d", "status-review-bg": "#F5F3FF", "status-submitted-border": "#BFDBFE", "on-secondary-fixed-variant": "#264191", "text-primary": "#0F172A", "surface-container": "#e5eeff", "status-approved-text": "#065F46", "on-secondary": "#ffffff", "on-primary-fixed-variant": "#314865", "primary-container": "#0a2540", "surface-crisp": "#FFFFFF", "border-strong": "#CBD5E1", "primary-fixed": "#d2e4ff", "inverse-primary": "#b0c8eb", "on-tertiary": "#ffffff", "primary": "#000f22", "text-secondary": "#475569", "on-secondary-fixed": "#00164e", "inverse-on-surface": "#eaf1ff", "status-submitted-text": "#1E40AF", "surface-container-low": "#eff4ff", "surface-dim": "#cbdbf5", "primary-fixed-dim": "#b0c8eb", "surface-muted": "#F1F5F9", "surface-container-highest": "#d3e4fe", "on-primary-container": "#768dad", "institutional-navy": "#1E3A8A", "on-primary-fixed": "#001c37", "surface-variant": "#d3e4fe", "on-error": "#ffffff", "error-container": "#ffdad6", "on-tertiary-container": "#1a9e70", "status-action-bg": "#FFF7ED", "surface-subtle": "#F8FAFC", "tertiary": "#001209" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "space-xl": "2rem", "space-base": "1rem", "form-max-width": "42rem", "space-md": "0.75rem", "space-lg": "1.5rem", "space-sm": "0.5rem", "space-xs": "0.25rem", "space-2xs": "0.125rem", "gutter-mobile": "1rem", "gutter-desktop": "1.5rem", "space-3xl": "4rem", "space-2xl": "3rem", "container-max-width": "72rem" }, "fontFamily": { "body-md": ["Noto Sans"], "headline-xl": ["Noto Sans"], "body-lg": ["Noto Sans"], "headline-sm": ["Noto Sans"], "label-sm": ["Noto Sans"], "body-sm": ["Noto Sans"], "headline-md": ["Noto Sans"], "headline-lg": ["Noto Sans"], "label-lg": ["Noto Sans"], "label-md": ["Noto Sans"], "headline-xl-mobile": ["Noto Sans"], "mono-code": ["JetBrains Mono"] }, "fontSize": { "body-md": ["14px", { "lineHeight": "22px", "letterSpacing": "0em", "fontWeight": "400" }], "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "body-lg": ["16px", { "lineHeight": "26px", "letterSpacing": "0em", "fontWeight": "400" }], "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" }], "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "700" }], "body-sm": ["12px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "400" }], "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "700" }], "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }], "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }], "headline-xl-mobile": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700" }], "mono-code": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500" }] } } } };</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased min-h-screen"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-crisp z-50 flex flex-col justify-between border-r border-border-hairline"><div class="flex flex-col"><div class="h-16 px-space-base flex items-center gap-space-sm border-b border-border-hairline bg-surface-subtle"><span class="material-symbols-outlined text-ashoka-blue text-[20px]">verified_user</span><div class="flex flex-col"><span class="font-label-md text-label-md text-ashoka-blue uppercase tracking-wider">Evaluation Desk</span><span class="font-mono-code text-body-sm text-text-muted">ID: EVAL-7729</span></div></div><div class="p-space-base"><div class="font-label-sm text-label-sm text-text-muted uppercase mb-space-xs tracking-wider">Role Scope</div><div class="flex items-center justify-between p-space-xs px-space-sm bg-status-approved-bg rounded border border-status-approved-border"><div class="flex items-center gap-space-xs"><span class="w-2 h-2 rounded-full bg-gov-emerald"></span><span class="font-label-md text-label-md text-status-approved-text">EVALUATOR</span></div><span class="material-symbols-outlined text-status-approved-text text-[16px]">lock</span></div></div><nav class="flex flex-col gap-space-2xs px-space-sm" data-active-classes="bg-surface-muted text-ashoka-blue font-semibold border-l-2 border-ashoka-blue"><a aria-current="page" class="flex items-center gap-space-sm px-space-sm py-space-xs transition-colors bg-surface-muted text-ashoka-blue font-semibold border-l-2 border-ashoka-blue" data-path="evaluation-dossiers" href="#"><span class="material-symbols-outlined text-[18px]">assignment</span>Assigned Dossiers</a><a class="flex items-center gap-space-sm px-space-sm py-space-xs text-text-secondary hover:bg-surface-subtle hover:text-on-surface transition-colors font-label-lg text-label-lg" data-path="statutory-kyc-queue" href="#"><span class="material-symbols-outlined text-[18px]">badge</span>Statutory Identity</a><a class="flex items-center gap-space-sm px-space-sm py-space-xs text-text-secondary hover:bg-surface-subtle hover:text-on-surface transition-colors font-label-lg text-label-lg" data-path="scoring-matrix" href="#"><span class="material-symbols-outlined text-[18px]">fact_check</span>Scoring Matrix</a><a class="flex items-center gap-space-sm px-space-sm py-space-xs text-text-secondary hover:bg-surface-subtle hover:text-on-surface transition-colors font-label-lg text-label-lg" data-path="deficiency-notices" href="#"><span class="material-symbols-outlined text-[18px]">notification_important</span>Deficiency Notices</a><a class="flex items-center gap-space-sm px-space-sm py-space-xs text-text-secondary hover:bg-surface-subtle hover:text-on-surface transition-colors font-label-lg text-label-lg" data-path="audit-trail-timeline" href="#"><span class="material-symbols-outlined text-[18px]">history_toggle_off</span>Audit Timeline</a></nav></div><div class="p-space-base border-t border-border-hairline bg-surface-subtle flex flex-col gap-space-xs"><div class="flex items-center justify-between text-text-muted font-label-sm text-label-sm"><span class="font-mono-code">NODE-IN-BLR-01</span><span class="text-gov-emerald flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-gov-emerald"></span>SECURE</span></div><div class="font-body-sm text-body-sm text-text-muted">SIH26043 Statutory Compliance Engine</div></div></aside><div class="pl-64 flex flex-col min-h-screen"><header class="fixed top-0 left-64 right-0 h-16 bg-surface-crisp border-b border-border-hairline z-40 px-space-lg flex items-center justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex items-center gap-space-md"><img alt="Brand logo. - Primary color: #0a2540 - Font: notoSans - Mode: light - Roundness: rounded-sm" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XI9nSKj4rsNvj5snYwu2dgdHUz78RhkH0lBCnRaOqOhtGnUNsQysd2e-ypOuKlSsYysXy2FIHwfOUDz-A2woFf2EtzFja2lz78uLpqLmnkym8ETOpXDZgnvhksjEwmkaYB2i8oVLyAs2dWDy8YybtL3lXV3EqS1D7-QblRnnArH1wpH6sUx1rzDl42N69jr-q2OnNXQAez7NlBGgcbxjLoGVDeFY8sCARpMLHHdQFKMxwE4E19VnntFgX0"/><div class="flex items-center gap-space-sm"><span class="font-headline-sm text-headline-sm text-ashoka-blue tracking-tight">SIH26043 Evaluation Service</span><span class="font-mono-code text-[11px] px-space-xs py-0.5 rounded bg-surface-muted text-text-secondary border border-border-hairline uppercase tracking-wider">STAGING // v2.4-PROD-EVAL</span></div></div><div class="flex items-center gap-space-md"><nav class="hidden xl:flex items-center bg-surface-muted p-space-2xs rounded border border-border-hairline" data-active-classes="bg-ashoka-blue text-on-primary font-bold"><a class="px-space-sm py-1 rounded text-text-secondary hover:text-ashoka-blue font-label-md text-label-md transition-colors" data-path="submitter-workspace" href="#">Submitter</a><a class="px-space-sm py-1 rounded text-text-secondary hover:text-ashoka-blue font-label-md text-label-md transition-colors" data-path="reviewer-workspace" href="#">Reviewer</a><a aria-current="page" class="px-space-sm py-1 rounded transition-colors bg-ashoka-blue text-on-primary font-bold" data-path="evaluation-dossiers" href="#">Evaluator</a><a class="px-space-sm py-1 rounded text-text-secondary hover:text-ashoka-blue font-label-md text-label-md transition-colors" data-path="admin-control" href="#">Admin</a></nav><div class="h-6 w-px bg-border-hairline"></div><div class="flex items-center gap-space-sm"><div class="text-right hidden sm:flex flex-col"><span class="font-label-md text-label-md text-text-primary">Dr. Aris Thorne</span><span class="font-mono-code text-[11px] text-text-muted">EVAL-7729</span></div><span class="px-2 py-0.5 rounded-full font-label-sm text-label-sm bg-status-review-bg text-status-review-text border border-status-review-border uppercase tracking-wider">EVALUATOR</span><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><button class="p-space-xs rounded text-text-muted hover:text-error hover:bg-error-container/20 transition-colors ml-space-2xs" title="Logout" type="button"><span class="material-symbols-outlined text-[20px]">logout</span></button></div></div></header><div class="pt-16 flex-1 flex flex-col bg-surface"><div class="w-full px-space-lg pt-space-base flex flex-col gap-space-xs"><div class="flex items-center justify-between px-space-base py-space-xs bg-status-approved-bg border border-status-approved-border rounded text-status-approved-text font-body-sm text-body-sm" id="global-success-banner"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-gov-emerald text-[18px]">check_circle</span><span>Evaluation session active: Signed in via Statutory National ID Gateway (UIDAI Verified Session). All audits logged.</span></div><button class="text-status-approved-text hover:text-text-primary" onclick="document.getElementById('global-success-banner').style.display='none'" type="button"><span class="material-symbols-outlined text-[16px]">close</span></button></div><div class="hidden items-center justify-between px-space-base py-space-xs bg-status-action-bg border border-status-action-border rounded text-status-action-text font-body-sm text-body-sm" id="global-error-banner"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-saffron-accent text-[18px]">warning</span><span id="global-error-message">Action Required: 3 dossiers require compliance resubmission inspection within the active cycle window.</span></div><button class="text-status-action-text hover:text-text-primary" onclick="document.getElementById('global-error-banner').style.display='none'" type="button"><span class="material-symbols-outlined text-[16px]">close</span></button></div></div><main class="w-full px-space-lg py-space-base flex-1"><div class="flex flex-col w-full">
+<!-- 5.1 Assignment Summary Top Bar Card -->
+<section class="w-full bg-surface-crisp rounded-xl p-space-lg shadow-sm mb-space-lg">
+<div class="flex flex-wrap items-center justify-between gap-space-base pb-space-md">
+<div class="flex flex-wrap items-center gap-space-sm">
+<button class="inline-flex items-center gap-space-xs px-space-sm py-1.5 rounded-lg bg-surface-muted hover:bg-surface-container-high text-text-secondary transition-colors font-label-md text-label-md" type="button">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+<span>Back to queue</span>
+</button>
+<span class="font-mono-code text-headline-sm text-ashoka-blue font-bold px-space-xs">ASN-9041-A2</span>
+<span class="px-2.5 py-0.5 rounded-full font-label-sm text-label-sm bg-status-submitted-bg text-status-submitted-text uppercase tracking-wider font-bold">IN_PROGRESS</span>
+<span class="px-2.5 py-0.5 rounded-full font-label-sm text-label-sm bg-status-review-bg text-status-review-text uppercase tracking-wider font-bold">CYCLE: EVALUATION_IN_PROGRESS</span>
+</div>
+<!-- Quick Actions Header Group -->
+<div class="flex flex-wrap items-center gap-space-xs">
+<button class="px-space-sm py-2 rounded-lg bg-gov-emerald hover:bg-emerald-700 text-on-primary font-label-md text-label-md transition-all flex items-center gap-1 shadow-sm" onclick="document.getElementById('acceptModal').classList.remove('hidden')" type="button">
+<span class="material-symbols-outlined text-[16px]">how_to_reg</span>
+<span>Accept assignment</span>
+</button>
+<button class="px-space-sm py-2 rounded-lg bg-status-action-bg hover:bg-orange-100 text-status-action-text font-label-md text-label-md transition-all flex items-center gap-1" onclick="document.getElementById('declineModal').classList.remove('hidden')" type="button">
+<span class="material-symbols-outlined text-[16px]">cancel</span>
+<span>Decline</span>
+</button>
+<button class="px-space-md py-2 rounded-lg bg-ashoka-blue hover:bg-institutional-navy text-on-primary font-label-md text-label-md transition-all flex items-center gap-1 shadow-sm" onclick="document.getElementById('scorecardFormWrapper').scrollIntoView({behavior:'smooth'})" type="button">
+<span class="material-symbols-outlined text-[16px]">send</span>
+<span>Submit scorecard</span>
+</button>
+</div>
+</div>
+<!-- Metadata Grid Ribbon -->
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-space-base pt-space-md bg-surface-subtle p-space-base rounded-xl">
+<div>
+<span class="block font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Problem ID</span>
+<span class="font-mono-code font-bold text-text-primary text-body-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-ashoka-blue">dataset</span>
+          PRB-IND-7714
+        </span>
+</div>
+<div>
+<span class="block font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Cycle Identifier</span>
+<span class="font-mono-code text-text-primary text-body-md">CYC-2024-884</span>
+</div>
+<div>
+<span class="block font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Assigned Date</span>
+<span class="font-body-md text-text-primary">20 Oct 2024</span>
+</div>
+<div>
+<span class="block font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Statutory Deadline</span>
+<span class="font-mono-code text-body-md text-text-primary">28 Oct 2024, 23:59</span>
+</div>
+<div>
+<span class="block font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Urgency Status</span>
+<span class="inline-flex items-center gap-1 text-gov-emerald font-label-md text-label-md">
+<span class="w-2 h-2 rounded-full bg-gov-emerald animate-pulse"></span>
+          NORMAL (4 days left)
+        </span>
+</div>
+<div>
+<span class="block font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Criteria Completed</span>
+<div class="flex items-center gap-2">
+<span class="font-mono-code font-bold text-ashoka-blue text-body-md" id="headerProgressText">4 / 5</span>
+<div class="flex-1 bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-gov-emerald h-full rounded-full w-4/5 transition-all duration-300" id="headerProgressBar"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Fallback Advisory Notification -->
+<div class="w-full mb-space-base px-space-base py-space-xs rounded-xl bg-surface-container-high text-on-surface flex items-center justify-between">
+<div class="flex items-center gap-space-sm font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-ashoka-blue text-[18px]">verified</span>
+<span><strong>Problem Registry:</strong> Problem service active. (If external catalog service fails, scoring remains unblocked via local cache snapshot v4).</span>
+</div>
+<span class="font-mono-code text-[11px] text-text-muted uppercase tracking-wider">SYNC-STATUS: OK</span>
+</div>
+<!-- Central Grid: 5.2 Problem Info + 5.3 Advisory Analysis -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg mb-space-lg items-start">
+<!-- 5.2 Problem Information Panel (7 cols) -->
+<div class="xl:col-span-7 bg-surface-crisp rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md">
+<div class="flex items-start justify-between gap-space-base">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="px-2 py-0.5 rounded-full font-label-sm text-label-sm bg-status-approved-bg text-status-approved-text uppercase tracking-wider">REGISTERED</span>
+<span class="px-2 py-0.5 rounded-full font-label-sm text-label-sm bg-status-action-bg text-status-action-text uppercase tracking-wider font-bold">HIGH URGENCY</span>
+<span class="px-2 py-0.5 rounded-full font-label-sm text-label-sm bg-error-container text-on-error-container uppercase tracking-wider font-bold">CRITICAL SEVERITY</span>
+</div>
+<h1 class="font-headline-md text-headline-md text-ashoka-blue tracking-tight">
+            IoT-Enabled Micro-Aquifer Contamination Early Warning Network
+          </h1>
+</div>
+<button class="shrink-0 inline-flex items-center gap-space-xs px-space-sm py-1.5 rounded-lg bg-surface-subtle hover:bg-surface-muted text-institutional-navy font-label-md text-label-md transition-colors" onclick="alert('Viewing 3 statutory verified attachments in secure viewer modal')" type="button">
+<span class="material-symbols-outlined text-[18px]">attachment</span>
+<span>Open evidence (3)</span>
+</button>
+</div>
+<p class="text-text-secondary font-body-md text-body-md leading-relaxed">
+        Deployment of solar-powered LoRaWAN sensor probes in community open-wells and boreholes across drought-prone rural clusters to trace heavy metal and fluoride infiltration in real time. Designed to bypass high-latency central laboratory testing cycles with edge-computed alerts delivered directly to District Water Commissioners and Panchayati Raj engineers.
+      </p>
+<!-- Problem Detail Metrics Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-sm pt-space-xs">
+<div class="p-space-sm rounded-lg bg-surface-subtle">
+<span class="block font-label-sm text-label-sm text-text-muted uppercase">Originating Bucket</span>
+<span class="font-body-md text-text-primary font-semibold flex items-center gap-1.5 mt-0.5">
+<span class="material-symbols-outlined text-[16px] text-gov-emerald">account_balance</span>
+            Gram Panchayat &amp; Ground Water Board
+          </span>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-subtle">
+<span class="block font-label-sm text-label-sm text-text-muted uppercase">Access Rule</span>
+<span class="font-body-md text-text-primary font-semibold flex items-center gap-1.5 mt-0.5">
+<span class="material-symbols-outlined text-[16px] text-ashoka-blue">public</span>
+            Open to all universities and students
+          </span>
+</div>
+</div>
+<!-- Domain Tags -->
+<div>
+<span class="block font-label-sm text-label-sm text-text-muted uppercase mb-1.5">Focus Domains</span>
+<div class="flex flex-wrap gap-1.5">
+<span class="px-space-sm py-1 rounded-full bg-surface-muted text-text-primary font-label-md text-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-secondary">water_drop</span>
+            Water Resource Management
+          </span>
+<span class="px-space-sm py-1 rounded-full bg-surface-muted text-text-primary font-label-md text-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-secondary">sensors</span>
+            IoT Telemetry
+          </span>
+<span class="px-space-sm py-1 rounded-full bg-surface-muted text-text-primary font-label-md text-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-secondary">health_and_safety</span>
+            Public Health
+          </span>
+</div>
+</div>
+<!-- Expected Outcome Card -->
+<div class="p-space-sm rounded-xl bg-surface-container-low text-on-surface">
+<div class="flex items-center gap-2 mb-1">
+<span class="material-symbols-outlined text-ashoka-blue text-[18px]">flag</span>
+<span class="font-label-md text-label-md font-bold text-ashoka-blue uppercase tracking-wider">Statutory Expected Outcome</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary">
+          Field-ready telemetry hardware specification &lt; ₹4,500/unit with integrated reverse osmosis triggering protocol, automated telemetry schema conforming to BIS 10500 standards, and pilot dashboard for regional PRIs.
+        </p>
+</div>
+<!-- Visual Context Placeholder -->
+<div class="relative overflow-hidden rounded-xl h-36 bg-surface-muted flex items-center">
+<img class="w-full h-full object-cover" data-alt="A clean modern technical dashboard display showing geographic sensor locations across rural water aquifers with subtle blue telemetry readings, high reliability data metrics, and soft daylight illumination matching the administrative navy palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdhGoYI0CCzpQTHUiozGbIDO_zbK8gR123-kVCv4aVkGSklhbMzMiPyaBWtqIE2Bkus0k9ovqogovKoqlUaPgypSKFMhjIWemFGwgPlMD9dS-78dOR0IxY55Xe-ba78ARhTIReM97oFdlKW6q5sj1loIzgD-4WEVNoEKF8vWBjq0hsKkaspmqQrvqRK4Wwt44iY5REMFlT-BdRkmJjaHd_oaMKytkLrLSK0iRP5T41K4Ot4arFKjf2XA"/>
+<div class="absolute inset-0 bg-gradient-to-r from-primary-container/90 via-primary-container/50 to-transparent p-space-base flex flex-col justify-center text-on-primary">
+<span class="font-mono-code text-[11px] uppercase tracking-widest text-primary-fixed">Sensor Pilot Telemetry Preview</span>
+<span class="font-headline-sm text-headline-sm font-bold">14 District Nodes Pre-Configured</span>
+<span class="font-body-sm text-body-sm text-surface-container-high opacity-90">Validated against Central Ground Water Authority baseline reports</span>
+</div>
+</div>
+</div>
+<!-- 5.3 AI Advisory Analysis Panel (5 cols) -->
+<div class="xl:col-span-5 bg-surface-crisp rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md">
+<!-- Warning Ribbon -->
+<div class="p-space-sm rounded-lg bg-status-action-bg text-status-action-text flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-saffron-accent text-[22px] shrink-0">warning</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold uppercase tracking-wide">⚠️ ADVISORY ONLY — Not evaluator recommendation</span>
+<span class="font-body-sm text-body-sm opacity-90">Generated for preliminary context; scoring must rely strictly on statutory dossier review.</span>
+</div>
+</div>
+<!-- Provider & Meta Badge -->
+<div class="flex items-center justify-between text-text-muted font-mono-code text-body-sm pb-space-2xs bg-surface-subtle p-space-xs rounded-lg">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-gov-emerald"></span>
+<span>GovAI-Inference-Engine / PaLM-Gov-2.1</span>
+</div>
+<span>Latency: 1.42s</span>
+</div>
+<!-- Compact Metric Grid -->
+<div class="grid grid-cols-2 gap-space-xs">
+<div class="p-space-xs rounded bg-surface-subtle">
+<span class="font-label-sm text-label-sm text-text-muted uppercase block">Category</span>
+<span class="font-body-md text-body-md text-text-primary font-semibold">Hydro-Informatics</span>
+</div>
+<div class="p-space-xs rounded bg-surface-subtle">
+<span class="font-label-sm text-label-sm text-text-muted uppercase block">Domain</span>
+<span class="font-body-md text-body-md text-text-primary font-semibold">Sensor Networks</span>
+</div>
+<div class="p-space-xs rounded bg-surface-subtle">
+<span class="font-label-sm text-label-sm text-text-muted uppercase block">Complexity</span>
+<span class="font-label-md text-label-md text-status-action-text font-bold">MODERATE-HIGH</span>
+</div>
+<div class="p-space-xs rounded bg-surface-subtle">
+<span class="font-label-sm text-label-sm text-text-muted uppercase block">Potential Scale</span>
+<span class="font-body-md text-body-md text-text-primary font-semibold">Pan-State PRI</span>
+</div>
+<div class="p-space-xs rounded bg-surface-subtle">
+<span class="font-label-sm text-label-sm text-text-muted uppercase block">Tech Relevance</span>
+<span class="font-label-md text-label-md text-gov-emerald font-bold">HIGH (0.89)</span>
+</div>
+<div class="p-space-xs rounded bg-surface-subtle">
+<span class="font-label-sm text-label-sm text-text-muted uppercase block">Social Impact</span>
+<span class="font-label-md text-label-md text-status-review-text font-bold">TRANSFORMATIVE</span>
+</div>
+</div>
+<!-- AI Inference Summary -->
+<div class="p-space-sm rounded-lg bg-surface-muted flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">AI Executive Synthesis</span>
+<p class="font-body-md text-body-md text-text-secondary leading-normal">
+          Advisory evaluation indicates high deployment feasibility utilizing existing village boreholes. The proposal satisfies core rural telemetry benchmarks, though scientific calibration under seasonal monsoonal silt shifts remains an empirical unknown requiring close laboratory assessment.
+        </p>
+</div>
+<!-- Impact Areas Chips -->
+<div>
+<span class="block font-label-sm text-label-sm text-text-muted uppercase mb-1">Target Impact Areas</span>
+<div class="flex flex-wrap gap-1.5">
+<span class="px-2 py-0.5 rounded bg-status-approved-bg text-status-approved-text font-label-sm text-label-sm font-bold">Potable Water Safety</span>
+<span class="px-2 py-0.5 rounded bg-status-submitted-bg text-status-submitted-text font-label-sm text-label-sm font-bold">Early Outbreak Prevention</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-ashoka-blue font-label-sm text-label-sm font-bold">Groundwater Depletion Tracking</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-xs font-mono-code text-[11px] text-text-muted">
+<span>STATUS: SUCCESS</span>
+<span>INSPECTED: 20 Oct 2024 10:14:02 IST</span>
+</div>
+</div>
+</div>
+<!-- 5.6 Comprehensive Scorecard Form Section -->
+<section class="w-full bg-surface-crisp rounded-xl p-space-lg shadow-sm mb-space-2xl" id="scorecardFormWrapper">
+<!-- Header of Scorecard with Utility Controls -->
+<div class="flex flex-wrap items-center justify-between gap-space-md pb-space-base">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="material-symbols-outlined text-ashoka-blue text-[24px]">fact_check</span>
+<h2 class="font-headline-lg text-headline-lg text-ashoka-blue font-bold">Statutory Scorecard Evaluation</h2>
+</div>
+<p class="font-body-md text-body-md text-text-secondary">
+          Enter validated marks per objective rubric criteria. <em>Note: Backend does not persist drafts; submit once all marks are finalized.</em>
+</p>
+</div>
+<!-- Development / Helper Actions -->
+<div class="flex flex-wrap items-center gap-space-xs">
+<button class="px-space-sm py-1.5 rounded-lg bg-surface-muted hover:bg-surface-container text-text-primary font-label-md text-label-md transition-colors flex items-center gap-1" onclick="loadStatutoryCriteria()" type="button">
+<span class="material-symbols-outlined text-[16px]">refresh</span>
+<span>Load criteria</span>
+</button>
+<button class="px-space-sm py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-dim text-ashoka-blue font-label-md text-label-md transition-colors flex items-center gap-1" onclick="fillTestScores()" title="For Development Verification Only" type="button">
+<span class="material-symbols-outlined text-[16px]">bolt</span>
+<span>Fill test scores <span class="text-[10px] uppercase font-mono-code bg-saffron-accent text-on-primary px-1 rounded ml-1">DEV ONLY</span></span>
+</button>
+<button class="px-space-sm py-1.5 rounded-lg bg-surface-muted hover:bg-error-container hover:text-error text-text-secondary font-label-md text-label-md transition-colors flex items-center gap-1" onclick="resetAllScores()" type="button">
+<span class="material-symbols-outlined text-[16px]">restart_alt</span>
+<span>Reset scores</span>
+</button>
+</div>
+</div>
+<!-- Live Running Score Summary Card -->
+<div class="p-space-base rounded-xl bg-surface-subtle mb-space-lg flex flex-wrap items-center justify-between gap-space-base">
+<div class="flex items-center gap-space-lg">
+<div>
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider block">Aggregate Score</span>
+<div class="flex items-baseline gap-1">
+<span class="font-headline-xl text-headline-xl text-ashoka-blue font-bold" id="currentScoreTotal">78</span>
+<span class="text-text-muted font-headline-md text-headline-md">/ 100</span>
+</div>
+</div>
+<div class="h-10 w-px bg-surface-container"></div>
+<div>
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider block">Assessment Band</span>
+<span class="px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-status-approved-bg text-status-approved-text font-bold uppercase tracking-wide" id="scoreBandBadge">COMPLIANT / MERIT</span>
+</div>
+</div>
+<!-- Quick progress breakdown chart -->
+<div class="flex items-center gap-space-md">
+<svg class="w-16 h-16 transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-surface-container" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3.5"></path>
+<path class="text-gov-emerald transition-all duration-500" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" id="scoreSvgArc" stroke="currentColor" stroke-dasharray="78, 100" stroke-linecap="round" stroke-width="3.5"></path>
+</svg>
+<div class="flex flex-col text-body-sm font-body-sm text-text-muted">
+<span>Passing mark: <strong>60 / 100</strong></span>
+<span class="text-gov-emerald font-semibold">Ready for statutory submission</span>
+</div>
+</div>
+</div>
+<!-- Criteria Dynamic Stack -->
+<div class="flex flex-col gap-space-lg mb-space-xl">
+<!-- Criterion 1: Technical Validity -->
+<div class="p-space-base rounded-xl bg-surface-subtle transition-all">
+<div class="flex flex-wrap items-start justify-between gap-space-sm mb-space-sm">
+<div class="flex-1 min-w-[280px]">
+<div class="flex items-center gap-2">
+<span class="w-6 h-6 rounded-full bg-ashoka-blue text-on-primary font-mono-code font-bold text-[12px] flex items-center justify-center">1</span>
+<h3 class="font-headline-sm text-headline-sm text-ashoka-blue font-bold">Technical Validity</h3>
+<span class="text-saffron-accent font-bold" title="Required">*</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary mt-1">
+              Rigour of architectural schematics, signal-to-noise sensor resilience, and transmission protocol conformance against remote Indian terrain conditions.
+            </p>
+</div>
+<div class="flex items-center gap-space-sm bg-surface-crisp p-space-xs rounded-lg shadow-sm">
+<label class="font-label-sm text-label-sm text-text-muted uppercase" for="score_1">Score (0 - 25):</label>
+<input class="w-20 px-2 py-1 bg-surface-subtle rounded font-mono-code font-bold text-headline-sm text-ashoka-blue text-center focus:outline-none focus:bg-surface-container" id="score_1" max="25" min="0" oninput="calculateTotalScore()" type="number" value="21"/>
+<span class="font-label-md text-label-md text-text-muted">/ 25</span>
+</div>
+</div>
+<div class="mt-space-xs">
+<label class="block font-label-sm text-label-sm text-text-muted uppercase mb-1" for="comment_1">Criterion Specific Justification (Optional, max 4,000 chars)</label>
+<textarea class="w-full p-space-xs rounded bg-surface-crisp text-body-sm font-body-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-ashoka-blue" id="comment_1" maxlength="4000" placeholder="Provide evidence-based rationale for allocated mark..." rows="2">Telemetry architecture validates well against NB-IoT and LoRa standards. Field circuit surge suppression requires minor enhancement.</textarea>
+</div>
+</div>
+<!-- Criterion 2: Research Potential -->
+<div class="p-space-base rounded-xl bg-surface-subtle transition-all">
+<div class="flex flex-wrap items-start justify-between gap-space-sm mb-space-sm">
+<div class="flex-1 min-w-[280px]">
+<div class="flex items-center gap-2">
+<span class="w-6 h-6 rounded-full bg-ashoka-blue text-on-primary font-mono-code font-bold text-[12px] flex items-center justify-center">2</span>
+<h3 class="font-headline-sm text-headline-sm text-ashoka-blue font-bold">Research Potential</h3>
+<span class="text-saffron-accent font-bold" title="Required">*</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary mt-1">
+              Contribution to academic literature, baseline data collection on aquifer salinization, and potential for multi-university collaborative research.
+            </p>
+</div>
+<div class="flex items-center gap-space-sm bg-surface-crisp p-space-xs rounded-lg shadow-sm">
+<label class="font-label-sm text-label-sm text-text-muted uppercase" for="score_2">Score (0 - 20):</label>
+<input class="w-20 px-2 py-1 bg-surface-subtle rounded font-mono-code font-bold text-headline-sm text-ashoka-blue text-center focus:outline-none focus:bg-surface-container" id="score_2" max="20" min="0" oninput="calculateTotalScore()" type="number" value="16"/>
+<span class="font-label-md text-label-md text-text-muted">/ 20</span>
+</div>
+</div>
+<div class="mt-space-xs">
+<label class="block font-label-sm text-label-sm text-text-muted uppercase mb-1" for="comment_2">Criterion Specific Justification (Optional, max 4,000 chars)</label>
+<textarea class="w-full p-space-xs rounded bg-surface-crisp text-body-sm font-body-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-ashoka-blue" id="comment_2" maxlength="4000" placeholder="Provide evidence-based rationale for allocated mark..." rows="2">High publication potential in environmental sensing journals.</textarea>
+</div>
+</div>
+<!-- Criterion 3: Innovation -->
+<div class="p-space-base rounded-xl bg-surface-subtle transition-all">
+<div class="flex flex-wrap items-start justify-between gap-space-sm mb-space-sm">
+<div class="flex-1 min-w-[280px]">
+<div class="flex items-center gap-2">
+<span class="w-6 h-6 rounded-full bg-ashoka-blue text-on-primary font-mono-code font-bold text-[12px] flex items-center justify-center">3</span>
+<h3 class="font-headline-sm text-headline-sm text-ashoka-blue font-bold">Innovation</h3>
+<span class="text-saffron-accent font-bold" title="Required">*</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary mt-1">
+              Novelty of the spectroscopic approach in ultra-low-power edge nodes relative to existing commercial water testing kits.
+            </p>
+</div>
+<div class="flex items-center gap-space-sm bg-surface-crisp p-space-xs rounded-lg shadow-sm">
+<label class="font-label-sm text-label-sm text-text-muted uppercase" for="score_3">Score (0 - 20):</label>
+<input class="w-20 px-2 py-1 bg-surface-subtle rounded font-mono-code font-bold text-headline-sm text-ashoka-blue text-center focus:outline-none focus:bg-surface-container" id="score_3" max="20" min="0" oninput="calculateTotalScore()" type="number" value="18"/>
+<span class="font-label-md text-label-md text-text-muted">/ 20</span>
+</div>
+</div>
+<div class="mt-space-xs">
+<label class="block font-label-sm text-label-sm text-text-muted uppercase mb-1" for="comment_3">Criterion Specific Justification (Optional, max 4,000 chars)</label>
+<textarea class="w-full p-space-xs rounded bg-surface-crisp text-body-sm font-body-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-ashoka-blue" id="comment_3" maxlength="4000" placeholder="Provide evidence-based rationale for allocated mark..." rows="2">Proprietary optical chamber offers 10x cost reduction compared to conventional laboratory spectrophotometers.</textarea>
+</div>
+</div>
+<!-- Criterion 4: Scientific Feasibility -->
+<div class="p-space-base rounded-xl bg-surface-subtle transition-all">
+<div class="flex flex-wrap items-start justify-between gap-space-sm mb-space-sm">
+<div class="flex-1 min-w-[280px]">
+<div class="flex items-center gap-2">
+<span class="w-6 h-6 rounded-full bg-ashoka-blue text-on-primary font-mono-code font-bold text-[12px] flex items-center justify-center">4</span>
+<h3 class="font-headline-sm text-headline-sm text-ashoka-blue font-bold">Scientific Feasibility</h3>
+<span class="text-saffron-accent font-bold" title="Required">*</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary mt-1">
+              Realistic material lifecycle under continuous submersion, biofouling mitigation, and chemical degradation profiles.
+            </p>
+</div>
+<div class="flex items-center gap-space-sm bg-surface-crisp p-space-xs rounded-lg shadow-sm">
+<label class="font-label-sm text-label-sm text-text-muted uppercase" for="score_4">Score (0 - 20):</label>
+<input class="w-20 px-2 py-1 bg-surface-subtle rounded font-mono-code font-bold text-headline-sm text-ashoka-blue text-center focus:outline-none focus:bg-surface-container" id="score_4" max="20" min="0" oninput="calculateTotalScore()" type="number" value="12"/>
+<span class="font-label-md text-label-md text-text-muted">/ 20</span>
+</div>
+</div>
+<div class="mt-space-xs">
+<label class="block font-label-sm text-label-sm text-text-muted uppercase mb-1" for="comment_4">Criterion Specific Justification (Optional, max 4,000 chars)</label>
+<textarea class="w-full p-space-xs rounded bg-surface-crisp text-body-sm font-body-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-ashoka-blue" id="comment_4" maxlength="4000" placeholder="Provide evidence-based rationale for allocated mark..." rows="2">Membrane fouling in hard-water zones requires periodic acid-flush protocols not fully elaborated.</textarea>
+</div>
+</div>
+<!-- Criterion 5: Knowledge Gap -->
+<div class="p-space-base rounded-xl bg-surface-subtle transition-all">
+<div class="flex flex-wrap items-start justify-between gap-space-sm mb-space-sm">
+<div class="flex-1 min-w-[280px]">
+<div class="flex items-center gap-2">
+<span class="w-6 h-6 rounded-full bg-ashoka-blue text-on-primary font-mono-code font-bold text-[12px] flex items-center justify-center">5</span>
+<h3 class="font-headline-sm text-headline-sm text-ashoka-blue font-bold">Knowledge Gap Remediation</h3>
+<span class="text-saffron-accent font-bold" title="Required">*</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary mt-1">
+              Extent to which the solution closes the missing hydrological map data between village-level usage and state reservoirs.
+            </p>
+</div>
+<div class="flex items-center gap-space-sm bg-surface-crisp p-space-xs rounded-lg shadow-sm">
+<label class="font-label-sm text-label-sm text-text-muted uppercase" for="score_5">Score (0 - 15):</label>
+<input class="w-20 px-2 py-1 bg-surface-subtle rounded font-mono-code font-bold text-headline-sm text-ashoka-blue text-center focus:outline-none focus:bg-surface-container" id="score_5" max="15" min="0" oninput="calculateTotalScore()" type="number" value="11"/>
+<span class="font-label-md text-label-md text-text-muted">/ 15</span>
+</div>
+</div>
+<div class="mt-space-xs">
+<label class="block font-label-sm text-label-sm text-text-muted uppercase mb-1" for="comment_5">Criterion Specific Justification (Optional, max 4,000 chars)</label>
+<textarea class="w-full p-space-xs rounded bg-surface-crisp text-body-sm font-body-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-ashoka-blue" id="comment_5" maxlength="4000" placeholder="Provide evidence-based rationale for allocated mark..." rows="2">Addresses village-level telemetry void highlighted in the Central Water Commission 2023 briefing.</textarea>
+</div>
+</div>
+</div>
+<!-- Overall Synthesis & Recommendation -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-lg mb-space-xl">
+<div class="flex flex-col">
+<div class="flex items-center justify-between mb-1">
+<label class="font-label-md text-label-md text-ashoka-blue font-bold uppercase" for="overallFeedback">
+            Overall Synthesis Feedback <span class="text-saffron-accent">*</span>
+</label>
+<span class="font-mono-code text-[11px] text-text-muted">Max 4,000 characters</span>
+</div>
+<textarea class="w-full p-space-sm rounded-xl bg-surface-subtle text-text-primary font-body-md text-body-md focus:bg-surface-crisp focus:outline-none focus:ring-2 focus:ring-ashoka-blue" id="overallFeedback" maxlength="4000" rows="5">The proposal provides a well-rounded and viable edge computing intervention for arsenic and nitrate tracing. While bio-fouling durability over continuous 12-month submersion cycles remains a minor hurdle, the low bill-of-materials and open data model render this an exemplary candidate for pilot state financing.</textarea>
+</div>
+<div class="flex flex-col justify-between">
+<div>
+<label class="block font-label-md text-label-md text-ashoka-blue font-bold uppercase mb-1" for="statutoryRecommendation">
+            Evaluator Recommendation Directive <span class="text-saffron-accent">*</span>
+</label>
+<input class="w-full px-space-base py-3 rounded-xl bg-surface-subtle text-text-primary font-body-md text-body-md focus:bg-surface-crisp focus:outline-none focus:ring-2 focus:ring-ashoka-blue mb-space-base" id="statutoryRecommendation" type="text" value="Prioritize for pilot deployment in Phase-1 drought districts"/>
+<div class="p-space-sm rounded-xl bg-surface-container-high text-on-surface flex items-start gap-2">
+<span class="material-symbols-outlined text-ashoka-blue text-[20px] shrink-0">info</span>
+<span class="font-body-sm text-body-sm">
+              Statutory finality: Once submitted, scorecard is cryptographically anchored to your verified token (<strong class="font-mono-code">EVAL-7729</strong>) and locked from further edits.
+            </span>
+</div>
+</div>
+<!-- Submission Buttons -->
+<div class="flex flex-wrap items-center justify-end gap-space-sm pt-space-base">
+<button class="px-space-md py-2.5 rounded-lg bg-surface-muted hover:bg-surface-container text-text-secondary font-label-md text-label-md transition-colors" onclick="confirmReset()" type="button">
+            Cancel
+          </button>
+<button class="px-space-xl py-2.5 rounded-lg bg-ashoka-blue hover:bg-institutional-navy text-on-primary font-label-md text-label-md font-bold shadow-md transition-all flex items-center gap-2" onclick="submitFinalScorecard()" type="button">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+<span>Submit Scorecard</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- 5.4 ACCEPT ASSIGNMENT MODAL -->
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center bg-inverse-surface/60 backdrop-blur-xs p-space-base" id="acceptModal">
+<div class="w-full max-w-lg bg-surface-crisp rounded-xl p-space-lg shadow-xl flex flex-col gap-space-md animate-in fade-in zoom-in-95 duration-150">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-status-approved-bg text-gov-emerald flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">task_alt</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-ashoka-blue font-bold">Accept Assignment ASN-9041-A2</h3>
+</div>
+<button class="text-text-muted hover:text-text-primary" onclick="document.getElementById('acceptModal').classList.add('hidden')" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<p class="font-body-md text-body-md text-text-secondary">
+        By accepting this assignment, you acknowledge statutory competence to evaluate Problem <strong>PRB-IND-7714</strong> and commit to delivering the final scorecard before <strong>28 Oct 2024, 23:59 IST</strong>.
+      </p>
+<div class="p-space-sm rounded-lg bg-surface-subtle font-mono-code text-[12px] text-text-muted">
+<div>EVALUATOR_SIGNATURE: Dr. Aris Thorne (EVAL-7729)</div>
+<div>IP_ORIGIN: 103.21.58.12 (National Gateway Node)</div>
+</div>
+<div class="flex items-center justify-end gap-space-xs pt-space-xs">
+<button class="px-space-md py-2 rounded-lg bg-surface-muted hover:bg-surface-container text-text-secondary font-label-md text-label-md" onclick="document.getElementById('acceptModal').classList.add('hidden')" type="button">
+          Cancel
+        </button>
+<button class="px-space-lg py-2 rounded-lg bg-gov-emerald hover:bg-emerald-700 text-on-primary font-label-md text-label-md font-bold shadow-sm" onclick="acceptAssignmentConfirm()" type="button">
+          Confirm Acceptance
+        </button>
+</div>
+</div>
+</div>
+<!-- 5.5 DECLINE ASSIGNMENT MODAL -->
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center bg-inverse-surface/60 backdrop-blur-xs p-space-base" id="declineModal">
+<div class="w-full max-w-lg bg-surface-crisp rounded-xl p-space-lg shadow-xl flex flex-col gap-space-md animate-in fade-in zoom-in-95 duration-150">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-status-action-bg text-status-action-text flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">report_problem</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-ashoka-blue font-bold">Decline Assignment ASN-9041-A2</h3>
+</div>
+<button class="text-text-muted hover:text-text-primary" onclick="document.getElementById('declineModal').classList.add('hidden')" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<p class="font-body-md text-body-md text-text-secondary">
+        Declining reallocates this dossier back to the central ministry routing desk. Please declare the statutory reason for record compliance:
+      </p>
+<form class="flex flex-col gap-space-xs" id="declineForm">
+<label class="flex items-center gap-space-sm p-space-xs rounded bg-surface-subtle hover:bg-surface-muted cursor-pointer">
+<input checked="" class="w-4 h-4 text-ashoka-blue" name="declineReason" type="radio" value="conflict"/>
+<span class="font-body-md text-body-md text-text-primary">Conflict of interest (Institutional/Commercial affiliation)</span>
+</label>
+<label class="flex items-center gap-space-sm p-space-xs rounded bg-surface-subtle hover:bg-surface-muted cursor-pointer">
+<input class="w-4 h-4 text-ashoka-blue" name="declineReason" type="radio" value="expertise"/>
+<span class="font-body-md text-body-md text-text-primary">Outside domain expertise (Sub-discipline variance)</span>
+</label>
+<label class="flex items-center gap-space-sm p-space-xs rounded bg-surface-subtle hover:bg-surface-muted cursor-pointer">
+<input class="w-4 h-4 text-ashoka-blue" name="declineReason" type="radio" value="workload"/>
+<span class="font-body-md text-body-md text-text-primary">Workload issue / Prior statutory commission commitments</span>
+</label>
+<label class="flex items-center gap-space-sm p-space-xs rounded bg-surface-subtle hover:bg-surface-muted cursor-pointer">
+<input class="w-4 h-4 text-ashoka-blue" name="declineReason" type="radio" value="other"/>
+<span class="font-body-md text-body-md text-text-primary">Other statutory extenuating circumstances</span>
+</label>
+<textarea class="w-full mt-2 p-space-xs rounded bg-surface-subtle text-body-sm font-body-sm text-text-primary focus:outline-none focus:bg-surface-crisp focus:ring-1 focus:ring-ashoka-blue" id="declineRemarks" placeholder="Mandatory remarks for audit trail logs..." rows="2"></textarea>
+</form>
+<div class="flex items-center justify-end gap-space-xs pt-space-xs">
+<button class="px-space-md py-2 rounded-lg bg-surface-muted hover:bg-surface-container text-text-secondary font-label-md text-label-md" onclick="document.getElementById('declineModal').classList.add('hidden')" type="button">
+          Cancel
+        </button>
+<button class="px-space-lg py-2 rounded-lg bg-error hover:bg-red-800 text-on-error font-label-md text-label-md font-bold shadow-sm" onclick="declineAssignmentConfirm()" type="button">
+          Confirm Decline
+        </button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  function calculateTotalScore() {
+    const s1 = parseInt(document.getElementById('score_1').value) || 0;
+    const s2 = parseInt(document.getElementById('score_2').value) || 0;
+    const s3 = parseInt(document.getElementById('score_3').value) || 0;
+    const s4 = parseInt(document.getElementById('score_4').value) || 0;
+    const s5 = parseInt(document.getElementById('score_5').value) || 0;
+    
+    const total = Math.min(100, Math.max(0, s1 + s2 + s3 + s4 + s5));
+    document.getElementById('currentScoreTotal').innerText = total;
+
+    // Update SVG stroke-dasharray
+    const arc = document.getElementById('scoreSvgArc');
+    if (arc) {
+      arc.setAttribute('stroke-dasharray', `${total}, 100`);
+      if (total >= 70) {
+        arc.setAttribute('class', 'text-gov-emerald transition-all duration-500');
+      } else if (total >= 50) {
+        arc.setAttribute('class', 'text-secondary transition-all duration-500');
+      } else {
+        arc.setAttribute('class', 'text-saffron-accent transition-all duration-500');
+      }
+    }
+
+    // Badge update
+    const badge = document.getElementById('scoreBandBadge');
+    if (badge) {
+      if (total >= 75) {
+        badge.innerText = 'HIGH MERIT / STATUTORY PASS';
+        badge.className = 'px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-status-approved-bg text-status-approved-text font-bold uppercase tracking-wide';
+      } else if (total >= 60) {
+        badge.innerText = 'COMPLIANT / ACCEPTABLE';
+        badge.className = 'px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-status-submitted-bg text-status-submitted-text font-bold uppercase tracking-wide';
+      } else {
+        badge.innerText = 'NON-COMPLIANT / BELOW THRESHOLD';
+        badge.className = 'px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-status-action-bg text-status-action-text font-bold uppercase tracking-wide';
+      }
+    }
+  }
+
+  function fillTestScores() {
+    document.getElementById('score_1').value = 24;
+    document.getElementById('score_2').value = 19;
+    document.getElementById('score_3').value = 18;
+    document.getElementById('score_4').value = 17;
+    document.getElementById('score_5').value = 14;
+    document.getElementById('headerProgressText').innerText = '5 / 5';
+    document.getElementById('headerProgressBar').style.width = '100%';
+    calculateTotalScore();
+  }
+
+  function resetAllScores() {
+    ['score_1', 'score_2', 'score_3', 'score_4', 'score_5'].forEach(id => {
+      document.getElementById(id).value = 0;
+    });
+    document.getElementById('headerProgressText').innerText = '0 / 5';
+    document.getElementById('headerProgressBar').style.width = '0%';
+    calculateTotalScore();
+  }
+
+  function loadStatutoryCriteria() {
+    alert('Statutory criteria v2.4 reloaded from Central Evaluation Schema.');
+  }
+
+  function confirmReset() {
+    if (confirm('Discard changes and return to queue? Any unsaved marks will be lost.')) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  function submitFinalScorecard() {
+    const total = document.getElementById('currentScoreTotal').innerText;
+    alert(`Scorecard successfully anchored and submitted! Aggregate Score: ${total}/100. Audit log updated.`);
+  }
+
+  function acceptAssignmentConfirm() {
+    document.getElementById('acceptModal').classList.add('hidden');
+    alert('Assignment ASN-9041-A2 has been marked as ACCEPTED by Dr. Aris Thorne.');
+  }
+
+  function declineAssignmentConfirm() {
+    const remarks = document.getElementById('declineRemarks').value;
+    if (!remarks.trim()) {
+      alert('Please provide statutory audit remarks before declining.');
+      return;
+    }
+    document.getElementById('declineModal').classList.add('hidden');
+    alert('Assignment declined. Re-routing dossier to central coordination committee.');
+  }
+</script></main></div></div></body></html>

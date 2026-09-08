@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-error-container": "#93000a", "on-tertiary-fixed": "#002114", "status-submitted-bg": "#EFF6FF", "status-action-text": "#9A3412", "secondary": "#4059aa", "outline-variant": "#c4c6ce", "surface-container-lowest": "#ffffff", "status-review-border": "#DDD6FE", "tertiary-fixed-dim": "#68dba9", "status-action-border": "#FED7AA", "surface": "#f8f9ff", "text-muted": "#64748B", "border-hairline": "#E2E8F0", "gov-emerald": "#059669", "secondary-container": "#8fa7fe", "background": "#f8f9ff", "on-primary": "#ffffff", "error": "#ba1a1a", "saffron-accent": "#E05A10", "outline": "#74777e", "secondary-fixed-dim": "#b6c4ff", "status-approved-bg": "#ECFDF5", "status-review-text": "#5B21B6", "surface-tint": "#49607e", "tertiary-fixed": "#85f8c4", "tertiary-container": "#002a1b", "ashoka-blue": "#0A2540", "surface-bright": "#f8f9ff", "secondary-fixed": "#dce1ff", "on-secondary-container": "#1d3989", "on-tertiary-fixed-variant": "#005137", "surface-container-high": "#dce9ff", "inverse-surface": "#213145", "status-approved-border": "#A7F3D0", "on-surface": "#0b1c30", "on-background": "#0b1c30", "on-surface-variant": "#43474d", "status-review-bg": "#F5F3FF", "status-submitted-border": "#BFDBFE", "on-secondary-fixed-variant": "#264191", "text-primary": "#0F172A", "surface-container": "#e5eeff", "status-approved-text": "#065F46", "on-secondary": "#ffffff", "on-primary-fixed-variant": "#314865", "primary-container": "#0a2540", "surface-crisp": "#FFFFFF", "border-strong": "#CBD5E1", "primary-fixed": "#d2e4ff", "inverse-primary": "#b0c8eb", "on-tertiary": "#ffffff", "primary": "#000f22", "text-secondary": "#475569", "on-secondary-fixed": "#00164e", "inverse-on-surface": "#eaf1ff", "status-submitted-text": "#1E40AF", "surface-container-low": "#eff4ff", "surface-dim": "#cbdbf5", "primary-fixed-dim": "#b0c8eb", "surface-muted": "#F1F5F9", "surface-container-highest": "#d3e4fe", "on-primary-container": "#768dad", "institutional-navy": "#1E3A8A", "on-primary-fixed": "#001c37", "surface-variant": "#d3e4fe", "on-error": "#ffffff", "error-container": "#ffdad6", "on-tertiary-container": "#1a9e70", "status-action-bg": "#FFF7ED", "surface-subtle": "#F8FAFC", "tertiary": "#001209" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "space-xl": "2rem", "space-base": "1rem", "form-max-width": "42rem", "space-md": "0.75rem", "space-lg": "1.5rem", "space-sm": "0.5rem", "space-xs": "0.25rem", "space-2xs": "0.125rem", "gutter-mobile": "1rem", "gutter-desktop": "1.5rem", "space-3xl": "4rem", "space-2xl": "3rem", "container-max-width": "72rem" }, "fontFamily": { "body-md": ["Noto Sans"], "headline-xl": ["Noto Sans"], "body-lg": ["Noto Sans"], "headline-sm": ["Noto Sans"], "label-sm": ["Noto Sans"], "body-sm": ["Noto Sans"], "headline-md": ["Noto Sans"], "headline-lg": ["Noto Sans"], "label-lg": ["Noto Sans"], "label-md": ["Noto Sans"], "headline-xl-mobile": ["Noto Sans"], "mono-code": ["JetBrains Mono"] }, "fontSize": { "body-md": ["14px", { "lineHeight": "22px", "letterSpacing": "0em", "fontWeight": "400" }], "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "body-lg": ["16px", { "lineHeight": "26px", "letterSpacing": "0em", "fontWeight": "400" }], "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" }], "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "700" }], "body-sm": ["12px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "400" }], "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "700" }], "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }], "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }], "headline-xl-mobile": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700" }], "mono-code": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500" }] } } } };</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased min-h-screen"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-crisp z-50 flex flex-col justify-between border-r border-border-hairline"><div class="flex flex-col"><div class="h-16 px-space-base flex items-center gap-space-sm border-b border-border-hairline bg-surface-subtle"><span class="material-symbols-outlined text-ashoka-blue text-[20px]">verified_user</span><div class="flex flex-col"><span class="font-label-md text-label-md text-ashoka-blue uppercase tracking-wider">Evaluation Desk</span><span class="font-mono-code text-body-sm text-text-muted">ID: EVAL-7729</span></div></div><div class="p-space-base"><div class="font-label-sm text-label-sm text-text-muted uppercase mb-space-xs tracking-wider">Role Scope</div><div class="flex items-center justify-between p-space-xs px-space-sm bg-status-approved-bg rounded border border-status-approved-border"><div class="flex items-center gap-space-xs"><span class="w-2 h-2 rounded-full bg-gov-emerald"></span><span class="font-label-md text-label-md text-status-approved-text">EVALUATOR</span></div><span class="material-symbols-outlined text-status-approved-text text-[16px]">lock</span></div></div><nav class="flex flex-col gap-space-2xs px-space-sm" data-active-classes="bg-surface-muted text-ashoka-blue font-semibold border-l-2 border-ashoka-blue"><a aria-current="page" class="flex items-center gap-space-sm px-space-sm py-space-xs transition-colors bg-surface-muted text-ashoka-blue font-semibold border-l-2 border-ashoka-blue" data-path="evaluation-dossiers" href="#"><span class="material-symbols-outlined text-[18px]">assignment</span>Assigned Dossiers</a><a class="flex items-center gap-space-sm px-space-sm py-space-xs text-text-secondary hover:bg-surface-subtle hover:text-on-surface transition-colors font-label-lg text-label-lg" data-path="statutory-kyc-queue" href="#"><span class="material-symbols-outlined text-[18px]">badge</span>Statutory Identity</a><a class="flex items-center gap-space-sm px-space-sm py-space-xs text-text-secondary hover:bg-surface-subtle hover:text-on-surface transition-colors font-label-lg text-label-lg" data-path="scoring-matrix" href="#"><span class="material-symbols-outlined text-[18px]">fact_check</span>Scoring Matrix</a><a class="flex items-center gap-space-sm px-space-sm py-space-xs text-text-secondary hover:bg-surface-subtle hover:text-on-surface transition-colors font-label-lg text-label-lg" data-path="deficiency-notices" href="#"><span class="material-symbols-outlined text-[18px]">notification_important</span>Deficiency Notices</a><a class="flex items-center gap-space-sm px-space-sm py-space-xs text-text-secondary hover:bg-surface-subtle hover:text-on-surface transition-colors font-label-lg text-label-lg" data-path="audit-trail-timeline" href="#"><span class="material-symbols-outlined text-[18px]">history_toggle_off</span>Audit Timeline</a></nav></div><div class="p-space-base border-t border-border-hairline bg-surface-subtle flex flex-col gap-space-xs"><div class="flex items-center justify-between text-text-muted font-label-sm text-label-sm"><span class="font-mono-code">NODE-IN-BLR-01</span><span class="text-gov-emerald flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-gov-emerald"></span>SECURE</span></div><div class="font-body-sm text-body-sm text-text-muted">SIH26043 Statutory Compliance Engine</div></div></aside><div class="pl-64 flex flex-col min-h-screen"><header class="fixed top-0 left-64 right-0 h-16 bg-surface-crisp border-b border-border-hairline z-40 px-space-lg flex items-center justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex items-center gap-space-md"><img alt="Brand logo. - Primary color: #0a2540 - Font: notoSans - Mode: light - Roundness: rounded-sm" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XI9nSKj4rsNvj5snYwu2dgdHUz78RhkH0lBCnRaOqOhtGnUNsQysd2e-ypOuKlSsYysXy2FIHwfOUDz-A2woFf2EtzFja2lz78uLpqLmnkym8ETOpXDZgnvhksjEwmkaYB2i8oVLyAs2dWDy8YybtL3lXV3EqS1D7-QblRnnArH1wpH6sUx1rzDl42N69jr-q2OnNXQAez7NlBGgcbxjLoGVDeFY8sCARpMLHHdQFKMxwE4E19VnntFgX0"/><div class="flex items-center gap-space-sm"><span class="font-headline-sm text-headline-sm text-ashoka-blue tracking-tight">SIH26043 Evaluation Service</span><span class="font-mono-code text-[11px] px-space-xs py-0.5 rounded bg-surface-muted text-text-secondary border border-border-hairline uppercase tracking-wider">STAGING // v2.4-PROD-EVAL</span></div></div><div class="flex items-center gap-space-md"><nav class="hidden xl:flex items-center bg-surface-muted p-space-2xs rounded border border-border-hairline" data-active-classes="bg-ashoka-blue text-on-primary font-bold"><a class="px-space-sm py-1 rounded text-text-secondary hover:text-ashoka-blue font-label-md text-label-md transition-colors" data-path="submitter-workspace" href="#">Submitter</a><a class="px-space-sm py-1 rounded text-text-secondary hover:text-ashoka-blue font-label-md text-label-md transition-colors" data-path="reviewer-workspace" href="#">Reviewer</a><a aria-current="page" class="px-space-sm py-1 rounded transition-colors bg-ashoka-blue text-on-primary font-bold" data-path="evaluation-dossiers" href="#">Evaluator</a><a class="px-space-sm py-1 rounded text-text-secondary hover:text-ashoka-blue font-label-md text-label-md transition-colors" data-path="admin-control" href="#">Admin</a></nav><div class="h-6 w-px bg-border-hairline"></div><div class="flex items-center gap-space-sm"><div class="text-right hidden sm:flex flex-col"><span class="font-label-md text-label-md text-text-primary">Dr. Aris Thorne</span><span class="font-mono-code text-[11px] text-text-muted">EVAL-7729</span></div><span class="px-2 py-0.5 rounded-full font-label-sm text-label-sm bg-status-review-bg text-status-review-text border border-status-review-border uppercase tracking-wider">EVALUATOR</span><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><button class="p-space-xs rounded text-text-muted hover:text-error hover:bg-error-container/20 transition-colors ml-space-2xs" title="Logout" type="button"><span class="material-symbols-outlined text-[20px]">logout</span></button></div></div></header><div class="pt-16 flex-1 flex flex-col bg-surface"><div class="w-full px-space-lg pt-space-base flex flex-col gap-space-xs"><div class="flex items-center justify-between px-space-base py-space-xs bg-status-approved-bg border border-status-approved-border rounded text-status-approved-text font-body-sm text-body-sm" id="global-success-banner"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-gov-emerald text-[18px]">check_circle</span><span>Evaluation session active: Signed in via Statutory National ID Gateway (UIDAI Verified Session). All audits logged.</span></div><button class="text-status-approved-text hover:text-text-primary" onclick="document.getElementById('global-success-banner').style.display='none'" type="button"><span class="material-symbols-outlined text-[16px]">close</span></button></div><div class="hidden items-center justify-between px-space-base py-space-xs bg-status-action-bg border border-status-action-border rounded text-status-action-text font-body-sm text-body-sm" id="global-error-banner"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-saffron-accent text-[18px]">warning</span><span id="global-error-message">Action Required: 3 dossiers require compliance resubmission inspection within the active cycle window.</span></div><button class="text-status-action-text hover:text-text-primary" onclick="document.getElementById('global-error-banner').style.display='none'" type="button"><span class="material-symbols-outlined text-[16px]">close</span></button></div></div><main class="w-full px-space-lg py-space-base flex-1"><div class="flex flex-col w-full gap-space-lg">
+<!-- Evaluator Section Breadcrumb & Primary Context Banner -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-base bg-surface-crisp p-space-lg rounded shadow-sm relative overflow-hidden">
+<div class="absolute right-0 top-0 bottom-0 w-96 bg-gradient-to-l from-primary-fixed/30 to-transparent pointer-events-none"></div>
+<div class="flex flex-col gap-space-xs z-10">
+<div class="flex items-center gap-space-sm text-text-muted font-label-sm text-label-sm uppercase tracking-wider">
+<span>Evaluator Portal</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span>Institutional Credential Vault</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-ashoka-blue font-bold">Profile Identity Verification</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<h1 class="font-headline-lg text-headline-lg text-primary tracking-tight">Evaluator Roster Dossier</h1>
+<span class="px-space-sm py-0.5 rounded-full bg-status-approved-bg text-status-approved-text font-label-sm text-label-sm flex items-center gap-1.5 shadow-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-gov-emerald animate-pulse"></span>
+          ACTIVE STANDING
+        </span>
+</div>
+<p class="font-body-md text-body-md text-text-secondary">
+        Statutory accreditation records synchronized under Higher Education Institute (HEI) evaluation covenant.
+      </p>
+</div>
+<!-- Read-Only Operational Triggers -->
+<div class="flex items-center gap-space-sm z-10">
+<button class="px-space-md py-2 rounded bg-surface-muted text-primary hover:bg-surface-container font-label-md text-label-md flex items-center gap-space-xs shadow-sm transition-all" id="btn-load-profile" type="button">
+<span class="material-symbols-outlined text-[18px]">cloud_download</span>
+        Load My Profile
+      </button>
+<button class="px-space-md py-2 rounded bg-ashoka-blue text-on-primary hover:bg-institutional-navy font-label-md text-label-md flex items-center gap-space-xs shadow-sm transition-all" id="btn-refresh-profile" type="button">
+<span class="material-symbols-outlined text-[18px]" id="refresh-icon">refresh</span>
+        Refresh Profile
+      </button>
+</div>
+</div>
+<!-- Sub-Navigation Navigation Bar -->
+<div class="bg-surface-crisp rounded p-space-xs shadow-sm">
+<nav aria-label="Evaluator Workspace Tabs" class="flex items-center gap-space-xs overflow-x-auto">
+<a class="flex items-center gap-space-xs px-space-md py-space-xs bg-ashoka-blue text-on-primary rounded font-label-lg text-label-lg shadow-sm whitespace-nowrap" href="#profile">
+<span class="material-symbols-outlined text-[18px]">badge</span>
+        Profile
+      </a>
+<a class="flex items-center gap-space-xs px-space-md py-space-xs text-text-secondary hover:bg-surface-subtle hover:text-ashoka-blue rounded font-label-lg text-label-lg whitespace-nowrap transition-colors" href="#criteria">
+<span class="material-symbols-outlined text-[18px]">rule</span>
+        Criteria Guidelines
+      </a>
+<a class="flex items-center gap-space-xs px-space-md py-space-xs text-text-secondary hover:bg-surface-subtle hover:text-ashoka-blue rounded font-label-lg text-label-lg whitespace-nowrap transition-colors" href="#queue">
+<span class="material-symbols-outlined text-[18px]">pending_actions</span>
+        Work Queue (Assignments)
+        <span class="ml-1 px-1.5 py-0.5 rounded-full bg-surface-container font-mono-code text-[11px] text-text-primary">3 Active</span>
+</a>
+<a class="flex items-center gap-space-xs px-space-md py-space-xs text-text-secondary hover:bg-surface-subtle hover:text-ashoka-blue rounded font-label-lg text-label-lg whitespace-nowrap transition-colors" href="#reviews">
+<span class="material-symbols-outlined text-[18px]">rate_review</span>
+        Project Reviews
+      </a>
+</nav>
+</div>
+<!-- Notice Banner: Strict Read-Only Policy -->
+<div class="flex items-start justify-between bg-surface-container-high/60 p-space-md rounded shadow-sm">
+<div class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-ashoka-blue text-[20px] mt-0.5">verified</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary">Accredited Sovereign Evaluator Roster</span>
+<span class="font-body-sm text-body-sm text-text-secondary">
+          Profile attributes and domain jurisdictions are provisioned by the National Nodal Secretariat. To request modifications, submit a signed institutional rectification via Department Desk.
+        </span>
+</div>
+</div>
+<span class="px-space-xs py-0.5 rounded bg-surface-crisp text-text-muted font-mono-code text-[11px] uppercase tracking-wider shadow-sm hidden sm:inline-block">
+      READ_ONLY_MODE
+    </span>
+</div>
+<!-- Main Multi-Column Bento Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
+<!-- Column Left: Institutional Personnel ID & Pool Architecture (4 cols) -->
+<div class="lg:col-span-4 flex flex-col gap-space-lg">
+<!-- Personnel Identity Dossier Card -->
+<div class="bg-surface-crisp rounded p-space-lg shadow-sm flex flex-col gap-space-md relative overflow-hidden">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-widest">PERSONNEL CREDENTIAL</span>
+<span class="px-2 py-0.5 rounded-full bg-status-approved-bg text-status-approved-text font-label-sm text-label-sm font-bold">
+            ACTIVE
+          </span>
+</div>
+<div class="flex items-center gap-space-md pt-space-xs">
+<div class="relative w-20 h-20 rounded bg-surface-container flex items-center justify-center flex-shrink-0 overflow-hidden shadow-sm">
+<img class="w-full h-full object-cover" data-alt="Official photographic identification portrait of Dr. Rajeshwari Swaminathan, distinguished senior academic professional in formal Indian attire, clean studio neutral backdrop, dignified and sovereign governance composition." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqpIN9haPR9fOSdHqhZPug5iTHfqQmvCjctYzaFYHpFLpmenP4i-lU3FcBLDFm-SUHvAkVzd70gGPjhjU1NiNRTHoqpczeKLnO7y_IusimuuqyRbhzXAPM2GgvAmzR15K3OsKAhXK5qSVpXQHCHJBy2WyBLSc7iqP51rFqgWNzbOqUbf7DjFjNQBtq5UIFe4CvWEHvK1hdrKed_Z1zbJJyjBWPTcM33HhfLHn6G5AqxqgWpAx0--DA3w"/>
+<div class="absolute bottom-0 right-0 bg-gov-emerald text-on-primary p-0.5 rounded-tl">
+<span class="material-symbols-outlined text-[14px] block">verified</span>
+</div>
+</div>
+<div class="flex flex-col min-w-0">
+<h2 class="font-headline-md text-headline-md text-text-primary truncate">Dr. Rajeshwari Swaminathan</h2>
+<span class="font-body-sm text-body-sm text-text-secondary line-clamp-2">Professor &amp; Head, Department of Sustainable Urban Systems</span>
+<span class="font-mono-code text-[11px] text-text-muted mt-1">EVAL-PRF-9941-882B</span>
+</div>
+</div>
+<div class="flex flex-col gap-space-xs bg-surface-subtle p-space-sm rounded">
+<div class="flex justify-between items-center text-body-sm text-body-sm">
+<span class="text-text-muted">Institution:</span>
+<span class="font-label-md text-label-md text-text-primary text-right">IIT Madras</span>
+</div>
+<div class="flex justify-between items-center text-body-sm text-body-sm">
+<span class="text-text-muted">Field Tenure:</span>
+<span class="font-label-md text-label-md text-text-primary">18 Years</span>
+</div>
+<div class="flex justify-between items-center text-body-sm text-body-sm">
+<span class="text-text-muted">Concurrency Ceiling:</span>
+<span class="font-label-md text-label-md text-text-primary">5 concurrent dossiers</span>
+</div>
+</div>
+<!-- Institutional Signature Seal Stamp -->
+<div class="flex items-center gap-space-sm p-space-xs bg-surface-muted rounded">
+<span class="material-symbols-outlined text-ashoka-blue text-[20px]">account_balance</span>
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm text-text-primary uppercase tracking-tight">Affiliated Source Token</span>
+<span class="font-mono-code text-[12px] text-text-secondary truncate">SRC-HEI-2024-TN09</span>
+</div>
+</div>
+</div>
+<!-- Statutory Evaluation Pool Categorization Panel -->
+<div class="bg-surface-crisp rounded p-space-lg shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Assigned Evaluation Pool</span>
+<span class="font-mono-code text-[11px] text-text-muted">SYS-ROSTER-V2</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary">
+          Evaluator pools define statutory authority, compliance jurisdictions, and conflict-of-interest firewalls.
+        </p>
+<!-- Pool Matrix Selectors (Strict Read-Only Display) -->
+<div class="flex flex-col gap-space-xs">
+<!-- Pool: GOVERNMENT -->
+<div class="flex items-center justify-between p-space-sm bg-surface-subtle rounded opacity-60">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-text-muted text-[18px]">account_tree</span>
+<span class="font-label-md text-label-md text-text-secondary">GOVERNMENT</span>
+</div>
+<span class="font-mono-code text-[11px] text-text-muted">INACTIVE</span>
+</div>
+<!-- Pool: INDUSTRY -->
+<div class="flex items-center justify-between p-space-sm bg-surface-subtle rounded opacity-60">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-text-muted text-[18px]">factory</span>
+<span class="font-label-md text-label-md text-text-secondary">INDUSTRY</span>
+</div>
+<span class="font-mono-code text-[11px] text-text-muted">INACTIVE</span>
+</div>
+<!-- Pool: HEI (ACTIVE BADGE HIGHLIGHT) -->
+<div class="flex items-center justify-between p-space-sm bg-primary text-on-primary rounded shadow-sm">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-tertiary-fixed text-[20px]">school</span>
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg font-bold text-on-primary tracking-wide">HEI</span>
+<span class="font-body-sm text-[11px] text-inverse-primary">Higher Education Institutions</span>
+</div>
+</div>
+<span class="px-space-xs py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm uppercase tracking-wider font-bold">
+              CURRENT POOL
+            </span>
+</div>
+<!-- Pool: CITIZEN -->
+<div class="flex items-center justify-between p-space-sm bg-surface-subtle rounded opacity-60">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-text-muted text-[18px]">group</span>
+<span class="font-label-md text-label-md text-text-secondary">CITIZEN</span>
+</div>
+<span class="font-mono-code text-[11px] text-text-muted">INACTIVE</span>
+</div>
+<!-- Pool: COMMUNITY -->
+<div class="flex items-center justify-between p-space-sm bg-surface-subtle rounded opacity-60">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-text-muted text-[18px]">nature_people</span>
+<span class="font-label-md text-label-md text-text-secondary">COMMUNITY</span>
+</div>
+<span class="font-mono-code text-[11px] text-text-muted">INACTIVE</span>
+</div>
+</div>
+<div class="p-space-xs bg-surface-container rounded text-body-sm text-[11px] text-text-secondary flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-ashoka-blue">gavel</span>
+          Statutory Pool Protocol: Section 14(A) Academic Peer Jury.
+        </div>
+</div>
+<!-- Concurrency / Quota Visualizer Card -->
+<div class="bg-surface-crisp rounded p-space-lg shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Concurrent Workload</span>
+<span class="font-label-md text-label-md text-ashoka-blue font-bold">3 of 5 Allocated</span>
+</div>
+<div class="w-full bg-surface-container rounded-full h-3 overflow-hidden flex">
+<div class="bg-ashoka-blue h-full w-3/5 rounded-full transition-all duration-500"></div>
+</div>
+<div class="grid grid-cols-2 gap-space-sm pt-space-xs text-center">
+<div class="p-space-sm bg-surface-subtle rounded">
+<span class="font-headline-md text-headline-md text-primary block">2</span>
+<span class="font-label-sm text-label-sm text-text-muted uppercase">Available Slots</span>
+</div>
+<div class="p-space-sm bg-surface-subtle rounded">
+<span class="font-headline-md text-headline-md text-text-secondary block">5 Max</span>
+<span class="font-label-sm text-label-sm text-text-muted uppercase">Statutory Cap</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Column Right: Detailed Institutional Grid, Jurisdictions & System Metadata (8 cols) -->
+<div class="lg:col-span-8 flex flex-col gap-space-lg">
+<!-- Primary Read-Only Data Cards Matrix -->
+<div class="bg-surface-crisp rounded p-space-lg shadow-sm flex flex-col gap-space-lg">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+<div>
+<h3 class="font-headline-md text-headline-md text-primary">Accreditation Profile Parameters</h3>
+<p class="font-body-sm text-body-sm text-text-secondary">Official institutional registry attributes for dossier allocation.</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-gov-emerald"></span>
+<span class="font-mono-code text-[11px] text-text-muted uppercase">KYC_VERIFIED // SECURE_SYNC</span>
+</div>
+</div>
+<!-- Two-column grid of field cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-base">
+<!-- Full Name -->
+<div class="p-space-base rounded bg-surface-subtle flex flex-col gap-space-2xs">
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Full Legal Name</span>
+<span class="font-label-lg text-label-lg text-text-primary">Dr. Rajeshwari Swaminathan</span>
+<span class="font-body-sm text-[11px] text-text-muted">Aadhaar/PAN Statutory Cross-Matched</span>
+</div>
+<!-- Evaluator Pool Category -->
+<div class="p-space-base rounded bg-surface-subtle flex flex-col gap-space-2xs">
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Evaluator Pool Category</span>
+<div class="flex items-center gap-space-sm">
+<span class="px-space-sm py-0.5 rounded bg-ashoka-blue text-on-primary font-label-md text-label-md font-bold">
+                HEI
+              </span>
+<span class="font-body-sm text-body-sm text-text-secondary">Higher Education Institutions</span>
+</div>
+<span class="font-body-sm text-[11px] text-text-muted">Authorized for Academic &amp; Technical Vetting</span>
+</div>
+<!-- Parent Organization -->
+<div class="p-space-base rounded bg-surface-subtle flex flex-col gap-space-2xs">
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Affiliated Organization</span>
+<span class="font-label-lg text-label-lg text-text-primary">Indian Institute of Technology (IIT) Madras</span>
+<span class="font-body-sm text-[11px] text-text-muted">Institute of National Importance (INI)</span>
+</div>
+<!-- Designation -->
+<div class="p-space-base rounded bg-surface-subtle flex flex-col gap-space-2xs">
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Official Designation</span>
+<span class="font-label-lg text-label-lg text-text-primary">Professor &amp; Head</span>
+<span class="font-body-sm text-[11px] text-text-secondary">Dept. of Sustainable Urban Systems</span>
+</div>
+<!-- Experience Years -->
+<div class="p-space-base rounded bg-surface-subtle flex flex-col gap-space-2xs">
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Professional Evaluation Standing</span>
+<div class="flex items-baseline gap-space-xs">
+<span class="font-headline-md text-headline-md text-text-primary">18</span>
+<span class="font-label-md text-label-md text-text-secondary">Years of Service</span>
+</div>
+<span class="font-body-sm text-[11px] text-text-muted">Senior Jury Grade Level IV</span>
+</div>
+<!-- Affiliated Source ID -->
+<div class="p-space-base rounded bg-surface-subtle flex flex-col gap-space-2xs">
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Affiliated Source Registry ID</span>
+<span class="font-mono-code text-body-md text-ashoka-blue font-bold">SRC-HEI-2024-TN09</span>
+<span class="font-body-sm text-[11px] text-text-muted">Ministry of Education Nodal Identifier</span>
+</div>
+<!-- Maximum Workload Cap -->
+<div class="p-space-base rounded bg-surface-subtle flex flex-col gap-space-2xs">
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Statutory Concurrent Workload</span>
+<span class="font-label-lg text-label-lg text-text-primary">5 Concurrent Dossiers</span>
+<span class="font-body-sm text-[11px] text-text-muted">Enforced to safeguard review precision</span>
+</div>
+<!-- Active/Inactive Status -->
+<div class="p-space-base rounded bg-surface-subtle flex flex-col gap-space-2xs">
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Current Roster Status</span>
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-gov-emerald"></span>
+<span class="font-label-lg text-label-lg text-status-approved-text font-bold">ACTIVE</span>
+</div>
+<span class="font-body-sm text-[11px] text-text-muted">Eligible for automated case routing</span>
+</div>
+</div>
+<!-- Geographic Jurisdiction / State Matrix -->
+<div class="p-space-base rounded bg-surface-subtle flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Assigned Evaluation Jurisdiction (Southern Zone)</span>
+<span class="font-mono-code text-[11px] text-text-muted">4 STATES ACTIVE</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary">
+            Dr. Swaminathan is empowered to evaluate civic engineering and infrastructural submissions origin-stamped within:
+          </p>
+<div class="flex flex-wrap gap-space-sm pt-space-xs">
+<!-- Region 1 -->
+<div class="flex items-center gap-space-xs px-space-md py-space-xs bg-surface-crisp rounded shadow-sm">
+<span class="material-symbols-outlined text-ashoka-blue text-[16px]">location_on</span>
+<span class="font-label-md text-label-md text-text-primary">Tamil Nadu</span>
+<span class="font-mono-code text-[11px] text-text-muted">(HQ Zone)</span>
+</div>
+<!-- Region 2 -->
+<div class="flex items-center gap-space-xs px-space-md py-space-xs bg-surface-crisp rounded shadow-sm">
+<span class="material-symbols-outlined text-ashoka-blue text-[16px]">location_on</span>
+<span class="font-label-md text-label-md text-text-primary">Kerala</span>
+</div>
+<!-- Region 3 -->
+<div class="flex items-center gap-space-xs px-space-md py-space-xs bg-surface-crisp rounded shadow-sm">
+<span class="material-symbols-outlined text-ashoka-blue text-[16px]">location_on</span>
+<span class="font-label-md text-label-md text-text-primary">Karnataka</span>
+</div>
+<!-- Region 4 -->
+<div class="flex items-center gap-space-xs px-space-md py-space-xs bg-surface-crisp rounded shadow-sm">
+<span class="material-symbols-outlined text-ashoka-blue text-[16px]">location_on</span>
+<span class="font-label-md text-label-md text-text-primary">Andhra Pradesh</span>
+</div>
+</div>
+</div>
+<!-- Institutional Campus / Research Infrastructure Reference Visual -->
+<div class="flex flex-col sm:flex-row items-center gap-space-base bg-surface-muted p-space-base rounded shadow-sm overflow-hidden">
+<div class="w-full sm:w-48 h-28 rounded overflow-hidden flex-shrink-0 relative shadow-sm">
+<img class="w-full h-full object-cover" data-alt="Architectural perspective of IIT Madras academic campus laboratory complex, modern brick and glass educational research institution surrounded by lush sub-tropical trees under daylight." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCD7XTG7JNH0X3eCTWo-1V4ogPAp4g8LkqSHWgd1JDzg4rJWWiUZdlEdFAa88_I1LciX27wz0zJG7ufgoil0BA4aLO0k7xhmtz2NddqH2z28JDxEMhjfYoTxZy5ZPBo6i-049tUli1n2TrXuI1OtTQb1m5pOvo_0x8t3Yj_wXUX-A0jWi91wGGtIOsiFadEH_8_8qctT2_Q8pbx3im90D4vhqBhPVLVLmkP64w2_NwNxI9SzGnSLGshcg"/>
+<div class="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-primary/80 text-on-primary font-mono-code text-[9px] uppercase">
+              IITM-CAMPUS-CHE
+            </div>
+</div>
+<div class="flex flex-col gap-1 min-w-0">
+<span class="font-label-md text-label-md text-text-primary">Department of Sustainable Urban Systems</span>
+<span class="font-body-sm text-body-sm text-text-secondary">
+              Center for Municipal Infrastructure &amp; Statutory Environmental Compliance. Accredited Testing Body under SIH26043 Framework.
+            </span>
+<span class="font-mono-code text-[11px] text-text-muted mt-1">NAAC A++ // NIRF Rank #1 (Eng.) Verified</span>
+</div>
+</div>
+</div>
+<!-- System Identity, Cryptographic Signatures & Audit Trail Footprint -->
+<div class="bg-surface-crisp rounded p-space-lg shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Cryptographic Metadata &amp; Timestamps</span>
+<span class="material-symbols-outlined text-text-muted text-[18px]">fingerprint</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-base">
+<!-- Profile ID -->
+<div class="p-space-sm bg-surface-subtle rounded flex flex-col gap-0.5">
+<span class="font-label-sm text-label-sm text-text-muted uppercase">Statutory Profile ID</span>
+<span class="font-mono-code text-body-md text-text-primary font-bold">EVAL-PRF-9941-882B</span>
+<span class="font-body-sm text-[11px] text-text-muted">SHA-256 Ledger Block #48102</span>
+</div>
+<!-- User UUID -->
+<div class="p-space-sm bg-surface-subtle rounded flex flex-col gap-0.5">
+<span class="font-label-sm text-label-sm text-text-muted uppercase">Unified SSO Identity (UUID)</span>
+<span class="font-mono-code text-body-md text-text-primary font-bold">USR-UUID-8841-BCA2-990141</span>
+<span class="font-body-sm text-[11px] text-text-muted">Parichay / Jan Parichay Linked</span>
+</div>
+<!-- Creation Timestamp -->
+<div class="p-space-sm bg-surface-subtle rounded flex flex-col gap-0.5">
+<span class="font-label-sm text-label-sm text-text-muted uppercase">Registration Inception</span>
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[16px] text-text-muted">calendar_today</span>
+<span class="font-mono-code text-body-sm text-text-primary">14 Jan 2024, 10:30 IST</span>
+</div>
+<span class="font-body-sm text-[11px] text-text-muted">Provisioned by Institutional Officer</span>
+</div>
+<!-- Last Updated Timestamp -->
+<div class="p-space-sm bg-surface-subtle rounded flex flex-col gap-0.5">
+<span class="font-label-sm text-label-sm text-text-muted uppercase">Last Periodic Audit Re-verification</span>
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[16px] text-gov-emerald">update</span>
+<span class="font-mono-code text-body-sm text-text-primary">18 Oct 2024, 15:45 IST</span>
+</div>
+<span class="font-body-sm text-[11px] text-status-approved-text">Auto-validated via NIC Gateway</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-xs text-text-muted text-body-sm text-[12px]">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">lock_clock</span>
+            Dossier Immutable Signature: 98ea...b20f
+          </span>
+<span class="font-mono-code">GOV-INDIA-STANDARD-V4.2</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Client-side Interactive Behaviors for Profile Sync & Refresh Signals -->
+<script>
+  (function() {
+    const refreshBtn = document.getElementById('btn-refresh-profile');
+    const loadBtn = document.getElementById('btn-load-profile');
+    const refreshIcon = document.getElementById('refresh-icon');
+
+    if (refreshBtn && refreshIcon) {
+      refreshBtn.addEventListener('click', function() {
+        refreshIcon.classList.add('animate-spin');
+        refreshBtn.disabled = true;
+        refreshBtn.classList.add('opacity-75');
+
+        setTimeout(function() {
+          refreshIcon.classList.remove('animate-spin');
+          refreshBtn.disabled = false;
+          refreshBtn.classList.remove('opacity-75');
+          
+          const banner = document.getElementById('global-success-banner');
+          if (banner) {
+            banner.style.display = 'flex';
+            const textSpan = banner.querySelector('span:nth-child(2)');
+            if (textSpan) {
+              textSpan.innerText = "Evaluator dossier refreshed successfully from NIC National Roster: UIDAI & INI credentials certified.";
+            }
+          }
+        }, 800);
+      });
+    }
+
+    if (loadBtn) {
+      loadBtn.addEventListener('click', function() {
+        loadBtn.classList.add('bg-surface-container-high');
+        setTimeout(function() {
+          loadBtn.classList.remove('bg-surface-container-high');
+          const banner = document.getElementById('global-success-banner');
+          if (banner) {
+            banner.style.display = 'flex';
+            const textSpan = banner.querySelector('span:nth-child(2)');
+            if (textSpan) {
+              textSpan.innerText = "Active dossier re-indexed from Local Credential Cache (EVAL-PRF-9941-882B).";
+            }
+          }
+        }, 400);
+      });
+    }
+  })();
+</script></main></div></div></body></html>
