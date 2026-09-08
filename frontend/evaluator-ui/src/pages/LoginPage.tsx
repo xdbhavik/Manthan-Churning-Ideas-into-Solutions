@@ -42,6 +42,11 @@ export default function LoginPage() {
       setChallengeId(res.challengeId);
       setCountdown(120);
       setStage('otp');
+      if (res.devOtp) {
+        const digits = res.devOtp.slice(0, 6).split('');
+        while (digits.length < 6) digits.push('');
+        setOtp(digits);
+      }
       setTimeout(() => inputRefs.current[0]?.focus(), 100);
     } catch (err) {
       const msg = getErrorMessage(err);
@@ -138,9 +143,11 @@ export default function LoginPage() {
           {stage === 'otp' && (
             <form onSubmit={handleVerify} className="flex flex-col gap-4">
               <div>
-                <p className="text-[13px] text-[#64748B] mb-3">
-                  Enter the 6-digit OTP sent to <strong className="text-[#0A2540]">{phone}</strong>
-                </p>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-[13px] text-[#64748B]">
+                    Enter the 6-digit OTP sent to <strong className="text-[#0A2540]">{phone}</strong>
+                  </p>
+                </div>
                 <div className="flex gap-2 justify-center">
                   {otp.map((digit, idx) => (
                     <input
