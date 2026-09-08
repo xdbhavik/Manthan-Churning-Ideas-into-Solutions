@@ -187,7 +187,11 @@ an `assignmentId` in the path is authorised against that profile (**403** for so
 
 `GET /internal/problems/{id}` on **problem-service** → `ProblemContextResponse`
 (`edith-common`). Enum values travel as `name()` strings so the services never share a
-persisted enum. Wrapped by `ProblemContextGateway`, which maps failures to domain errors:
+persisted enum. The snapshot also carries the problem's **access scope**
+(`accessRule` ∈ `OPEN_TO_ALL`/`UNIVERSITY_ONLY`/`SELECTED_UNIVERSITIES` + the
+`accessUniversities` name list for `SELECTED_UNIVERSITIES`), which the evaluator sees on
+the scoring screen (§5.3 `GET /evaluation/me/assignments/{id}`). Wrapped by
+`ProblemContextGateway`, which maps failures to domain errors:
 
 - upstream 404 → `404`;
 - other upstream error status → `502`;

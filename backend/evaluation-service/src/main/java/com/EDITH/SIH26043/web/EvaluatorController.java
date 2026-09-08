@@ -2,8 +2,11 @@ package com.EDITH.SIH26043.web;
 
 import com.EDITH.SIH26043.config.OpenApiConfig;
 import com.EDITH.SIH26043.enums.AssignmentStatus;
+import com.EDITH.SIH26043.enums.EvaluationStatus;
+import com.EDITH.SIH26043.exception.ApiException;
 import com.EDITH.SIH26043.security.AuthUser;
 import com.EDITH.SIH26043.service.EvaluatorAssignmentService;
+import com.EDITH.SIH26043.service.PortalPublishService;
 import com.EDITH.SIH26043.web.dto.AssignmentDetailResponse;
 import com.EDITH.SIH26043.web.dto.AssignmentOutcomeResponse;
 import com.EDITH.SIH26043.web.dto.CriterionScoreResponse;
@@ -15,6 +18,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,10 +45,15 @@ import java.util.UUID;
 @PreAuthorize("hasRole('EVALUATOR')")
 public class EvaluatorController {
 
-    private final EvaluatorAssignmentService service;
+    private static final Logger log = LoggerFactory.getLogger(EvaluatorController.class);
 
-    public EvaluatorController(EvaluatorAssignmentService service) {
+    private final EvaluatorAssignmentService service;
+    private final PortalPublishService portalPublishService;
+
+    public EvaluatorController(EvaluatorAssignmentService service,
+                               PortalPublishService portalPublishService) {
         this.service = service;
+        this.portalPublishService = portalPublishService;
     }
 
     @Operation(summary = "🙋 My evaluator profile",
@@ -137,7 +147,20 @@ public class EvaluatorController {
                                             @PathVariable UUID assignmentId,
                                             @Valid @RequestBody ScoreSubmissionRequest body,
                                             HttpServletRequest http) {
-        return service.submit(me.getUserId(), assignmentId, body, clientIp(http));
+        AssignmentOutcomeResponse outcome = service.submit(me.getUserId(), assignmentId, body, clientIp(http));
+        // Publish gate: the last scorecard just flipped the cycle to EVALUATION_COMPLETED.
+        // Fire the portal publish AFTER the scoring transaction committed (best effort),
+        // so a portal outage can never roll the scorecard back — the ADMIN can retry
+        // via POST /evaluation/cycles/{cycleId}/publish-to-portal.
+        if (outcome.cycleStatus() == EvaluationStatus.EVALUATION_COMPLETED) {
+            try {
+                portalPublishService.publishCompletedCycleByAssignment(assignmentId);
+            } catch (ApiException e) {
+                log.warn("Problem publish after submit skipped (assignment {}): {}",
+                        assignmentId, e.getMessage());
+            }
+        }
+        return outcome;
     }
 
     private String clientIp(HttpServletRequest http) {

@@ -260,7 +260,7 @@ class EvaluationRoutingServiceTest {
         when(problemGateway.fetch(problemId)).thenReturn(new ProblemContextResponse(
                 problemId, "REGISTERED", "Irregular drinking water supply",
                 "Hand pumps dry during summer.", sourceBucket, null, null, null, null,
-                null, null, null, List.of(), 0));
+                null, null, null, List.of(), 0, null, List.of()));
     }
 
     private EvaluatorProfile activeProfile(EvaluatorType type, int maxWorkload) {

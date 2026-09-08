@@ -47,6 +47,10 @@ public class SecurityConfig {
                                 "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
                         // Public: Spring error dispatch (so RFC-7807 errors reach callers)
                         .requestMatchers("/error").permitAll()
+                        // Public: service-to-service endpoints (portal → eval). Never
+                        // routed through the public gateway; only reachable on the
+                        // internal docker network.
+                        .requestMatchers("/internal/**").permitAll()
                         // Everything else requires a valid token; role checks via @PreAuthorize.
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)

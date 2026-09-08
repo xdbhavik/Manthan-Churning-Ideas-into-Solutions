@@ -503,6 +503,6 @@ class EvaluatorAssignmentServiceTest {
         when(problemGateway.fetch(problemId)).thenReturn(new ProblemContextResponse(
                 problemId, "REGISTERED", "Irregular drinking water supply",
                 "Hand pumps dry during summer.", "GOVT", null, null, null, null,
-                null, null, null, List.of(), 0));
+                null, null, null, List.of(), 0, null, List.of()));
     }
 }

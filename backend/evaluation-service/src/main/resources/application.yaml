@@ -33,6 +33,9 @@ app:
   # can point a non-eureka problem-service at a fixed URL if needed.
   problem-service:
     base-url: ${PROBLEM_SERVICE_URL:http://problem-service}
+  # Where portal-service is found (same discovery-resolving recipe as problem-service).
+  portal-service:
+    base-url: ${PORTAL_SERVICE_URL:http://portal-service}
   # Phase 2 routing: how many days an ASSIGNED evaluator has before the lazy
   # deadline expires. Deadlines are enforced on read/submit, not by a scheduler.
   evaluation:

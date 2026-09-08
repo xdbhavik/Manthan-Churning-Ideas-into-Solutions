@@ -10,6 +10,7 @@ import com.EDITH.SIH26043.repository.EvaluationStatusHistoryRepository;
 import com.EDITH.SIH26043.security.AuthUser;
 import com.EDITH.SIH26043.service.EvaluationIntakeService;
 import com.EDITH.SIH26043.service.EvaluationRoutingService;
+import com.EDITH.SIH26043.service.PortalPublishService;
 import com.EDITH.SIH26043.service.ProblemAnalysisService;
 import com.EDITH.SIH26043.web.dto.EvaluationCycleResponse;
 import com.EDITH.SIH26043.web.dto.EvaluationStatusHistoryResponse;
@@ -34,6 +35,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -50,17 +52,20 @@ public class EvaluationAdminController {
     private final EvaluationIntakeService intakeService;
     private final ProblemAnalysisService analysisService;
     private final EvaluationRoutingService routingService;
+    private final PortalPublishService portalPublishService;
     private final EvaluationCycleRepository cycleRepository;
     private final EvaluationStatusHistoryRepository historyRepository;
 
     public EvaluationAdminController(EvaluationIntakeService intakeService,
                                      ProblemAnalysisService analysisService,
                                      EvaluationRoutingService routingService,
+                                     PortalPublishService portalPublishService,
                                      EvaluationCycleRepository cycleRepository,
                                      EvaluationStatusHistoryRepository historyRepository) {
         this.intakeService = intakeService;
         this.analysisService = analysisService;
         this.routingService = routingService;
+        this.portalPublishService = portalPublishService;
         this.cycleRepository = cycleRepository;
         this.historyRepository = historyRepository;
     }
@@ -118,6 +123,19 @@ public class EvaluationAdminController {
                                       @AuthenticationPrincipal AuthUser me,
                                       HttpServletRequest http) {
         return routingService.route(cycleId, me.getUserId(), clientIp(http));
+    }
+
+    @Operation(
+            summary = "🌐 Publish an evaluated problem to the portal",
+            description = """
+                    Manual retry of the automatic publish that fires at EVALUATION_COMPLETED.
+                    Re-publishing is idempotent (portal upserts on the problem id). Use this
+                    when the automatic push failed — e.g. portal-service was down when the
+                    last scorecard was submitted.""")
+    @PostMapping("/cycles/{cycleId}/publish-to-portal")
+    public Map<String, Object> publishToPortal(@PathVariable UUID cycleId) {
+        portalPublishService.publishCompletedCycle(cycleId);
+        return Map.of("cycleId", cycleId, "published", true);
     }
 
     @Operation(summary = "🔎 Cycle detail", description = "Current state of an evaluation cycle.")

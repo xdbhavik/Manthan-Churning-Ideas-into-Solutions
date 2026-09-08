@@ -192,6 +192,7 @@ async function loadAssignment(){
     ? `<b>${esc(p.title)}</b>
        <div class="hint">${esc(p.status)} · bucket ${esc(p.sourceBucket)} · urgency ${esc(p.urgency)} · severity ${esc(p.severity)}
            · domains ${(p.domains||[]).map(esc).join(', ') || '—'} · evidence ${p.evidenceCount}</div>
+       <div class="hint"><b>Access:</b> ${accessLine(p)}</div>
        <div>${esc(p.description)}</div>
        ${p.expectedOutcome ? `<div class="hint">Expected outcome: ${esc(p.expectedOutcome)}</div>` : ''}`
     : '<div class="hint warn">problem-service se body nahi mili (problem = null) — criteria form phir bhi chalega.</div>';
@@ -201,6 +202,17 @@ async function loadAssignment(){
   renderCriteria(d.criteria);
   $('sFeedback').value = d.feedback || '';
   $('sRecommendation').value = d.recommendation || '';
+}
+
+/* problem access rule → readable line (who may access this problem statement) */
+function accessLine(p){
+  const rule = p.accessRule || 'OPEN_TO_ALL';
+  if (rule === 'SELECTED_UNIVERSITIES'){
+    const unis = (p.accessUniversities || []).filter(Boolean);
+    return `sirf in universities ke liye: <b>${unis.map(esc).join(', ') || '—'}</b>`;
+  }
+  if (rule === 'UNIVERSITY_ONLY') return 'sirf universities ke liye (koi bhi university)';
+  return 'saari universities & students ke liye (open)';
 }
 
 /* criteria → editable rows (works for both the blank form and a saved one) */

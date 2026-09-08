@@ -189,7 +189,7 @@ class ProblemAnalysisServiceTest {
         when(problemGateway.fetch(problemId)).thenReturn(new ProblemContextResponse(
                 problemId, "REGISTERED", "Irregular drinking water supply",
                 "Hand pumps dry during summer.", null, null, null, null, null, null,
-                null, null, List.of(), 0));
+                null, null, List.of(), 0, null, List.of()));
     }
 
     private static AnalysisResult llmResult() {
