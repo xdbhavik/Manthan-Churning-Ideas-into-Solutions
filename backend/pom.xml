@@ -13,7 +13,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>SIH26043</name>
-	<description>SIH26043 microservices reactor (edith-common, edith-security, source-service, problem-service, evaluation-service)</description>
+	<description>SIH26043 microservices reactor (edith-common, edith-security, source-service, problem-service, evaluation-service, portal-service)</description>
 
 	<modules>
 		<module>edith-common</module>
@@ -22,6 +22,8 @@
 		<module>source-service</module>
 		<module>evaluation-service</module>
 		<module>problem-service</module>
+		<module>portal-service</module>
+		<module>codejudge-service</module>
 	</modules>
 
 	<properties>

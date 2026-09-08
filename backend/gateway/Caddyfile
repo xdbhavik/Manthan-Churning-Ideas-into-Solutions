@@ -4,11 +4,13 @@
 # RELATIVE API paths — so the gateway contract is "same paths, one port":
 # path prefixes below are forwarded verbatim, only the upstream host changes.
 #
-# Three standalone services, each on its own database:
+# Five standalone services, each on its own database:
 #   source-service (:8081)   — auth/identity, source registration & accounts
 #   problem-service (:8082)  — problems, domains, problem-scoped audit
 #   evaluation-service (:8083) — evaluation pipeline
-# There is no application monolith — every route below lands on one of the three.
+#   portal-service (:8084)   — published problem portal + project submissions
+#   codejudge-service (:8085) — automated repository evaluation
+# There is no application monolith — every route below lands on one of the five.
 #
 # Every public endpoint must be listed as BOTH the bare prefix and the `/*` glob:
 # Caddy's `path` matcher treats `/x/*` as "under /x/" and does NOT match the bare
@@ -39,6 +41,18 @@
 	@evaluation path /evaluation /evaluation/*
 	handle @evaluation {
 		reverse_proxy evaluation-service:8083
+	}
+
+	# --- portal-service route set (public problem portal, submissions, files) ---
+	@portal path /portal /portal/*
+	handle @portal {
+		reverse_proxy portal-service:8084
+	}
+
+	# --- codejudge-service route set (automated repository evaluation) ---
+	@codejudge path /codejudge /codejudge/*
+	handle @codejudge {
+		reverse_proxy codejudge-service:8085
 	}
 
 	# --- Eureka registry REST API (dashboard is on the registry's own port 8761;

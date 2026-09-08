@@ -1,11 +1,15 @@
 # Keep the docker build context tiny: the thin Dockerfile.service only needs one
-# pre-packaged service jar (plus this file). Everything else is excluded.
+# pre-packaged service jar (plus this file). Dockerfile.codejudge additionally
+# needs the Python analyzer sources, which are NOT under target/ so they are
+# already included.
 .git
 **/.git
 **/target/*
 !source-service/target/source-service-0.0.1-SNAPSHOT.jar
 !evaluation-service/target/evaluation-service-0.0.1-SNAPSHOT.jar
 !problem-service/target/problem-service-0.0.1-SNAPSHOT.jar
+!portal-service/target/portal-service-0.0.1-SNAPSHOT.jar
+!codejudge-service/target/codejudge-service-0.0.1-SNAPSHOT.jar
 !eureka-server/target/eureka-server-0.0.1-SNAPSHOT.jar
 **/data
 actor-ui
