@@ -1,0 +1,39 @@
+# codejudge-service image.
+#
+# It cannot use the shared thin Dockerfile.service because CodeJudge shells out to
+# two tools the plain JRE image does not carry:
+#   * git      — clone a submission at its pinned commit
+#   * python3  — run the stdlib-only agentic-legibility analyzer (the evidence
+#                collector for the static engineering categories)
+#
+# The analyzer stays a Python program, copied to /opt/codejudge-analyzer and
+# invoked as a sub-process. It only READS the workspace and prints JSON; no
+# student code is executed here (build/run/test stay gated behind
+# app.codejudge.sandbox-enabled, default false).
+#
+# Build it from the repo root AFTER packaging on the host:
+#   ./mvnw -DskipTests package
+#   docker compose up -d --build codejudge-service
+FROM eclipse-temurin:21-jre
+
+# --no-install-recommends keeps the layer small; the apt lists are dropped after.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends git python3 ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+ARG JAR_FILE
+COPY ${JAR_FILE} /app/service.jar
+
+# The analyzer is a directory of Python sources, not a package: copy it whole and
+# point app.codejudge.analyzer-dir (CODEJUDGE_ANALYZER_DIR) at it.
+COPY codejudge-service/agentic_legibility_score.py /opt/codejudge-analyzer/
+COPY codejudge-service/scripts /opt/codejudge-analyzer/scripts
+
+# Workspaces are scratch space per evaluation; a compose volume is mounted here so
+# a large clone never fills the container's writable layer.
+RUN mkdir -p /data/codejudge-workspaces
+
+# No EXPOSE: the listening port is SERVER_PORT and published by compose.
+ENTRYPOINT ["java", "-jar", "/app/service.jar"]

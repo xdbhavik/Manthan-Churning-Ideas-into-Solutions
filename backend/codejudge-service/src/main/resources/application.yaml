@@ -1,0 +1,77 @@
+spring:
+  application:
+    name: codejudge-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/sih_codejudge}
+    username: ${DB_USERNAME:sih}
+    password: ${DB_PASSWORD:sih}
+    hikari:
+      maximum-pool-size: 10
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    locations: classpath:db/migration
+
+server:
+  port: 8085
+
+app:
+  jwt:
+    # HMAC-SHA256 signing secret shared across services via .env; MUST be provided
+    # in any real deployment.
+    secret: ${JWT_SECRET:}
+    issuer: sih26043
+    access-token-ttl-minutes: 15
+  codejudge:
+    # The Python agentic-legibility analyzer (module root when running from the
+    # source tree, /opt/codejudge-analyzer inside the docker image). Only its
+    # stdlib-only scanner is invoked — no student code is executed. When it is
+    # missing the pipeline falls back to the built-in static heuristics.
+    analyzer-dir: ${CODEJUDGE_ANALYZER_DIR:/opt/codejudge-analyzer}
+    # Where a submission is cloned/copied before scanning.
+    workspaces-dir: ${CODEJUDGE_WORKSPACES_DIR:./data/codejudge-workspaces}
+    # Worker poll interval for the DB-backed job queue.
+    poll-interval-ms: ${CODEJUDGE_POLL_INTERVAL_MS:3000}
+    # Set false to run an API-only replica that never claims jobs.
+    worker-enabled: ${CODEJUDGE_WORKER_ENABLED:true}
+    clone-timeout-seconds: ${CODEJUDGE_CLONE_TIMEOUT_SECONDS:120}
+    analyzer-timeout-seconds: ${CODEJUDGE_ANALYZER_TIMEOUT_SECONDS:180}
+    # Secret scan caps: a hostile or enormous repo must not starve the worker.
+    secret-scan-max-file-bytes: ${CODEJUDGE_SECRET_SCAN_MAX_FILE_BYTES:200000}
+    secret-scan-max-files: ${CODEJUDGE_SECRET_SCAN_MAX_FILES:4000}
+    # Dead-worker guard: a CLAIMED job older than this goes back to QUEUED, and a
+    # job claimed this many times without finishing is failed instead of looping.
+    job-claim-timeout-seconds: ${CODEJUDGE_JOB_CLAIM_TIMEOUT_SECONDS:900}
+    job-max-attempts: ${CODEJUDGE_JOB_MAX_ATTEMPTS:3}
+    # Build/run/test execution of untrusted code is NOT enabled in this
+    # deployment. Turn on only inside a real sandbox (see codejudgeservice.md §23).
+    sandbox-enabled: ${CODEJUDGE_SANDBOX_ENABLED:false}
+  llm:
+    # OpenAI-compatible local model, shared convention with evaluation-service.
+    # CodeJudge uses it for an ADVISORY assessment only — it never contributes to
+    # final_score. Empty key → the ai_evaluation row is recorded UNAVAILABLE and
+    # the pipeline completes on deterministic evidence.
+    # NOTE: inside docker the host is reached as host.docker.internal, so
+    # docker-compose overrides base-url accordingly.
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      base-url: ${OPENAI_BASE_URL:http://localhost:20128/v1}
+      model: ${OPENAI_MODEL:agentrouter/deepseek-v4-flash}
+      max-tokens: 8192
+      timeout-seconds: 60
+      temperature: 0.2
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+  instance:
+    # Register by container/host IP so peers on the same network (or localhost)
+    # can reach us — hostnames inside containers are random container ids.
+    prefer-ip-address: true

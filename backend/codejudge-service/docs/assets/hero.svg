@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-labelledby="hero-title hero-desc">
+  <title id="hero-title">Agentic Legibility Score</title>
+  <desc id="hero-desc">Hero image for the Agentic Legibility Score project — a seven-category scorecard that rates any code repository on AI-agent readiness.</desc>
+
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="bar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#60a5fa"/>
+    </linearGradient>
+    <filter id="cs" x="-4%" y="-4%" width="108%" height="112%">
+      <feDropShadow dx="0" dy="6" stdDeviation="16" flood-color="#020617" flood-opacity="0.30"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1280" height="640" fill="url(#bg)"/>
+
+  <!-- Subtle accent glow behind scorecard (very low opacity) -->
+  <ellipse cx="940" cy="320" rx="340" ry="280" fill="#3b82f6" opacity="0.04"/>
+
+  <!-- ===== LEFT COLUMN ===== -->
+  <g transform="translate(80,0)">
+
+    <!-- Category badge -->
+    <g transform="translate(0,88)">
+      <rect width="106" height="24" rx="12" fill="none" stroke="#3b82f6" stroke-opacity="0.4"/>
+      <text x="53" y="16" text-anchor="middle" fill="#60a5fa"
+            font-family="Inter,-apple-system,sans-serif" font-size="10" font-weight="600"
+            letter-spacing="0.1em">REPO AUDIT</text>
+    </g>
+
+    <!-- Title (two lines for impact) -->
+    <text y="164" fill="#f8fafc" font-family="Inter,-apple-system,sans-serif"
+          font-size="46" font-weight="800" letter-spacing="-0.025em">Agentic</text>
+    <text y="216" fill="#f8fafc" font-family="Inter,-apple-system,sans-serif"
+          font-size="46" font-weight="800" letter-spacing="-0.025em">Legibility Score</text>
+
+    <!-- Subtitle -->
+    <text y="264" fill="#94a3b8" font-family="Inter,-apple-system,sans-serif"
+          font-size="18">Score any repo 0 – 100 on how well</text>
+    <text y="290" fill="#94a3b8" font-family="Inter,-apple-system,sans-serif"
+          font-size="18">AI agents can operate inside it.</text>
+
+    <!-- Feature bullets -->
+    <g transform="translate(0,336)">
+      <circle cx="5" cy="-4" r="3" fill="#3b82f6"/>
+      <text x="18" y="0" fill="#cbd5e1" font-family="Inter,-apple-system,sans-serif" font-size="15">7 scoring categories</text>
+
+      <circle cx="5" cy="28" r="3" fill="#3b82f6"/>
+      <text x="18" y="32" fill="#cbd5e1" font-family="Inter,-apple-system,sans-serif" font-size="15">Zero runtime dependencies</text>
+
+      <circle cx="5" cy="60" r="3" fill="#3b82f6"/>
+      <text x="18" y="64" fill="#cbd5e1" font-family="Inter,-apple-system,sans-serif" font-size="15">CLI &amp; agent-skill ready</text>
+    </g>
+
+    <!-- Terminal hint -->
+    <g transform="translate(0,460)">
+      <rect width="340" height="36" rx="8" fill="#1e293b" stroke="#334155" stroke-width="0.5"/>
+      <text x="14" y="23" fill="#64748b" font-family="ui-monospace,'SF Mono',Menlo,monospace"
+            font-size="13">$</text>
+      <text x="30" y="23" fill="#94a3b8" font-family="ui-monospace,'SF Mono',Menlo,monospace"
+            font-size="13">agentic-legibility-score ./my-repo</text>
+    </g>
+  </g>
+
+  <!-- ===== RIGHT COLUMN — SCORECARD ===== -->
+  <g transform="translate(700,40)" filter="url(#cs)">
+
+    <!-- Card background -->
+    <rect width="500" height="560" rx="14" fill="#ffffff"/>
+
+    <!-- Header band (top corners rounded via clip) -->
+    <rect width="500" height="50" rx="14" fill="#f1f5f9"/>
+    <rect y="28" width="500" height="22" fill="#f1f5f9"/>
+    <line x1="0" y1="50" x2="500" y2="50" stroke="#e2e8f0" stroke-width="1"/>
+
+    <text x="250" y="32" text-anchor="middle" fill="#475569"
+          font-family="ui-monospace,'SF Mono',Menlo,monospace" font-size="11" font-weight="700"
+          letter-spacing="0.1em">AGENTIC LEGIBILITY SCORECARD</text>
+
+    <!-- Repo name + grade badge -->
+    <text x="28" y="80" fill="#0f172a"
+          font-family="ui-monospace,'SF Mono',Menlo,monospace"
+          font-size="14" font-weight="600">example-repo</text>
+    <rect x="152" y="66" width="30" height="20" rx="6" fill="#dcfce7"/>
+    <text x="167" y="81" text-anchor="middle" fill="#15803d"
+          font-family="Inter,-apple-system,sans-serif" font-size="12" font-weight="700">A</text>
+
+    <!-- === Score rows — 50px rhythm === -->
+
+    <!-- Row 1: Bootstrap & Environment  13/15 -->
+    <text x="28" y="118" fill="#475569" font-family="Inter,-apple-system,sans-serif" font-size="13.5">Bootstrap &amp; Environment</text>
+    <text x="472" y="118" text-anchor="end" fill="#0f172a" font-family="Inter,-apple-system,sans-serif" font-size="13.5" font-weight="700">13 / 15</text>
+    <rect x="28" y="126" width="444" height="5" rx="2.5" fill="#f1f5f9"/>
+    <rect x="28" y="126" width="385" height="5" rx="2.5" fill="url(#bar)"/>
+
+    <!-- Row 2: Entry Points & Commands  12/15 -->
+    <text x="28" y="168" fill="#475569" font-family="Inter,-apple-system,sans-serif" font-size="13.5">Entry Points &amp; Commands</text>
+    <text x="472" y="168" text-anchor="end" fill="#0f172a" font-family="Inter,-apple-system,sans-serif" font-size="13.5" font-weight="700">12 / 15</text>
+    <rect x="28" y="176" width="444" height="5" rx="2.5" fill="#f1f5f9"/>
+    <rect x="28" y="176" width="355" height="5" rx="2.5" fill="url(#bar)"/>
+
+    <!-- Row 3: Documentation & Navigation  17/20 -->
+    <text x="28" y="218" fill="#475569" font-family="Inter,-apple-system,sans-serif" font-size="13.5">Documentation &amp; Navigation</text>
+    <text x="472" y="218" text-anchor="end" fill="#0f172a" font-family="Inter,-apple-system,sans-serif" font-size="13.5" font-weight="700">17 / 20</text>
+    <rect x="28" y="226" width="444" height="5" rx="2.5" fill="#f1f5f9"/>
+    <rect x="28" y="226" width="377" height="5" rx="2.5" fill="url(#bar)"/>
+
+    <!-- Row 4: Architecture & Structure  11/15 -->
+    <text x="28" y="268" fill="#475569" font-family="Inter,-apple-system,sans-serif" font-size="13.5">Architecture &amp; Structure</text>
+    <text x="472" y="268" text-anchor="end" fill="#0f172a" font-family="Inter,-apple-system,sans-serif" font-size="13.5" font-weight="700">11 / 15</text>
+    <rect x="28" y="276" width="444" height="5" rx="2.5" fill="#f1f5f9"/>
+    <rect x="28" y="276" width="326" height="5" rx="2.5" fill="url(#bar)"/>
+
+    <!-- Row 5: Testing & Validation  13/15 -->
+    <text x="28" y="318" fill="#475569" font-family="Inter,-apple-system,sans-serif" font-size="13.5">Testing &amp; Validation</text>
+    <text x="472" y="318" text-anchor="end" fill="#0f172a" font-family="Inter,-apple-system,sans-serif" font-size="13.5" font-weight="700">13 / 15</text>
+    <rect x="28" y="326" width="444" height="5" rx="2.5" fill="#f1f5f9"/>
+    <rect x="28" y="326" width="385" height="5" rx="2.5" fill="url(#bar)"/>
+
+    <!-- Row 6: Code Quality Enforcement  9/10 -->
+    <text x="28" y="368" fill="#475569" font-family="Inter,-apple-system,sans-serif" font-size="13.5">Code Quality Enforcement</text>
+    <text x="472" y="368" text-anchor="end" fill="#0f172a" font-family="Inter,-apple-system,sans-serif" font-size="13.5" font-weight="700">9 / 10</text>
+    <rect x="28" y="376" width="444" height="5" rx="2.5" fill="#f1f5f9"/>
+    <rect x="28" y="376" width="400" height="5" rx="2.5" fill="url(#bar)"/>
+
+    <!-- Row 7: Security & Governance  8/10 -->
+    <text x="28" y="418" fill="#475569" font-family="Inter,-apple-system,sans-serif" font-size="13.5">Security &amp; Governance</text>
+    <text x="472" y="418" text-anchor="end" fill="#0f172a" font-family="Inter,-apple-system,sans-serif" font-size="13.5" font-weight="700">8 / 10</text>
+    <rect x="28" y="426" width="444" height="5" rx="2.5" fill="#f1f5f9"/>
+    <rect x="28" y="426" width="355" height="5" rx="2.5" fill="url(#bar)"/>
+
+    <!-- Divider above total -->
+    <line x1="28" y1="458" x2="472" y2="458" stroke="#e2e8f0" stroke-width="1"/>
+
+    <!-- Total score -->
+    <text x="28" y="496" fill="#475569" font-family="Inter,-apple-system,sans-serif"
+          font-size="12" font-weight="600" letter-spacing="0.06em">TOTAL SCORE</text>
+    <text x="472" y="500" text-anchor="end" fill="#0f172a"
+          font-family="Inter,-apple-system,sans-serif" font-size="36" font-weight="800">83</text>
+    <text x="472" y="524" text-anchor="end" fill="#94a3b8"
+          font-family="Inter,-apple-system,sans-serif" font-size="12">out of 100</text>
+  </g>
+</svg>

@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["agentic_legibility_score"]
+
+[project]
+name = "agentic-legibility-score"
+version = "1.0.0"
+description = "Score any code repository 0-100 on how effectively AI agents can autonomously operate within it"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.9"
+authors = [
+    {name = "Sean Dai"},
+]
+keywords = ["ai", "agents", "legibility", "scoring", "repository", "devops", "dx"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/LatencyTDH/agentic-legibility"
+Repository = "https://github.com/LatencyTDH/agentic-legibility"
+Issues = "https://github.com/LatencyTDH/agentic-legibility/issues"
+Changelog = "https://github.com/LatencyTDH/agentic-legibility/blob/main/CHANGELOG.md"
+
+[project.scripts]
+agentic-legibility-score = "agentic_legibility_score:main"
+
+[tool.ruff]
+target-version = "py39"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "SIM"]
