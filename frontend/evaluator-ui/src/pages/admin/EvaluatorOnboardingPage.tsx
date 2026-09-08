@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { createEvaluatorProfile } from '../../services/adminEvalService';
 import { getErrorMessage } from '../../lib/api';
 import type { EvaluatorType } from '../../types';

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getAssignment, submitScorecard } from '../../services/evaluatorService';
 import { getProblem } from '../../services/problemService';
@@ -69,22 +69,22 @@ export default function ScoringPage() {
 
   // Validation
   let isValid = true;
-  let validationMsg = '';
+  
   if (assignment) {
     if (assignment.overdue) {
       isValid = false;
-      validationMsg = 'Assignment is overdue and cannot be submitted.';
+      
     } else if (assignment.status === 'SUBMITTED' || assignment.status === 'REVIEWED') {
       isValid = false;
-      validationMsg = 'Assignment is already submitted.';
+      
     } else {
       const missing = criteriaList.find(c => scores[c.key]?.score === '' || (scores[c.key]?.score as number) < 0 || (scores[c.key]?.score as number) > c.maxScore);
       if (missing) {
         isValid = false;
-        validationMsg = 'All criteria must be scored within their valid range.';
+        
       } else if (!overallFeedback.trim()) {
         isValid = false;
-        validationMsg = 'Overall feedback is required.';
+        
       }
     }
   }

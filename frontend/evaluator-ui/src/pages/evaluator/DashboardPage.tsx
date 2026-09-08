@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { getMyProfile, getMyCriteria } from '../../services/evaluatorService';
 import { getErrorMessage, getErrorStatus } from '../../lib/api';
 import type { EvaluatorProfileResponse, EvaluationCriteria } from '../../types';

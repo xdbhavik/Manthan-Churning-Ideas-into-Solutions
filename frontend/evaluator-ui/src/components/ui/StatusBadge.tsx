@@ -1,4 +1,3 @@
-import React from 'react';
 
 type BadgeVariant = 'green' | 'blue' | 'amber' | 'red' | 'gray' | 'purple' | 'indigo';
 

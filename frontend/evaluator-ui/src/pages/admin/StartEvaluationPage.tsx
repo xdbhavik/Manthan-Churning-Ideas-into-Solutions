@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { startEvaluation } from '../../services/adminEvalService';
 import { getErrorMessage } from '../../lib/api';

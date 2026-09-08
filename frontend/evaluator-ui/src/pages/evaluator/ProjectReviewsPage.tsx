@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { getMyProjectReviews, submitProjectReviewDecision, downloadFile } from '../../services/evaluatorService';
 import { getErrorMessage, getErrorStatus } from '../../lib/api';
-import type { ProjectReviewResponse, ProjectReviewStatus } from '../../types';
+import type { ProjectReviewResponse } from '../../types';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import ErrorPanel from '../../components/ui/ErrorPanel';
 import EmptyState from '../../components/ui/EmptyState';

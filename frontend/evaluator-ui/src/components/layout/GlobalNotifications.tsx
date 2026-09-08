@@ -1,4 +1,3 @@
-import React from 'react';
 
 interface Props {
   success?: { message: string; onDismiss: () => void } | null;

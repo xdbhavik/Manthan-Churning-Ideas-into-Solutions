@@ -2,16 +2,13 @@ import { api } from '../lib/api';
 import type {
   CreateEvaluatorProfileRequest,
   EvaluationCycleResponse,
-  EvaluationProfileResponse,
-  EvaluationStatus,
+    EvaluationStatus,
   EvaluationStatusHistoryResponse,
   EvaluatorProfileResponse,
   PageResponse,
   RoutingResultResponse,
 } from '../types';
 
-// Suppress unused import warning — EvaluationProfileResponse may not exist yet
-type _unused = EvaluationProfileResponse;
 
 export async function getEvaluationQueue(
   page = 0,

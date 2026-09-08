@@ -1,4 +1,3 @@
-import React from 'react';
 import DashboardPage from './DashboardPage';
 
 // Standalone profile page renders same content as dashboard profile panel (full-width)

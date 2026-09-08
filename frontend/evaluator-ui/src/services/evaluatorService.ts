@@ -1,4 +1,5 @@
-import { api, getAccessToken } from '../lib/api';
+import { api } from '../lib/api';
+import { getAccessToken } from '../lib/auth';
 import type {
   AssignmentResponse,
   AssignmentStatus,
