@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Problem Source Portal · National Repository</title>
+  
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
+  <!-- Tailwind CSS -->
+
+    <link rel="stylesheet" href="/src/style.css">
+</head>
+<body class="bg-surface-subtle font-body-md text-text-primary min-h-screen flex flex-col">
+
+  <!-- Top Tricolor Ribbon -->
+  <div class="w-full fixed top-0 left-0 h-1 flex z-50">
+    <div class="h-full flex-1 bg-saffron-accent"></div>
+    <div class="h-full flex-1 bg-surface-crisp"></div>
+    <div class="h-full flex-1 bg-gov-emerald"></div>
+  </div>
+
+  <!-- Global Header -->
+  <header class="fixed top-1 left-0 right-0 z-40 bg-surface-crisp shadow-sm border-b border-border-hairline">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3 cursor-pointer" onclick="syncPortalState()">
+        <!-- Ashoka Emblem SVG -->
+        <div class="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-lg bg-surface-container-low shadow-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="w-8 h-8" fill="none">
+            <circle cx="24" cy="24" r="22" fill="#0A2540" stroke="#E2E8F0" stroke-width="1.5"/>
+            <circle cx="24" cy="24" r="16" fill="#F8FAFC" stroke="#0A2540" stroke-width="1"/>
+            <circle cx="24" cy="24" r="11" stroke="#1E3A8A" stroke-width="1.2" fill="none"/>
+            <circle cx="24" cy="24" r="3" fill="#1E3A8A"/>
+            <line x1="24" y1="13" x2="24" y2="35" stroke="#1E3A8A" stroke-width="1"/>
+            <line x1="13" y1="24" x2="35" y2="24" stroke="#1E3A8A" stroke-width="1"/>
+            <line x1="16" y1="16" x2="32" y2="32" stroke="#1E3A8A" stroke-width="1"/>
+            <line x1="16" y1="32" x2="32" y2="16" stroke="#1E3A8A" stroke-width="1"/>
+          </svg>
+        </div>
+        <div class="flex flex-col">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-ashoka-blue tracking-tight text-base sm:text-lg">Problem Source Portal</span>
+            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-status-submitted-bg text-status-submitted-text uppercase">Gov.in</span>
+          </div>
+          <span class="text-xs text-text-muted hidden sm:inline">Problem Source Organization KYC | स्रोत संगठन सत्यापन</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- KYC Status Badge -->
+        <span id="header-user-kyc" class="hidden text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">Unauthenticated</span>
+
+        <!-- Profile Avatar & Dropdown -->
+        <div class="relative" id="profile-dropdown-wrapper">
+          <button type="button" onclick="toggleProfileDropdown()" id="header-profile-btn"
+                  class="flex items-center gap-2 bg-surface-muted hover:bg-surface-container-low px-3 py-1.5 rounded-lg border border-border-hairline transition-colors cursor-pointer">
+            <div class="w-7 h-7 rounded-full bg-ashoka-blue text-surface-crisp flex items-center justify-center text-xs font-bold" id="header-avatar-initials">
+              <span class="material-symbols-outlined text-[16px]">person</span>
+            </div>
+            <div class="flex flex-col text-left hidden sm:flex">
+              <span class="text-xs font-bold text-ashoka-blue leading-tight" id="header-user-role">Guest</span>
+              <span class="text-[10px] text-text-muted leading-none" id="header-user-phone">Not Logged In</span>
+            </div>
+            <span class="material-symbols-outlined text-text-muted text-[18px] transition-transform" id="header-dropdown-arrow">expand_more</span>
+          </button>
+
+          <!-- Dropdown Menu -->
+          <div id="profile-dropdown" class="profile-dropdown hidden absolute right-0 top-full mt-2 w-56 bg-surface-crisp rounded-xl shadow-xl border border-border-hairline overflow-hidden z-50">
+            <div class="px-4 py-3 border-b border-border-hairline bg-surface-subtle">
+              <p class="text-xs font-bold text-ashoka-blue truncate" id="dropdown-user-name">Guest User</p>
+              <p class="text-[11px] text-text-muted font-mono-code truncate" id="dropdown-user-phone">Not logged in</p>
+            </div>
+            <div class="py-1">
+              <button type="button" onclick="showView('view-profile'); closeProfileDropdown();"
+                      class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-text-primary hover:bg-surface-muted transition-colors text-left cursor-pointer">
+                <span class="material-symbols-outlined text-[18px] text-text-muted">settings</span>
+                <span>Profile & Settings</span>
+              </button>
+              <button type="button" onclick="showView('view-tracking'); closeProfileDropdown();"
+                      class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-text-primary hover:bg-surface-muted transition-colors text-left cursor-pointer" id="dropdown-my-applications">
+                <span class="material-symbols-outlined text-[18px] text-text-muted">description</span>
+                <span>My Applications</span>
+              </button>
+            </div>
+            <div class="border-t border-border-hairline py-1">
+              <button type="button" onclick="clearSession(); closeProfileDropdown();"
+                      class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-error hover:bg-error/5 transition-colors text-left cursor-pointer">
+                <span class="material-symbols-outlined text-[18px]">logout</span>
+                <span>Sign Out</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace Canvas -->
+  <main class="flex-1 pt-24 px-4 sm:px-6 max-w-7xl mx-auto w-full">
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 1: UNIFIED AUTHENTICATION (LOGIN / REGISTER)          -->
+    <!-- ============================================================ -->
+    <section id="view-auth" class="w-full flex flex-col items-center justify-center py-6">
+      <div class="w-full max-w-md bg-surface-crisp rounded-xl shadow-xl p-6 sm:p-8 relative overflow-hidden border border-border-hairline">
+        <div class="w-full h-1 bg-gradient-to-r from-saffron-accent via-surface-muted to-gov-emerald absolute top-0 left-0"></div>
+
+        <div class="flex flex-col mb-6 text-center sm:text-left">
+          <div class="flex items-center justify-center sm:justify-start gap-2 mb-2">
+            <span class="material-symbols-outlined text-ashoka-blue text-xl">shield_person</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-saffron-accent">Statutory SSO Gateway</span>
+          </div>
+          <h1 class="text-2xl font-bold text-ashoka-blue mb-1">Sign In / Register as Source</h1>
+          <p class="text-sm text-text-secondary">Passwordless OTP login for Gram Panchayats, Ministries, ULBs, Industry &amp; Citizens</p>
+        </div>
+
+        <form id="auth-form" onsubmit="event.preventDefault(); handleSendOtp(document.getElementById('mobile-input').value, document.getElementById('email-input').value);" class="flex flex-col gap-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-bold text-ashoka-blue flex justify-between" for="mobile-input">
+              <span>Mobile Number <span class="text-saffron-accent">*</span></span>
+              <span class="font-mono-code text-[11px] text-text-muted">10 DIGITS</span>
+            </label>
+            <div class="relative flex items-stretch rounded-lg bg-surface-subtle border border-border-strong focus-within:ring-2 focus-within:ring-ashoka-blue">
+              <span class="flex items-center px-3.5 bg-surface-muted rounded-l-lg text-sm font-mono-code text-text-primary select-none font-medium">+91</span>
+              <input id="mobile-input" type="tel" maxlength="10" placeholder="9876543210" required
+                     class="w-full px-3 py-2 bg-transparent font-mono-code text-sm text-text-primary placeholder:text-text-muted focus:outline-none"/>
+            </div>
+            <span class="text-[11px] text-text-muted flex items-center gap-1 mt-0.5">
+              <span class="material-symbols-outlined text-[14px]">info</span>
+              An official 6-digit OTP will be issued to this phone
+            </span>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-bold text-ashoka-blue flex justify-between" for="email-input">
+              <span>Official Email Address</span>
+              <span class="text-[11px] text-text-muted font-normal">(Optional)</span>
+            </label>
+            <div class="relative flex items-center rounded-lg bg-surface-subtle border border-border-strong focus-within:ring-2 focus-within:ring-ashoka-blue">
+              <span class="material-symbols-outlined text-text-muted ml-3 text-lg select-none">alternate_email</span>
+              <input id="email-input" type="email" placeholder="sarpanch@khajuri.gov.in"
+                     class="w-full px-3 py-2 bg-transparent text-sm text-text-primary placeholder:text-text-muted focus:outline-none"/>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-2.5 p-3 rounded-lg bg-surface-subtle border border-border-hairline">
+            <input id="auth-decl" type="checkbox" required class="mt-1 w-4 h-4 rounded text-ashoka-blue focus:ring-ashoka-blue cursor-pointer"/>
+            <label for="auth-decl" class="text-xs text-text-secondary cursor-pointer leading-snug">
+              I solemnly declare that I am authorized to represent and submit problem statements on behalf of this entity/organization.
+            </label>
+          </div>
+
+          <button type="submit" id="auth-submit-btn"
+                  class="w-full py-3 px-5 rounded-lg bg-ashoka-blue hover:bg-institutional-navy text-on-primary font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.99]">
+            <span>Send Verification Code (OTP)</span>
+            <span class="material-symbols-outlined text-base">arrow_forward</span>
+          </button>
+        </form>
+
+        
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 2: OTP VERIFICATION                                   -->
+    <!-- ============================================================ -->
+    <section id="view-otp" class="hidden w-full flex flex-col items-center justify-center py-6">
+      <div class="w-full max-w-md bg-surface-crisp rounded-xl shadow-xl p-6 sm:p-8 relative overflow-hidden border border-border-hairline text-center">
+        <div class="w-full h-1 bg-gradient-to-r from-saffron-accent via-surface-muted to-gov-emerald absolute top-0 left-0"></div>
+
+        <div class="w-12 h-12 rounded-full bg-surface-container text-ashoka-blue mx-auto flex items-center justify-center mb-3">
+          <span class="material-symbols-outlined text-2xl">sms</span>
+        </div>
+
+        <h2 class="text-2xl font-bold text-ashoka-blue mb-1">Verify Mobile Number</h2>
+        <p class="text-sm text-text-secondary mb-2">Enter the 6-digit authentication OTP sent to:</p>
+        <div class="inline-flex items-center gap-2 px-3 py-1 bg-surface-subtle rounded-full border border-border-hairline mb-4 font-mono-code font-bold text-ashoka-blue text-sm">
+          <span id="otp-display-phone">+91 98765 43210</span>
+          <button onclick="showView('view-auth')" class="text-saffron-accent hover:underline text-xs font-normal">Edit</button>
+        </div>
+
+
+
+        <!-- 6-Digit Segmented OTP Input -->
+        <form onsubmit="event.preventDefault(); const code = Array.from(document.querySelectorAll('.otp-cell')).map(c=>c.value).join(''); handleVerifyOtp(code);">
+          <div class="flex justify-center gap-2 sm:gap-3 mb-6">
+            <input type="text" maxlength="1" inputmode="numeric" class="otp-cell w-11 h-12 sm:w-12 sm:h-14 text-center font-mono-code text-xl font-bold rounded-lg border-2 border-border-strong bg-surface-subtle focus:border-ashoka-blue focus:bg-surface-crisp focus:outline-none transition-all"/>
+            <input type="text" maxlength="1" inputmode="numeric" class="otp-cell w-11 h-12 sm:w-12 sm:h-14 text-center font-mono-code text-xl font-bold rounded-lg border-2 border-border-strong bg-surface-subtle focus:border-ashoka-blue focus:bg-surface-crisp focus:outline-none transition-all"/>
+            <input type="text" maxlength="1" inputmode="numeric" class="otp-cell w-11 h-12 sm:w-12 sm:h-14 text-center font-mono-code text-xl font-bold rounded-lg border-2 border-border-strong bg-surface-subtle focus:border-ashoka-blue focus:bg-surface-crisp focus:outline-none transition-all"/>
+            <input type="text" maxlength="1" inputmode="numeric" class="otp-cell w-11 h-12 sm:w-12 sm:h-14 text-center font-mono-code text-xl font-bold rounded-lg border-2 border-border-strong bg-surface-subtle focus:border-ashoka-blue focus:bg-surface-crisp focus:outline-none transition-all"/>
+            <input type="text" maxlength="1" inputmode="numeric" class="otp-cell w-11 h-12 sm:w-12 sm:h-14 text-center font-mono-code text-xl font-bold rounded-lg border-2 border-border-strong bg-surface-subtle focus:border-ashoka-blue focus:bg-surface-crisp focus:outline-none transition-all"/>
+            <input type="text" maxlength="1" inputmode="numeric" class="otp-cell w-11 h-12 sm:w-12 sm:h-14 text-center font-mono-code text-xl font-bold rounded-lg border-2 border-border-strong bg-surface-subtle focus:border-ashoka-blue focus:bg-surface-crisp focus:outline-none transition-all"/>
+          </div>
+
+          <button type="submit" class="w-full py-3 px-5 rounded-lg bg-ashoka-blue hover:bg-institutional-navy text-on-primary font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all">
+            <span>Verify &amp; Enter Portal</span>
+            <span class="material-symbols-outlined text-base">check</span>
+          </button>
+        </form>
+
+        <div class="mt-4 flex items-center justify-center gap-1 text-xs text-text-muted">
+          <span>Didn't receive code?</span>
+          <button type="button" onclick="handleSendOtp(state.otpPhone)" class="text-ashoka-blue font-bold hover:underline">Resend OTP</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 3: SOURCE ORG / KYC REGISTRATION WIZARD               -->
+    <!-- ============================================================ -->
+    <section id="view-wizard" class="hidden flex flex-col gap-6">
+      
+      <!-- Stepper Header Card -->
+      <div class="wz-card bg-surface-crisp p-4 sm:p-6 rounded-xl border border-border-hairline shadow-sm relative overflow-hidden">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border-hairline mb-5 sm:mb-6">
+          <div>
+            <span class="text-[11px] uppercase tracking-wider font-bold text-saffron-accent">Statutory Compliance Matrix</span>
+            <h2 class="text-xl sm:text-2xl font-bold text-ashoka-blue">Source Organization KYC Registration Wizard</h2>
+          </div>
+
+          <!-- Animated completion dial -->
+          <div class="flex items-center gap-3 self-start md:self-auto">
+            <div class="wz-dial" role="img" aria-label="Registration completion">
+              <svg class="wz-dial-svg" viewBox="0 0 44 44" aria-hidden="true">
+                <circle class="wz-dial-track" cx="22" cy="22" r="18"/>
+                <circle class="wz-dial-fill" cx="22" cy="22" r="18"/>
+              </svg>
+              <span class="wz-dial-pct" id="wizard-dial-pct">20%</span>
+            </div>
+            <div class="flex flex-col leading-tight">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-text-muted">Completion</span>
+              <span class="text-sm font-bold text-ashoka-blue" id="wizard-stage-label">Step 1 of 5 · Category</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5-Step Animated Timeline -->
+        <nav id="wizard-timeline" class="wz-timeline" data-step="1" data-dir="fwd" aria-label="Registration progress">
+          <div class="wz-rail" aria-hidden="true">
+            <div class="wz-rail-fill" id="wizard-progress-bar"></div>
+            <div class="wz-seek"></div>
+          </div>
+          <ol class="wz-steps">
+            <li class="wz-step" data-step="1" data-state="active" data-label="Category" style="--wz-i:0">
+              <button type="button" class="wz-node" onclick="goToWizardStep(1);" aria-current="step" aria-label="Step 1: Category">
+                <span class="wz-halo" aria-hidden="true"></span>
+                <span class="wz-ring" aria-hidden="true"></span>
+                <span class="wz-burst" aria-hidden="true"></span>
+                <span class="wz-num" aria-hidden="true">01</span>
+                <svg class="wz-check" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l5 5L19 7"/></svg>
+              </button>
+              <span class="wz-text">
+                <span class="wz-label">Category</span>
+                <span class="wz-sub">Entity bucket</span>
+              </span>
+            </li>
+            <li class="wz-step" data-step="2" data-state="upcoming" data-label="Details" style="--wz-i:1">
+              <button type="button" class="wz-node" onclick="goToWizardStep(2);" aria-label="Step 2: Details">
+                <span class="wz-halo" aria-hidden="true"></span>
+                <span class="wz-ring" aria-hidden="true"></span>
+                <span class="wz-burst" aria-hidden="true"></span>
+                <span class="wz-num" aria-hidden="true">02</span>
+                <svg class="wz-check" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l5 5L19 7"/></svg>
+              </button>
+              <span class="wz-text">
+                <span class="wz-label">Details</span>
+                <span class="wz-sub">Data attributes</span>
+              </span>
+            </li>
+            <li class="wz-step" data-step="3" data-state="upcoming" data-label="Documents" style="--wz-i:2">
+              <button type="button" class="wz-node" onclick="goToWizardStep(3);" aria-label="Step 3: Documents">
+                <span class="wz-halo" aria-hidden="true"></span>
+                <span class="wz-ring" aria-hidden="true"></span>
+                <span class="wz-burst" aria-hidden="true"></span>
+                <span class="wz-num" aria-hidden="true">03</span>
+                <svg class="wz-check" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l5 5L19 7"/></svg>
+              </button>
+              <span class="wz-text">
+                <span class="wz-label">Documents</span>
+                <span class="wz-sub">Evidences</span>
+              </span>
+            </li>
+            <li class="wz-step" data-step="4" data-state="upcoming" data-label="Review" style="--wz-i:3">
+              <button type="button" class="wz-node" onclick="goToWizardStep(4);" aria-label="Step 4: Review">
+                <span class="wz-halo" aria-hidden="true"></span>
+                <span class="wz-ring" aria-hidden="true"></span>
+                <span class="wz-burst" aria-hidden="true"></span>
+                <span class="wz-num" aria-hidden="true">04</span>
+                <svg class="wz-check" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l5 5L19 7"/></svg>
+              </button>
+              <span class="wz-text">
+                <span class="wz-label">Review</span>
+                <span class="wz-sub">Verify draft</span>
+              </span>
+            </li>
+            <li class="wz-step" data-step="5" data-state="upcoming" data-label="Confirm" style="--wz-i:4">
+              <button type="button" class="wz-node" onclick="goToWizardStep(5);" aria-label="Step 5: Confirm">
+                <span class="wz-halo" aria-hidden="true"></span>
+                <span class="wz-ring" aria-hidden="true"></span>
+                <span class="wz-burst" aria-hidden="true"></span>
+                <span class="wz-num" aria-hidden="true">05</span>
+                <svg class="wz-check" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l5 5L19 7"/></svg>
+              </button>
+              <span class="wz-text">
+                <span class="wz-label">Confirm</span>
+                <span class="wz-sub">Submit</span>
+              </span>
+            </li>
+          </ol>
+        </nav>
+      </div>
+
+      <!-- STEP 1 PANEL: BUCKET & SUBTYPE SELECTION -->
+      <div id="wizard-panel-1" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-8 flex flex-col gap-6">
+          <div class="bg-surface-crisp p-6 rounded-xl border border-border-hairline shadow-sm flex flex-col gap-4">
+            <div class="flex items-center justify-between pb-2 border-b border-border-hairline">
+              <div>
+                <h3 class="font-bold text-lg text-ashoka-blue">Step 1.1 · Select Primary Category</h3>
+                <p class="text-xs text-text-secondary">Select the sovereign or institutional bucket governing your entity</p>
+              </div>
+            </div>
+
+            <!-- 5 Category Cards -->
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              <button type="button" data-bucket="GOVT" onclick="setWizardBucket('GOVT')" class="category-btn">
+                <div class="check-badge absolute top-2 right-2 w-4 h-4 rounded-full bg-ashoka-blue text-surface-crisp flex items-center justify-center text-[10px] hidden">✓</div>
+                <span class="material-symbols-outlined text-3xl mb-1 text-ashoka-blue">account_balance</span>
+                <span class="font-bold text-xs">Government</span>
+                <span class="font-mono-code text-[10px] opacity-75">GOVT</span>
+              </button>
+              <button type="button" data-bucket="CITIZEN" onclick="setWizardBucket('CITIZEN')" class="category-btn">
+                <div class="check-badge absolute top-2 right-2 w-4 h-4 rounded-full bg-ashoka-blue text-surface-crisp flex items-center justify-center text-[10px] hidden">✓</div>
+                <span class="material-symbols-outlined text-3xl mb-1 text-text-muted">person</span>
+                <span class="font-bold text-xs">Citizen</span>
+                <span class="font-mono-code text-[10px] opacity-75">CITIZEN</span>
+              </button>
+              <button type="button" data-bucket="INDUSTRY" onclick="setWizardBucket('INDUSTRY')" class="category-btn">
+                <div class="check-badge absolute top-2 right-2 w-4 h-4 rounded-full bg-ashoka-blue text-surface-crisp flex items-center justify-center text-[10px] hidden">✓</div>
+                <span class="material-symbols-outlined text-3xl mb-1 text-text-muted">domain</span>
+                <span class="font-bold text-xs">Industry</span>
+                <span class="font-mono-code text-[10px] opacity-75">INDUSTRY</span>
+              </button>
+              <button type="button" data-bucket="COMMUNITY" onclick="setWizardBucket('COMMUNITY')" class="category-btn">
+                <div class="check-badge absolute top-2 right-2 w-4 h-4 rounded-full bg-ashoka-blue text-surface-crisp flex items-center justify-center text-[10px] hidden">✓</div>
+                <span class="material-symbols-outlined text-3xl mb-1 text-text-muted">groups</span>
+                <span class="font-bold text-xs">Community</span>
+                <span class="font-mono-code text-[10px] opacity-75">COMMUNITY</span>
+              </button>
+              <button type="button" data-bucket="HEI" onclick="setWizardBucket('HEI')" class="category-btn">
+                <div class="check-badge absolute top-2 right-2 w-4 h-4 rounded-full bg-ashoka-blue text-surface-crisp flex items-center justify-center text-[10px] hidden">✓</div>
+                <span class="material-symbols-outlined text-3xl mb-1 text-text-muted">school</span>
+                <span class="font-bold text-xs">Education</span>
+                <span class="font-mono-code text-[10px] opacity-75">HEI</span>
+              </button>
+            </div>
+
+            <!-- Subtypes List -->
+            <div class="mt-4">
+              <h4 class="font-bold text-sm text-ashoka-blue mb-2">Step 1.2 · Choose Sub-Entity Type</h4>
+              <div id="subtype-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+            </div>
+
+            <div class="pt-4 flex justify-end">
+              <button type="button" onclick="state.wizard.step=2; renderWizardStep();" class="px-6 py-2.5 rounded-lg bg-ashoka-blue hover:bg-institutional-navy text-surface-crisp font-bold text-sm flex items-center gap-2">
+                <span>Continue to Form Details</span>
+                <span class="material-symbols-outlined text-base">arrow_forward</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Statutory Context Column -->
+        <div class="lg:col-span-4 flex flex-col gap-4">
+          <div class="bg-surface-crisp p-5 rounded-xl border border-border-hairline shadow-sm">
+            <h4 class="font-bold text-sm text-ashoka-blue mb-2 flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-gov-emerald text-lg">policy</span>
+              How are entities categorised?
+            </h4>
+            <p class="text-xs text-text-secondary leading-relaxed mb-3">
+              Entity categorization determines verification criteria, mandate checks, and problem submission thresholds in accordance with SIH Guidelines.
+            </p>
+            <ul class="text-xs text-text-muted flex flex-col gap-2">
+              <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[14px] text-gov-emerald">check</span> PRI / ULB: Gram Sabha or Ward resolution</li>
+              <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[14px] text-gov-emerald">check</span> Company / MSME: CIN or Udyam number</li>
+              <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[14px] text-gov-emerald">check</span> NGO / Community: Darpan ID / Trust reg</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2 PANEL: DYNAMIC FORM -->
+      <div id="wizard-panel-2" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-8 flex flex-col gap-6">
+          <div class="bg-surface-crisp p-6 rounded-xl border border-border-hairline shadow-sm">
+            <div class="flex items-center justify-between pb-3 border-b border-border-hairline mb-4">
+              <div>
+                <span class="text-[11px] uppercase font-bold text-saffron-accent">Step 2 · Data Attributes</span>
+                <h3 class="font-bold text-lg text-ashoka-blue" id="step2-type-title">Entity Configuration</h3>
+              </div>
+              <button type="button" onclick="state.wizard.step=1; renderWizardStep();" class="text-xs text-ashoka-blue hover:underline">Change Type</button>
+            </div>
+
+            <form id="step2-form" class="flex flex-col gap-4">
+              <div id="dynamic-fields-container" class="flex flex-col gap-4"></div>
+            </form>
+
+            <div class="pt-4 flex justify-between border-t border-border-hairline mt-4">
+              <button type="button" onclick="collectStep2Data(); state.wizard.step=1; renderWizardStep();" class="px-4 py-2 rounded-lg border border-border-strong text-text-primary text-xs font-semibold">
+                ← Back
+              </button>
+              <button type="button" onclick="validateAndGoStep3();" class="px-6 py-2.5 rounded-lg bg-ashoka-blue hover:bg-institutional-navy text-surface-crisp font-bold text-sm flex items-center gap-2">
+                <span>Save &amp; Attach Documents</span>
+                <span class="material-symbols-outlined text-base">arrow_forward</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side Checklist -->
+        <div class="lg:col-span-4 flex flex-col gap-4">
+          <div class="bg-surface-crisp p-5 rounded-xl border border-border-hairline shadow-sm">
+            <h4 class="font-bold text-sm text-ashoka-blue mb-2">Required Information</h4>
+            <p class="text-xs text-text-secondary leading-relaxed mb-3">
+              Required fields marked with <span class="text-saffron-accent font-bold">*</span> must be provided before final review submission.
+            </p>
+            <div class="p-3 rounded-lg bg-surface-subtle text-xs font-mono-code text-text-secondary leading-relaxed">
+              Fields marked with * are required. Please fill them in before proceeding.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3 PANEL: DOCUMENTS -->
+      <div id="wizard-panel-3" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-8 flex flex-col gap-6">
+          <div class="bg-surface-crisp p-6 rounded-xl border border-border-hairline shadow-sm flex flex-col gap-4">
+            <div class="pb-3 border-b border-border-hairline">
+              <span class="text-[11px] uppercase font-bold text-saffron-accent">Step 3 · Verification Evidences</span>
+              <h3 class="font-bold text-lg text-ashoka-blue">Supporting Documents</h3>
+              <p class="text-xs text-text-secondary">Attach official orders, resolutions, or registration certificates to expedite verification.</p>
+            </div>
+
+            <!-- Drag & Drop Zone -->
+            <div id="docs-dropzone"
+                 class="border-2 border-dashed border-border-strong hover:border-ashoka-blue hover:bg-surface-subtle transition-all cursor-pointer rounded-xl p-6 text-center flex flex-col items-center justify-center gap-2 group bg-surface-subtle/50 select-none">
+              <input type="file" id="doc-file-input" multiple accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" class="hidden"/>
+              <div class="w-12 h-12 rounded-full bg-surface-container-low group-hover:bg-ashoka-blue/10 flex items-center justify-center text-ashoka-blue transition-colors">
+                <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">cloud_upload</span>
+              </div>
+              <div class="flex flex-col gap-0.5">
+                <p class="text-sm font-bold text-ashoka-blue">Drop file here to attach, or <span class="text-saffron-accent underline decoration-saffron-accent font-semibold">browse files</span></p>
+                <p class="text-xs text-text-secondary">PDF, PNG, JPG files up to 5MB · Auto-attaches to your application</p>
+              </div>
+            </div>
+
+            <!-- Documents List -->
+            <div id="docs-list-container" class="flex flex-col gap-2"></div>
+
+            <!-- Add Document Box -->
+            <div class="p-4 rounded-lg bg-surface-subtle border border-border-hairline flex flex-col sm:flex-row gap-3 items-end">
+              <div class="flex-1 w-full flex flex-col gap-1">
+                <label class="text-xs font-bold text-ashoka-blue">Document Type</label>
+                <div class="custom-select-wrapper" data-field-key="docType">
+                  <button type="button" class="custom-select-trigger text-xs h-10" data-select-trigger="docType" aria-haspopup="listbox" aria-expanded="false">
+                    <span class="custom-select-label truncate font-medium text-text-primary text-xs">Authorization Letter</span>
+                    <span class="custom-select-chevron material-symbols-outlined text-[18px]">expand_more</span>
+                  </button>
+                  <div class="custom-select-menu" role="listbox">
+                    <div class="custom-select-options">
+                      <div class="custom-select-option is-selected text-xs py-2" role="option" aria-selected="true" data-value="AUTHORIZATION_LETTER" data-label="Authorization Letter">
+                        <span class="truncate">Authorization Letter</span>
+                        <span class="material-symbols-outlined text-[16px] text-ashoka-blue checkmark shrink-0">check</span>
+                      </div>
+                      <div class="custom-select-option text-xs py-2" role="option" aria-selected="false" data-value="GRAM_SABHA_RESOLUTION" data-label="Gram Sabha Resolution">
+                        <span class="truncate">Gram Sabha Resolution</span>
+                      </div>
+                      <div class="custom-select-option text-xs py-2" role="option" aria-selected="false" data-value="REGISTRATION_CERTIFICATE" data-label="Registration Certificate">
+                        <span class="truncate">Registration Certificate</span>
+                      </div>
+                      <div class="custom-select-option text-xs py-2" role="option" aria-selected="false" data-value="GOVERNMENT_ID" data-label="Government ID / Nodal Order">
+                        <span class="truncate">Government ID / Nodal Order</span>
+                      </div>
+                      <div class="custom-select-option text-xs py-2" role="option" aria-selected="false" data-value="AUDIT_REPORT" data-label="Statutory Audit Report">
+                        <span class="truncate">Statutory Audit Report</span>
+                      </div>
+                    </div>
+                  </div>
+                  <input type="hidden" id="doc-type-input" value="AUTHORIZATION_LETTER" />
+                </div>
+              </div>
+              <div class="flex-1 w-full flex flex-col gap-1">
+                <label class="text-xs font-bold text-ashoka-blue">Document Identifier / File Ref</label>
+                <input id="doc-id-input" type="text" placeholder="e.g. RES-2024-GP-098" class="w-full h-10 px-3 rounded-lg border border-border-strong bg-surface-crisp text-xs focus:ring-2 focus:ring-ashoka-blue"/>
+              </div>
+              <button type="button" onclick="const t = document.getElementById('doc-type-input').value; const id = document.getElementById('doc-id-input').value; addDoc(t, id); document.getElementById('doc-id-input').value='';" class="h-10 px-4 rounded-lg bg-surface-container text-ashoka-blue hover:bg-ashoka-blue hover:text-surface-crisp font-bold text-xs transition-all whitespace-nowrap">
+                + Add Document
+              </button>
+            </div>
+
+            <div class="pt-4 flex justify-between border-t border-border-hairline mt-2">
+              <button type="button" onclick="state.wizard.step=2; renderWizardStep();" class="px-4 py-2 rounded-lg border border-border-strong text-text-primary text-xs font-semibold">
+                ← Back
+              </button>
+              <button type="button" onclick="state.wizard.step=4; renderWizardStep();" class="px-6 py-2.5 rounded-lg bg-ashoka-blue hover:bg-institutional-navy text-surface-crisp font-bold text-sm flex items-center gap-2">
+                <span>Review Draft</span>
+                <span class="material-symbols-outlined text-base">arrow_forward</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-4 flex flex-col gap-4">
+          <div class="bg-surface-crisp p-5 rounded-xl border border-border-hairline shadow-sm">
+            <h4 class="font-bold text-sm text-ashoka-blue mb-2">Accepted Formats</h4>
+            <p class="text-xs text-text-secondary leading-relaxed mb-2">PDF, PNG, JPG files up to 5MB. Must clearly display issuing seal and authority signature.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4 PANEL: REVIEW & SAVE DRAFT -->
+      <div id="wizard-panel-4" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-8 flex flex-col gap-6">
+          <div class="bg-surface-crisp p-6 rounded-xl border border-border-hairline shadow-sm flex flex-col gap-4">
+            <div class="pb-3 border-b border-border-hairline">
+              <span class="text-[11px] uppercase font-bold text-saffron-accent">Step 4 · Confirmation</span>
+              <h3 class="font-bold text-lg text-ashoka-blue">Review Registration Application</h3>
+              <p class="text-xs text-text-secondary">Confirm details before saving draft to the national database.</p>
+            </div>
+
+            <div class="flex items-center gap-2 p-3 rounded-lg bg-surface-container-low border border-status-submitted-border">
+              <span class="text-xl">🏛️</span>
+              <div>
+                <span class="text-xs text-text-muted">Organisation Type</span>
+                <h4 class="font-bold text-ashoka-blue" id="review-type-name">PRI</h4>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <h5 class="text-xs font-bold text-ashoka-blue uppercase tracking-wider">Your Details</h5>
+              <div id="review-fields-summary" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+            </div>
+
+            <div class="flex flex-col gap-2 pt-2 border-t border-border-hairline">
+              <h5 class="text-xs font-bold text-ashoka-blue uppercase tracking-wider">Attached Verification Documents</h5>
+              <div id="review-docs-summary" class="flex flex-wrap gap-2"></div>
+            </div>
+
+            <div class="pt-4 flex justify-between border-t border-border-hairline mt-2">
+              <button type="button" onclick="state.wizard.step=3; renderWizardStep();" class="px-4 py-2 rounded-lg border border-border-strong text-text-primary text-xs font-semibold">
+                ← Back
+              </button>
+              <button type="button" onclick="handleSaveDraft()" class="px-6 py-2.5 rounded-lg bg-saffron-accent hover:bg-orange-700 text-surface-crisp font-bold text-sm flex items-center gap-2 shadow-md">
+                <span class="material-symbols-outlined text-base">save</span>
+                <span>Save &amp; Continue</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-4 flex flex-col gap-4">
+          <div class="bg-surface-crisp p-5 rounded-xl border border-border-hairline shadow-sm">
+            <h4 class="font-bold text-sm text-ashoka-blue mb-2">What happens next?</h4>
+            <p class="text-xs text-text-secondary leading-relaxed">
+              Your details will be saved securely. You can review and submit for verification in the next step.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 5 PANEL: SUBMISSION GATE -->
+      <div id="wizard-panel-5" class="hidden flex flex-col items-center justify-center py-6">
+        <div class="w-full max-w-xl bg-surface-crisp p-6 sm:p-8 rounded-xl border border-border-hairline shadow-xl text-center flex flex-col items-center gap-4">
+          <div class="w-16 h-16 rounded-full bg-status-submitted-bg text-status-submitted-text flex items-center justify-center">
+            <span class="material-symbols-outlined text-3xl">send</span>
+          </div>
+
+          <h3 class="text-2xl font-bold text-ashoka-blue">Step 5 · Confirm &amp; Submit</h3>
+          <p class="text-sm text-text-secondary max-w-md">
+            Your draft has been saved. Submit it now to place it in the central review queue for nodal verification.
+          </p>
+
+          <div class="p-3 bg-surface-subtle rounded-lg border border-border-hairline font-mono-code text-xs text-ashoka-blue font-bold">
+            Application Reference: <span id="submit-gate-reg-id" class="text-status-submitted-text">...</span>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-3 w-full mt-2">
+            <button type="button" onclick="handleSubmitRegistration()" class="flex-1 py-3 px-5 rounded-lg bg-gov-emerald hover:bg-emerald-700 text-surface-crisp font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all">
+              <span class="material-symbols-outlined text-base">verified</span>
+              <span>Submit for Official Review</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 4: APPLICATION TRACKING & TIMELINE DASHBOARD          -->
+    <!-- ============================================================ -->
+    <section id="view-tracking" class="hidden flex flex-col gap-6">
+      
+      <!-- Top Status Ribbon -->
+      <div class="bg-surface-crisp p-6 rounded-xl border border-border-hairline shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+        <div class="flex flex-col gap-1">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-text-muted uppercase">National Problem Repository</span>
+            <span class="text-xs font-bold text-gov-emerald bg-gov-emerald/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+              <span class="material-symbols-outlined text-[14px]">verified</span> Active Central Registry
+            </span>
+          </div>
+          <h2 class="text-2xl font-bold text-ashoka-blue tracking-tight">Organization KYC Application Status</h2>
+          <p class="text-sm text-text-secondary">Track the progress of your organisation's verification.</p>
+          
+          <div class="mt-3 flex flex-wrap items-center gap-2">
+            <span class="font-mono-code text-xs font-bold text-ashoka-blue bg-surface-subtle px-3 py-1.5 rounded border border-border-hairline" id="tracking-uuid">
+              UUID: ...
+            </span>
+            <span class="font-bold text-xs text-text-primary bg-surface-muted px-2.5 py-1.5 rounded" id="tracking-entity-name">...</span>
+            <span class="text-xs text-text-muted" id="tracking-lodged-date">...</span>
+          </div>
+        </div>
+
+        <!-- Status Pill Box -->
+        <div id="tracking-status-box" class="w-full lg:w-80 p-4 rounded-xl bg-status-submitted-bg text-status-submitted-text flex flex-col gap-1 border border-status-submitted-border">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-xl" id="tracking-status-icon">schedule</span>
+            <span class="font-bold text-sm uppercase tracking-wider" id="tracking-status-text">SUBMITTED</span>
+          </div>
+          <p class="text-xs opacity-90" id="tracking-status-desc">Awaiting desk review.</p>
+        </div>
+      </div>
+
+      <!-- Action Required Notice Button if applicable -->
+      <div id="tracking-action-btn" class="hidden p-4 rounded-xl bg-status-action-bg border border-status-action-border flex items-center justify-between">
+        <div class="flex items-center gap-3 text-status-action-text">
+          <span class="material-symbols-outlined text-2xl">error</span>
+          <div>
+            <span class="font-bold text-sm">Action Required by Reviewer</span>
+            <p class="text-xs opacity-90">Reviewer requested corrections. Please amend details to proceed.</p>
+          </div>
+        </div>
+        <button type="button" onclick="showView('view-deficiency')" class="px-4 py-2 rounded-lg bg-saffron-accent hover:bg-orange-700 text-surface-crisp font-bold text-xs">
+          Open Deficiency Notice →
+        </button>
+      </div>
+
+      <!-- Dual Column Layout: Left Timeline, Right Actions -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div class="lg:col-span-8 flex flex-col gap-4">
+          <div class="bg-surface-crisp p-6 rounded-xl border border-border-hairline shadow-sm">
+            <h3 class="font-bold text-base text-ashoka-blue mb-4 flex items-center gap-2">
+              <span class="material-symbols-outlined text-ashoka-blue text-lg">timeline</span>
+              Application History
+            </h3>
+            <div id="tracking-timeline-history" class="flex flex-col"></div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-4 flex flex-col gap-4">
+          <div class="bg-surface-crisp p-5 rounded-xl border border-border-hairline shadow-sm">
+            <h4 class="font-bold text-sm text-ashoka-blue mb-2">Expected Timeline</h4>
+            <p class="text-xs text-text-secondary leading-relaxed mb-3">Applications are typically reviewed within 5 working days.</p>
+            <button type="button" onclick="syncPortalState(); toast('Refreshed tracking status', 'info');" class="w-full py-2 rounded-lg border border-border-strong hover:bg-surface-muted text-xs font-bold text-ashoka-blue flex items-center justify-center gap-1.5">
+              <span class="material-symbols-outlined text-base">refresh</span>
+              <span>Check for Updates</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 5: DEFICIENCY & RESUBMISSION INTERFACE                -->
+    <!-- ============================================================ -->
+    <section id="view-deficiency" class="hidden flex flex-col gap-6">
+      
+      <!-- Big Action Required Banner -->
+      <div class="bg-status-action-bg p-6 rounded-xl border border-status-action-border shadow-sm flex flex-col gap-3">
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 rounded-full bg-saffron-accent text-surface-crisp flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-2xl">priority_high</span>
+          </div>
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-2">
+              <h2 class="text-xl font-bold text-status-action-text">Action Required by Reviewer</h2>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-saffron-accent text-surface-crisp uppercase">Notice Pending</span>
+            </div>
+            <p class="text-sm text-text-primary">
+              Reviewer remarks:
+              <span class="italic font-medium text-status-action-text bg-surface-crisp/80 px-2 py-1 rounded block mt-1" id="deficiency-comment-text">
+                "Please update the missing fields and resubmit."
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form in Edit Mode -->
+      <div class="bg-surface-crisp p-6 rounded-xl border border-border-hairline shadow-sm flex flex-col gap-4">
+        <h3 class="font-bold text-lg text-ashoka-blue">Update Your Details</h3>
+        <p class="text-xs text-text-secondary">Please update the information highlighted by the reviewer and resubmit your application.</p>
+
+        <form id="deficiency-form" class="flex flex-col gap-4">
+          <div id="deficiency-fields-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+        </form>
+
+        <div class="pt-4 flex flex-col sm:flex-row justify-between gap-3 border-t border-border-hairline mt-2">
+          <button type="button" onclick="showView('view-tracking')" class="px-4 py-2 rounded-lg border border-border-strong text-text-primary text-xs font-semibold">
+            ← Back to Tracking
+          </button>
+          <div class="flex gap-2">
+            <button type="button" onclick="handlePatchDeficiency()" class="px-5 py-2.5 rounded-lg border border-ashoka-blue text-ashoka-blue hover:bg-surface-muted text-xs font-bold">
+              Save Changes
+            </button>
+            <button type="button" onclick="handleResubmit()" class="px-6 py-2.5 rounded-lg bg-saffron-accent hover:bg-orange-700 text-surface-crisp font-bold text-xs flex items-center gap-1.5 shadow-md">
+              <span class="material-symbols-outlined text-base">send</span>
+              <span>Resubmit for Review</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 6: VERIFICATION COMPLETED & PROBLEM SUBMISSION        -->
+    <!-- ============================================================ -->
+    <section id="view-completed" class="hidden flex flex-col gap-6">
+      
+      <!-- Top Accreditation Banner -->
+      <div class="bg-surface-crisp p-6 sm:p-8 rounded-xl border border-border-hairline shadow-md relative overflow-hidden flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+        <!-- Ashoka Watermark Background -->
+        <div class="absolute right-0 top-0 bottom-0 w-96 opacity-5 pointer-events-none flex items-center justify-center">
+          <svg class="w-full h-full text-ashoka-blue" fill="currentColor" viewBox="0 0 200 200">
+            <circle cx="100" cy="100" r="90" fill="none" stroke="currentColor" stroke-width="6"></circle>
+            <circle cx="100" cy="100" r="16" fill="none" stroke="currentColor" stroke-width="4"></circle>
+          </svg>
+        </div>
+
+        <div class="flex flex-col gap-3 max-w-2xl z-10">
+          <div class="flex items-center gap-2">
+            <div class="w-10 h-10 rounded-full bg-status-approved-bg text-status-approved-text flex items-center justify-center shadow-sm">
+              <span class="material-symbols-outlined text-2xl">verified_user</span>
+            </div>
+            <div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-status-approved-text">Verification Complete</span>
+              <h2 class="text-2xl font-bold text-ashoka-blue">Verification Complete &amp; Account Active!</h2>
+            </div>
+          </div>
+
+          <p class="text-sm text-text-secondary">
+            Congratulations! <strong class="text-ashoka-blue" id="completed-org-name">Your Organization</strong> is now verified and authorised to submit problem statements on this portal.
+          </p>
+
+          <div class="flex flex-wrap items-center gap-2 pt-2">
+            <span class="px-3 py-1 rounded-full bg-status-approved-bg text-status-approved-text font-bold text-xs uppercase">
+              KYC Status: VERIFIED
+            </span>
+            <span class="font-mono-code text-xs bg-surface-muted px-3 py-1 rounded border border-border-hairline" id="completed-acc-id">
+              Handle: ...
+            </span>
+          </div>
+        </div>
+
+        <div class="z-10 flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+          <button type="button" onclick="document.getElementById('problem-modal').classList.remove('hidden');" class="px-6 py-3 rounded-lg bg-ashoka-blue hover:bg-institutional-navy text-surface-crisp font-bold text-sm flex items-center justify-center gap-2 shadow-md">
+            <span class="material-symbols-outlined text-lg">add_circle</span>
+            <span>File Problem Statement</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Submitted Problems Showcase -->
+      <div class="bg-surface-crisp p-6 rounded-xl border border-border-hairline shadow-sm flex flex-col gap-4">
+        <div class="flex items-center justify-between pb-3 border-b border-border-hairline">
+          <div>
+            <h3 class="font-bold text-lg text-ashoka-blue">Filed Problem Statements</h3>
+            <p class="text-xs text-text-secondary">Problems registered under this verified source handle.</p>
+          </div>
+          <button type="button" onclick="document.getElementById('problem-modal').classList.remove('hidden');" class="text-xs font-bold text-ashoka-blue hover:underline">
+            + New Problem
+          </button>
+        </div>
+
+        <div id="submitted-problems-list" class="flex flex-col gap-3">
+          <div class="p-8 text-center text-text-muted text-xs border border-dashed border-border-strong rounded-lg">
+            No problem statements filed yet. Click "+ File Problem Statement" above to submit a new issue.
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SCREEN: PROFILE & SETTINGS                                   -->
+    <!-- ============================================================ -->
+    <section id="view-profile" class="hidden flex flex-col gap-6">
+
+      <!-- Profile Header Card -->
+      <div class="bg-surface-crisp p-6 sm:p-8 rounded-xl border border-border-hairline shadow-sm">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          <div class="w-20 h-20 rounded-full bg-gradient-to-br from-ashoka-blue to-institutional-navy text-surface-crisp flex items-center justify-center text-3xl font-bold shadow-md" id="profile-avatar-large">
+            <span class="material-symbols-outlined text-4xl">person</span>
+          </div>
+          <div class="flex-1">
+            <h2 class="text-2xl font-bold text-ashoka-blue" id="profile-display-name">Submitter</h2>
+            <p class="text-sm text-text-secondary mt-0.5" id="profile-role-label">Source Organization Submitter</p>
+            <div class="flex flex-wrap items-center gap-2 mt-3">
+              <span id="profile-kyc-badge" class="text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider bg-status-action-bg text-status-action-text">KYC: UNVERIFIED</span>
+              <span id="profile-phone-badge" class="font-mono-code text-xs bg-surface-muted px-3 py-1 rounded border border-border-hairline">+91 —</span>
+            </div>
+          </div>
+          <button type="button" onclick="goBackFromProfile()" class="px-4 py-2 rounded-lg border border-border-strong hover:bg-surface-muted text-xs font-bold text-ashoka-blue flex items-center gap-1.5 self-start cursor-pointer transition-colors">
+            <span class="material-symbols-outlined text-base">arrow_back</span>
+            <span>Back to Dashboard</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Account Information -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-surface-crisp p-6 rounded-xl border border-border-hairline shadow-sm flex flex-col gap-4">
+          <div class="flex items-center gap-2 pb-3 border-b border-border-hairline">
+            <span class="material-symbols-outlined text-ashoka-blue text-lg">badge</span>
+            <h3 class="font-bold text-base text-ashoka-blue">Account Information</h3>
+          </div>
+          <div class="grid grid-cols-1 gap-3" id="profile-account-fields">
+            
+            <div class="flex flex-col gap-1 p-3 rounded-lg bg-surface-subtle">
+              <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider">User ID</span>
+              <span class="font-mono-code text-xs text-text-primary" id="profile-user-id">—</span>
+            </div>
+            <div class="flex flex-col gap-1 p-3 rounded-lg bg-surface-subtle">
+              <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider">Mobile Number</span>
+              <span class="font-mono-code text-sm text-text-primary" id="profile-phone">—</span>
+            </div>
+            <div class="flex flex-col gap-1 p-3 rounded-lg bg-surface-subtle">
+              <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider">Email Address</span>
+              <span class="text-sm text-text-primary" id="profile-email">Not provided</span>
+            </div>
+            <div class="flex flex-col gap-1 p-3 rounded-lg bg-surface-subtle">
+              <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider">Role</span>
+              <span class="text-sm text-text-primary font-bold" id="profile-role">SUBMITTER</span>
+            </div>
+            <div class="flex flex-col gap-1 p-3 rounded-lg bg-surface-subtle">
+              <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider">Verification Status</span>
+              <span class="text-sm font-bold" id="profile-kyc-status">UNVERIFIED</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Verified Organisation Information -->
+        <div class="bg-surface-crisp p-6 rounded-xl border border-border-hairline shadow-sm flex flex-col gap-4">
+          <div class="flex items-center gap-2 pb-3 border-b border-border-hairline">
+            <span class="material-symbols-outlined text-ashoka-blue text-lg">corporate_fare</span>
+            <h3 class="font-bold text-base text-ashoka-blue">Source Account</h3>
+          </div>
+          <div id="profile-source-account-info" class="flex flex-col gap-3">
+            <div class="p-6 text-center text-text-muted text-xs border border-dashed border-border-strong rounded-lg">
+              No verified source account yet. Complete your KYC registration to activate your source account.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Session & Security -->
+      <div class="bg-surface-crisp p-6 rounded-xl border border-border-hairline shadow-sm flex flex-col gap-4">
+        <div class="flex items-center gap-2 pb-3 border-b border-border-hairline">
+          <span class="material-symbols-outlined text-ashoka-blue text-lg">security</span>
+          <h3 class="font-bold text-base text-ashoka-blue">Session & Security</h3>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <div class="flex-1 p-4 rounded-lg bg-surface-subtle flex items-center gap-3">
+            <span class="material-symbols-outlined text-gov-emerald text-2xl">verified_user</span>
+            <div>
+              <span class="text-xs font-bold text-text-primary">Active Session</span>
+              <p class="text-[11px] text-text-muted">Your session is secure and protected.</p>
+            </div>
+          </div>
+          <button type="button" onclick="clearSession()" class="px-6 py-3 rounded-lg border-2 border-error text-error hover:bg-error hover:text-on-error font-bold text-sm flex items-center justify-center gap-2 transition-all">
+            <span class="material-symbols-outlined text-lg">logout</span>
+            <span>Sign Out</span>
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ============================================================ -->
+  <!-- APPLICATION SNAPSHOT MODAL                                   -->
+  <!-- ============================================================ -->
+  <div id="application-snapshot-modal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-surface-crisp rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-border-hairline">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-border-hairline flex items-center justify-between bg-surface-subtle">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-ashoka-blue text-surface-crisp flex items-center justify-center font-bold shrink-0">
+            <span class="material-symbols-outlined text-2xl">folder_open</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h3 class="font-bold text-lg text-ashoka-blue" id="snapshot-modal-title">Application Snapshot</h3>
+              <span id="snapshot-modal-status-badge" class="text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider bg-status-submitted-bg text-status-submitted-text">SUBMITTED</span>
+            </div>
+            <p class="text-xs text-text-muted font-mono-code" id="snapshot-modal-reg-id">Application ID: —</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeApplicationSnapshotModal()" class="p-1.5 rounded-lg hover:bg-surface-muted text-text-muted hover:text-text-primary transition-colors cursor-pointer">
+          <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-6 overflow-y-auto flex flex-col gap-6" id="snapshot-modal-content">
+        <!-- Injected via openApplicationSnapshotModal() -->
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-3.5 border-t border-border-hairline flex items-center justify-between bg-surface-subtle">
+        <div class="text-[11px] text-text-muted flex items-center gap-1.5 hidden sm:flex">
+          <span class="material-symbols-outlined text-[16px] text-gov-emerald">verified_user</span>
+          <span>Official National Problem Repository Record</span>
+        </div>
+        <div class="flex items-center gap-2 ml-auto sm:ml-0">
+          <button type="button" onclick="window.print()" class="px-4 py-2 rounded-lg border border-border-strong hover:bg-surface-muted text-xs font-bold text-ashoka-blue flex items-center gap-1.5 transition-colors cursor-pointer">
+            <span class="material-symbols-outlined text-[16px]">print</span>
+            <span>Print Summary</span>
+          </button>
+          <button type="button" onclick="closeApplicationSnapshotModal()" class="px-5 py-2 rounded-lg bg-ashoka-blue hover:bg-institutional-navy text-surface-crisp text-xs font-bold transition-colors cursor-pointer">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PROBLEM STATEMENT MODAL DRAWER                               -->
+  <!-- ============================================================ -->
+  <div id="problem-modal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-surface-crisp rounded-xl shadow-2xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto border border-border-hairline">
+      <div class="flex items-center justify-between pb-3 border-b border-border-hairline mb-4">
+        <div>
+          <span class="text-[10px] uppercase font-bold text-gov-emerald">Verified Organisation</span>
+          <h3 class="text-xl font-bold text-ashoka-blue">File New Problem Statement</h3>
+        </div>
+        <button type="button" onclick="document.getElementById('problem-modal').classList.add('hidden')" class="p-1 rounded-lg hover:bg-surface-muted text-text-muted">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <form id="problem-form" onsubmit="event.preventDefault(); handlePostProblem();" class="flex flex-col gap-4">
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-bold text-ashoka-blue">Problem Title *</label>
+          <input id="prob-title" type="text" required placeholder="e.g. Contaminated groundwater in Ward 4"
+                 class="w-full h-10 px-3 rounded-lg border border-border-strong text-sm focus:ring-2 focus:ring-ashoka-blue"/>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-bold text-ashoka-blue">Detailed Description *</label>
+          <textarea id="prob-desc" rows="3" required placeholder="Describe the ground reality, severity, and challenges faced..."
+                    class="w-full p-3 rounded-lg border border-border-strong text-sm focus:ring-2 focus:ring-ashoka-blue"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-bold text-ashoka-blue">Severity</label>
+            <select id="prob-severity" class="w-full h-10 px-3 rounded-lg border border-border-strong text-xs font-medium focus:ring-2 focus:ring-ashoka-blue">
+              <option value="CRITICAL">Critical</option>
+              <option value="MAJOR">Major</option>
+              <option value="MODERATE">Moderate</option>
+              <option value="MINOR">Minor</option>
+            </select>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-bold text-ashoka-blue">Urgency *</label>
+            <select id="prob-urgency" required class="w-full h-10 px-3 rounded-lg border border-border-strong text-xs font-medium focus:ring-2 focus:ring-ashoka-blue">
+              <option value="IMMEDIATE">Immediate (0–3 months)</option>
+              <option value="SHORT_TERM">Short Term (3–6 months)</option>
+              <option value="LONG_TERM">Long Term (6–12 months)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-bold text-ashoka-blue">Primary Problem Domain</label>
+          <select id="prob-domain-select" class="w-full h-10 px-3 rounded-lg border border-border-strong text-xs"></select>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-bold text-ashoka-blue">State</label>
+            <input id="prob-state" type="text" value="Bihar" class="w-full h-10 px-3 rounded-lg border border-border-strong text-xs"/>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-bold text-ashoka-blue">District</label>
+            <input id="prob-district" type="text" value="Patna" class="w-full h-10 px-3 rounded-lg border border-border-strong text-xs"/>
+          </div>
+        </div>
+
+        <div class="pt-4 flex justify-end gap-2 border-t border-border-hairline mt-2">
+          <button type="button" onclick="document.getElementById('problem-modal').classList.add('hidden')" class="px-4 py-2 rounded-lg border border-border-strong text-xs font-semibold">Cancel</button>
+          <button type="submit" class="px-6 py-2.5 rounded-lg bg-gov-emerald hover:bg-emerald-700 text-surface-crisp font-bold text-xs flex items-center gap-1.5 shadow-md">
+            <span class="material-symbols-outlined text-base">send</span>
+            <span>Submit Problem to Repository</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+
+  <!-- Toast Notification Anchor -->
+  <div id="toast-container" class="fixed top-20 right-4 z-50 flex flex-col gap-2 max-w-sm"></div>
+
+  <!-- Scripts -->
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
