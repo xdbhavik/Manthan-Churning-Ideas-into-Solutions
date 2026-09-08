@@ -1,5 +1,6 @@
 package com.EDITH.SIH26043.entity;
 
+import com.EDITH.SIH26043.enums.ProblemAccessRule;
 import com.EDITH.SIH26043.enums.ProblemStatus;
 import com.EDITH.SIH26043.enums.Severity;
 import com.EDITH.SIH26043.enums.SourceBucket;
@@ -18,6 +19,8 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -96,6 +99,21 @@ public class Problem {
     @Column(name = "submitted_by_user_id")
     private UUID submittedByUserId;
 
+    /**
+     * Who may access / work on this problem statement. Defaults to
+     * {@code OPEN_TO_ALL}; when {@code SELECTED_UNIVERSITIES}, {@link #accessUniversities}
+     * names the allowed universities (see {@code ProblemAccessRule}).
+     */
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "access_rule", nullable = false, columnDefinition = "problem_access_rule")
+    private ProblemAccessRule accessRule = ProblemAccessRule.OPEN_TO_ALL;
+
+    /** University-name snapshot allowed to work on this problem (empty unless
+     * {@code accessRule == SELECTED_UNIVERSITIES}). */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "access_universities", nullable = false)
+    private List<String> accessUniversities = new ArrayList<>();
+
     @Version
     @Column(name = "version", nullable = false)
     private Integer version = 1;
@@ -119,6 +137,12 @@ public class Problem {
         }
         if (status == null) {
             status = ProblemStatus.SUBMITTED;
+        }
+        if (accessRule == null) {
+            accessRule = ProblemAccessRule.OPEN_TO_ALL;
+        }
+        if (accessUniversities == null) {
+            accessUniversities = new ArrayList<>();
         }
     }
 

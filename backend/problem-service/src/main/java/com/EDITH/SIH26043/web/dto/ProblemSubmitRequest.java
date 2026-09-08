@@ -1,5 +1,6 @@
 package com.EDITH.SIH26043.web.dto;
 
+import com.EDITH.SIH26043.enums.ProblemAccessRule;
 import com.EDITH.SIH26043.enums.Severity;
 import com.EDITH.SIH26043.enums.Urgency;
 import jakarta.validation.Valid;
@@ -17,6 +18,10 @@ import java.util.UUID;
  * (see GET /source/accounts). Bucket and sub-entity type are read from that
  * account server-side rather than accepted from the client, so a submitter
  * cannot declare itself a ULB in the request body.</p>
+ *
+ * <p>{@code accessRule} is optional and defaults to {@code OPEN_TO_ALL}. When it
+ * is {@code SELECTED_UNIVERSITIES}, {@code accessUniversities} must name the
+ * allowed universities (a self-contained name snapshot shown to evaluators).</p>
  */
 public record ProblemSubmitRequest(
         @NotBlank String title,
@@ -29,7 +34,9 @@ public record ProblemSubmitRequest(
         @NotNull UUID sourceAccountId,
         @Valid @NotNull LocationRequest location,
         List<UUID> domainIds,
-        List<EvidenceRequest> evidence
+        List<EvidenceRequest> evidence,
+        ProblemAccessRule accessRule,
+        List<String> accessUniversities
 ) {
 
     public record LocationRequest(

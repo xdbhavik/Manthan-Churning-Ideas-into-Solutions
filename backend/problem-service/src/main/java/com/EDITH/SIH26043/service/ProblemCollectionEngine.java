@@ -7,6 +7,7 @@ import com.EDITH.SIH26043.entity.Problem;
 import com.EDITH.SIH26043.entity.ProblemDomain;
 import com.EDITH.SIH26043.entity.ProblemDomainId;
 import com.EDITH.SIH26043.enums.AuditAction;
+import com.EDITH.SIH26043.enums.ProblemAccessRule;
 import com.EDITH.SIH26043.enums.ProblemStatus;
 import com.EDITH.SIH26043.enums.SourceBucket;
 import com.EDITH.SIH26043.enums.SubEntityType;
@@ -25,6 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.UUID;
 
@@ -90,6 +93,7 @@ public class ProblemCollectionEngine {
         problem.setSubmittedByUserId(submitter.getUserId());
         problem.setSubmittedAt(Instant.now());
         problem.setUpdatedAt(Instant.now());
+        applyAccessRule(problem, req);
         problemRepository.save(problem);
 
         if (req.domainIds() != null && !req.domainIds().isEmpty()) {
@@ -103,6 +107,42 @@ public class ProblemCollectionEngine {
         auditService.record(problem.getProblemId(), AuditAction.CREATED,
                 submitter.getUserId(), null, problem, ip);
         return problem;
+    }
+
+    /**
+     * Normalizes and stores the participation-scope. Absent rule defaults to
+     * {@code OPEN_TO_ALL}; a {@code SELECTED_UNIVERSITIES} rule with no usable
+     * university names is a 400 — the evaluator must always be able to read a
+     * concrete list for that rule.
+     */
+    private static void applyAccessRule(Problem problem, ProblemSubmitRequest req) {
+        ProblemAccessRule rule = req.accessRule() == null
+                ? ProblemAccessRule.OPEN_TO_ALL : req.accessRule();
+        problem.setAccessRule(rule);
+        if (rule == ProblemAccessRule.SELECTED_UNIVERSITIES) {
+            List<String> cleaned = cleanNames(req.accessUniversities());
+            if (cleaned.isEmpty()) {
+                throw new ApiException(HttpStatus.BAD_REQUEST,
+                        "accessRule=SELECTED_UNIVERSITIES requires a non-empty "
+                                + "accessUniversities list of university names");
+            }
+            problem.setAccessUniversities(cleaned);
+        } else {
+            problem.setAccessUniversities(List.of());
+        }
+    }
+
+    private static List<String> cleanNames(List<String> names) {
+        if (names == null) {
+            return List.of();
+        }
+        LinkedHashSet<String> cleaned = new LinkedHashSet<>();
+        for (String name : names) {
+            if (name != null && !name.isBlank()) {
+                cleaned.add(name.trim());
+            }
+        }
+        return new ArrayList<>(cleaned);
     }
 
     /**

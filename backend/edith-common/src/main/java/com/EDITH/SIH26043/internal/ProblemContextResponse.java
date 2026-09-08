@@ -14,6 +14,10 @@ import java.util.UUID;
  * the two services never need to agree on a persisted representation.</p>
  *
  * @param status one of the {@code ProblemStatus} names, e.g. {@code REGISTERED}
+ * @param accessRule one of the {@code ProblemAccessRule} names, e.g.
+ *                   {@code OPEN_TO_ALL}; who may access/work on this problem statement
+ * @param accessUniversities university-name snapshot allowed to work on the problem;
+ *                           populated only when {@code accessRule == SELECTED_UNIVERSITIES}
  */
 public record ProblemContextResponse(
         UUID problemId,
@@ -29,5 +33,7 @@ public record ProblemContextResponse(
         String existingIntervention,
         String location,
         List<String> domains,
-        int evidenceCount) {
+        int evidenceCount,
+        String accessRule,
+        List<String> accessUniversities) {
 }

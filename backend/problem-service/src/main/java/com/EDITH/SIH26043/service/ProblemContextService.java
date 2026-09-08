@@ -85,7 +85,9 @@ public class ProblemContextService {
                 problem.getUrgency() == null ? null : problem.getUrgency().name(),
                 problem.getSeverity() == null ? null : problem.getSeverity().name(),
                 problem.getAffectedPopulation(), problem.getExpectedOutcome(),
-                problem.getExistingIntervention(), location, domains, evidenceCount);
+                problem.getExistingIntervention(), location, domains, evidenceCount,
+                problem.getAccessRule() == null ? null : problem.getAccessRule().name(),
+                problem.getAccessUniversities() == null ? List.of() : problem.getAccessUniversities());
     }
 
     private static String nvl(String value) {

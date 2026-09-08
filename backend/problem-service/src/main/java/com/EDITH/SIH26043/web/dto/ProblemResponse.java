@@ -1,6 +1,7 @@
 package com.EDITH.SIH26043.web.dto;
 
 import com.EDITH.SIH26043.entity.Problem;
+import com.EDITH.SIH26043.enums.ProblemAccessRule;
 import com.EDITH.SIH26043.enums.ProblemStatus;
 import com.EDITH.SIH26043.enums.Severity;
 import com.EDITH.SIH26043.enums.SourceBucket;
@@ -8,6 +9,7 @@ import com.EDITH.SIH26043.enums.SubEntityType;
 import com.EDITH.SIH26043.enums.Urgency;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 /** Canonical problem view used in API responses. */
@@ -29,6 +31,8 @@ public record ProblemResponse(
         Instant submittedAt,
         Instant updatedAt,
         UUID submittedByUserId,
+        ProblemAccessRule accessRule,
+        List<String> accessUniversities,
         int version
 ) {
 
@@ -40,6 +44,8 @@ public record ProblemResponse(
                 p.getLocationId(),
                 p.getAffectedPopulation(), p.getExpectedOutcome(), p.getExistingIntervention(),
                 p.getSubmittedAt(), p.getUpdatedAt(), p.getSubmittedByUserId(),
+                p.getAccessRule() == null ? ProblemAccessRule.OPEN_TO_ALL : p.getAccessRule(),
+                p.getAccessUniversities() == null ? List.of() : p.getAccessUniversities(),
                 p.getVersion() == null ? 1 : p.getVersion());
     }
 }

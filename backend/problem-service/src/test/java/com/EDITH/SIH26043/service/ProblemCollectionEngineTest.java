@@ -3,6 +3,7 @@ package com.EDITH.SIH26043.service;
 import com.EDITH.SIH26043.client.SourceAccountGateway;
 import com.EDITH.SIH26043.entity.Problem;
 import com.EDITH.SIH26043.enums.KycStatus;
+import com.EDITH.SIH26043.enums.ProblemAccessRule;
 import com.EDITH.SIH26043.enums.SourceBucket;
 import com.EDITH.SIH26043.enums.SubEntityType;
 import com.EDITH.SIH26043.enums.Urgency;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpStatus;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -130,6 +132,56 @@ class ProblemCollectionEngineTest {
         assertThat(p.getSubmittedByUserId()).isEqualTo(me.getUserId());
     }
 
+    /** Absent access rule defaults to OPEN_TO_ALL (old clients keep working). */
+    @Test
+    void accessRuleDefaultsToOpenToAll() {
+        AuthUser me = user();
+        SourceAccountResponse active = account(me.getUserId(), "ACTIVE", "VERIFIED");
+        when(sourceAccountGateway.fetch(active.sourceAccountId())).thenReturn(active);
+
+        engine.receiveSubmission(request(active.sourceAccountId()), me, "127.0.0.1");
+
+        ArgumentCaptor<Problem> saved = ArgumentCaptor.forClass(Problem.class);
+        verify(problemRepository).save(saved.capture());
+        assertThat(saved.getValue().getAccessRule()).isEqualTo(ProblemAccessRule.OPEN_TO_ALL);
+        assertThat(saved.getValue().getAccessUniversities()).isEmpty();
+    }
+
+    /** SELECTED_UNIVERSITIES persists the trimmed, de-duplicated name snapshot. */
+    @Test
+    void selectedUniversitiesPersistsNameSnapshot() {
+        AuthUser me = user();
+        SourceAccountResponse active = account(me.getUserId(), "ACTIVE", "VERIFIED");
+        when(sourceAccountGateway.fetch(active.sourceAccountId())).thenReturn(active);
+
+        engine.receiveSubmission(request(active.sourceAccountId(), ProblemAccessRule.SELECTED_UNIVERSITIES,
+                List.of("IIT Bombay", "  IIT Delhi ", "IIT Bombay")), me, "127.0.0.1");
+
+        ArgumentCaptor<Problem> saved = ArgumentCaptor.forClass(Problem.class);
+        verify(problemRepository).save(saved.capture());
+        Problem p = saved.getValue();
+        assertThat(p.getAccessRule()).isEqualTo(ProblemAccessRule.SELECTED_UNIVERSITIES);
+        assertThat(p.getAccessUniversities()).containsExactly("IIT Bombay", "IIT Delhi");
+    }
+
+    /** A SELECTED_UNIVERSITIES rule without any usable name is a 400. */
+    @Test
+    void selectedUniversitiesRequiresNames() {
+        AuthUser me = user();
+        SourceAccountResponse active = account(me.getUserId(), "ACTIVE", "VERIFIED");
+        when(sourceAccountGateway.fetch(active.sourceAccountId())).thenReturn(active);
+
+        assertThatThrownBy(() -> engine.receiveSubmission(
+                request(active.sourceAccountId(), ProblemAccessRule.SELECTED_UNIVERSITIES,
+                        java.util.Arrays.asList("  ", null)), me, "127.0.0.1"))
+                .isInstanceOf(ApiException.class)
+                .hasMessageContaining("SELECTED_UNIVERSITIES requires a non-empty")
+                .extracting(ex -> ((ApiException) ex).getStatus())
+                .isEqualTo(HttpStatus.BAD_REQUEST);
+
+        verifyNoInteractions(problemRepository);
+    }
+
     private AuthUser user() {
         return new AuthUser(UUID.randomUUID(), "9999999999",
                 UserRole.SUBMITTER, KycStatus.UNVERIFIED);
@@ -143,6 +195,11 @@ class ProblemCollectionEngineTest {
     }
 
     private ProblemSubmitRequest request(UUID sourceAccountId) {
+        return request(sourceAccountId, null, null);
+    }
+
+    private ProblemSubmitRequest request(UUID sourceAccountId, ProblemAccessRule accessRule,
+                                         List<String> accessUniversities) {
         return new ProblemSubmitRequest(
                 "Borewell dry for three weeks",
                 "Ward 7 has had no piped supply since the borewell failed.",
@@ -150,6 +207,7 @@ class ProblemCollectionEngineTest {
                 sourceAccountId,
                 new ProblemSubmitRequest.LocationRequest("Rajasthan", "Jaipur", null, null,
                         "302001", 26.9124, 75.7873, null, null),
-                null, null);
+                null, null,
+                accessRule, accessUniversities);
     }
 }
