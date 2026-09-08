@@ -204,10 +204,10 @@ services:
     # python3 (the agentic-legibility analyzer), neither of which is in the plain
     # JRE base used by Dockerfile.service.
     build:
-      context: .
-      dockerfile: Dockerfile.codejudge
+      context: ./codejudge-service
+      dockerfile: ../Dockerfile.codejudge
       args:
-        JAR_FILE: codejudge-service/target/codejudge-service-0.0.1-SNAPSHOT.jar
+        JAR_FILE: target/codejudge-service-0.0.1-SNAPSHOT.jar
     image: sih26043-codejudge-service:local
     depends_on:
       db:
@@ -249,7 +249,7 @@ services:
       - codejudge-service
       - eureka-server
     ports:
-      - "8080:8080"
+      - "8090:8080"
     volumes:
       - ./gateway/Caddyfile:/etc/caddy/Caddyfile:ro
 

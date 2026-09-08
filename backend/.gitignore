@@ -40,3 +40,7 @@ build/
 
 ### Local secrets (compose auto-loads .env) ###
 .env
+
+### Compiled Binaries ###
+bin/
+**/bin/
