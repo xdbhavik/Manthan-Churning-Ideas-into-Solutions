@@ -51,6 +51,29 @@ docker build -t submitter-ui .
 docker run -p 3002:80 submitter-ui
 ```
 
+## ⚠️ Rebuilding After Code Updates
+
+Because each frontend uses a multi-stage Docker build that compiles production assets (`npm run build`) directly into an Nginx image at build time, **a standard `docker restart` will NOT pick up code changes**.
+
+Whenever you make source code updates or bug fixes, you **must rebuild the container image**:
+
+### Rebuild all frontend containers:
+```bash
+docker compose up -d --build
+```
+
+### Rebuild a specific frontend container:
+```bash
+# Evaluator UI only
+docker compose up -d --build evaluator-ui
+
+# Admin UI only
+docker compose up -d --build admin-ui
+
+# Submitter UI only
+docker compose up -d --build submitter-ui
+```
+
 ## Development (Hot Reload)
 
 For development with hot reload, use the local dev servers instead:
