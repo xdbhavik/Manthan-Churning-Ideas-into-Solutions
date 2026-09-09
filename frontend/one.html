@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Radial Glowing Dot Grid</title>
+  <style>
+    /* Reset & Base */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Animated Dot Grid Canvas */
+    #dot-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* Vignette mask to fade the dots softly at the page borders */
+    .vignette {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      background: radial-gradient(
+        ellipse at center,
+        transparent 40%,
+        rgba(255, 255, 255, 0.8) 85%,
+        #ffffff 100%
+      );
+    }
+
+    /* Centered Floating Card */
+    .card {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 440px;
+      margin: 20px;
+      padding: 36px 32px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      box-shadow: 
+        0 10px 25px -5px rgba(56, 189, 248, 0.1),
+        0 20px 40px -15px rgba(15, 23, 42, 0.08);
+      text-align: center;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 
+        0 15px 30px -5px rgba(56, 189, 248, 0.15),
+        0 25px 50px -15px rgba(15, 23, 42, 0.1);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: #0284c7;
+      background-color: #e0f2fe;
+      margin-bottom: 18px;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: #0284c7;
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+
+    .card h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+
+    .card p {
+      font-size: 0.95rem;
+      line-height: 1.55;
+      color: #64748b;
+      margin-bottom: 24px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background-color: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+    }
+
+    .btn-primary:hover {
+      background-color: #0369a1;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background-color: #f1f5f9;
+      color: #334155;
+    }
+
+    .btn-secondary:hover {
+      background-color: #e2e8f0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Dot Grid Canvas -->
+  <canvas id="dot-canvas"></canvas>
+
+  <!-- Edge Fade Vignette -->
+  <div class="vignette"></div>
+
+  <!-- Foreground Card -->
+  <div class="card">
+    <span class="badge">
+      <span class="badge-dot"></span>
+      Interactive Background
+    </span>
+    <h1>Radial Dot Matrix</h1>
+    <p>
+      A minimal, animated dot grid radiating light blue glows across the canvas. Move your cursor to interact with the field.
+    </p>
+    <div class="btn-group">
+      <button class="btn btn-primary">Get Started</button>
+      <button class="btn btn-secondary">Learn More</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("dot-canvas");
+    const ctx = canvas.getContext("2d");
+
+    let width, height;
+    let dpr = window.devicePixelRatio || 1;
+
+    // Grid configuration
+    const DOT_SPACING = 28;     // Distance between dots in pixels
+    const BASE_RADIUS = 0.7;    // Fine, understated resting dots
+    const MAX_RADIUS = 2.25;    // Clearly visible pulse without becoming bulky
+    const WAVE_SPEED = 2.4;     // Speed of the radial ripple
+    const WAVE_FREQUENCY = 0.015; // Frequency of the waves
+
+    let mouse = { x: -9999, y: -9999 };
+
+    // Stable per-dot variation: organic, but without the distracting flicker
+    // produced by generating a new random value every frame.
+    function noise(x, y, salt = 0) {
+      const value = Math.sin(x * 127.1 + y * 311.7 + salt * 74.7) * 43758.5453123;
+      return value - Math.floor(value);
+    }
+
+    function resize() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      dpr = window.devicePixelRatio || 1;
+
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    window.addEventListener("resize", resize);
+    window.addEventListener("mousemove", (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    });
+
+    window.addEventListener("mouseleave", () => {
+      mouse.x = -9999;
+      mouse.y = -9999;
+    });
+
+    resize();
+
+    function render(currentTime) {
+      const time = currentTime * 0.001;
+      ctx.clearRect(0, 0, width, height);
+
+      const centerX = width / 2;
+      const centerY = height / 2;
+
+      // Align grid so it centers cleanly on the screen
+      const cols = Math.ceil(width / DOT_SPACING);
+      const rows = Math.ceil(height / DOT_SPACING);
+      const offsetX = (width % DOT_SPACING) / 2;
+      const offsetY = (height % DOT_SPACING) / 2;
+
+      for (let i = 0; i <= cols; i++) {
+        for (let j = 0; j <= rows; j++) {
+          const x = offsetX + i * DOT_SPACING;
+          const y = offsetY + j * DOT_SPACING;
+
+          // 1. Calculate radial distance from center
+          const distCenter = Math.hypot(x - centerX, y - centerY);
+
+          // 2. An outward wave with subtle, stable ring irregularity.
+          // Each dot has its own phase/amplitude so the glow feels less synthetic.
+          const phaseJitter = (noise(i, j, 1) - 0.5) * 1.15;
+          const amplitude = 0.72 + noise(i, j, 2) * 0.28;
+          const drift = Math.sin(time * 0.55 + noise(i, j, 3) * Math.PI * 2) * 0.18;
+          const wave = Math.sin(distCenter * WAVE_FREQUENCY - time * WAVE_SPEED + phaseJitter + drift);
+          let intensity = Math.pow(Math.max(0, (wave + 1) / 2) * amplitude, 3.2);
+
+          // 3. Mouse proximity boost
+          const distMouse = Math.hypot(x - mouse.x, y - mouse.y);
+          const mouseRadius = 160;
+          if (distMouse < mouseRadius) {
+            const mouseBoost = Math.pow(1 - distMouse / mouseRadius, 2);
+            intensity = Math.min(1, intensity + mouseBoost * 0.85);
+          }
+
+          // Dynamic attributes based on intensity
+          const radius = BASE_RADIUS + intensity * (MAX_RADIUS - BASE_RADIUS);
+          const alpha = 0.2 + intensity * 0.76;
+
+          ctx.beginPath();
+          // Tiny radial capsules read sharper and more refined than swollen circles.
+          const angle = Math.atan2(y - centerY, x - centerX);
+          const length = radius * (1.15 + intensity * 0.55);
+          const halfWidth = Math.max(0.38, radius * 0.42);
+          ctx.ellipse(x, y, length, halfWidth, angle, 0, Math.PI * 2);
+
+          // Apply glow effect only to elevated dots for GPU efficiency
+          if (intensity > 0.38) {
+            ctx.shadowColor = "rgba(14, 165, 233, 0.85)";
+            ctx.shadowBlur = 4 + (intensity - 0.38) * 20;
+            ctx.fillStyle = `rgba(3, 105, 161, ${alpha})`;
+          } else {
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = `rgba(29, 78, 216, ${alpha})`;
+          }
+
+          ctx.fill();
+        }
+      }
+
+      requestAnimationFrame(render);
+    }
+
+    requestAnimationFrame(render);
+  </script>
+</body>
+</html>

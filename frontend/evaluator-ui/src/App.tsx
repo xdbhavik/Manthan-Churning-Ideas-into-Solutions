@@ -13,11 +13,14 @@ import ProfilePage from './pages/evaluator/ProfilePage';
 import AssignmentsPage from './pages/evaluator/AssignmentsPage';
 import ScoringPage from './pages/evaluator/ScoringPage';
 import ProjectReviewsPage from './pages/evaluator/ProjectReviewsPage';
+import ProjectReviewDetailPage from './pages/evaluator/ProjectReviewDetailPage';
 
 // Admin
 import EvaluationQueuePage from './pages/admin/EvaluationQueuePage';
 import StartEvaluationPage from './pages/admin/StartEvaluationPage';
 import EvaluatorOnboardingPage from './pages/admin/EvaluatorOnboardingPage';
+import CycleDetailPage from './pages/admin/CycleDetailPage';
+import CycleHistoryPage from './pages/admin/CycleHistoryPage';
 
 export default function App() {
   return (
@@ -34,6 +37,7 @@ export default function App() {
             <Route path="/evaluator/profile" element={<ProfilePage />} />
             <Route path="/evaluator/assignments" element={<AssignmentsPage />} />
             <Route path="/evaluator/project-reviews" element={<ProjectReviewsPage />} />
+            <Route path="/evaluator/project-reviews/:reviewId" element={<ProjectReviewDetailPage />} />
           </Route>
           {/* Scoring page needs full height, no shell */}
           <Route path="/evaluator/assignments/:assignmentId" element={<ScoringPage />} />
@@ -43,6 +47,8 @@ export default function App() {
         <Route element={<ProtectedRoute requiredRole="admin" />}>
           <Route element={<AppShell />}>
             <Route path="/evaluation/queue" element={<EvaluationQueuePage />} />
+            <Route path="/evaluation/cycles/:cycleId" element={<CycleDetailPage />} />
+            <Route path="/evaluation/cycles/:cycleId/history" element={<CycleHistoryPage />} />
             <Route path="/evaluation/start" element={<StartEvaluationPage />} />
             <Route path="/evaluation/evaluator-onboarding" element={<EvaluatorOnboardingPage />} />
           </Route>
