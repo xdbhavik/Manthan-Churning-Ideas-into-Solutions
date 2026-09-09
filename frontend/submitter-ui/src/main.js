@@ -1,5 +1,4 @@
 import { TYPES } from './field-schemas.js';
-import { initRadialDots } from './radial-dots.js';
 
 /* ============================================================
  * Problem Source Portal — Core Client Controller
@@ -1953,8 +1952,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Check existing session
   syncPortalState();
 
-  // Initialize radial dots on cards
-  initRadialDots('.bg-surface-crisp.rounded-xl');
 });
 
 // Expose functions to window for HTML inline handlers

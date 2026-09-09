@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Randomised Dot Matrix Effect</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; overflow: hidden; background: #fff; }
+    canvas { position: fixed; inset: 0; width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <canvas id="dot-canvas" aria-label="Animated radial dot matrix"></canvas>
+  <script>
+    const canvas = document.getElementById('dot-canvas');
+    const ctx = canvas.getContext('2d');
+    const DOT_SPACING = 28, BASE_RADIUS = .7, MAX_RADIUS = 2.25;
+    const WAVE_SPEED = 2.4, WAVE_FREQUENCY = .015;
+    let width, height, dpr, mouse = { x: -9999, y: -9999 };
+
+    const noise = (x, y, salt = 0) => {
+      const value = Math.sin(x * 127.1 + y * 311.7 + salt * 74.7) * 43758.5453123;
+      return value - Math.floor(value);
+    };
+    function resize() {
+      width = innerWidth; height = innerHeight; dpr = devicePixelRatio || 1;
+      canvas.width = width * dpr; canvas.height = height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    addEventListener('resize', resize);
+    addEventListener('mousemove', event => Object.assign(mouse, { x: event.clientX, y: event.clientY }));
+    addEventListener('mouseleave', () => Object.assign(mouse, { x: -9999, y: -9999 }));
+    resize();
+
+    function render(now) {
+      const time = now * .001, centerX = width / 2, centerY = height / 2;
+      ctx.clearRect(0, 0, width, height);
+      for (let i = 0; i <= Math.ceil(width / DOT_SPACING); i++) {
+        for (let j = 0; j <= Math.ceil(height / DOT_SPACING); j++) {
+          const x = (width % DOT_SPACING) / 2 + i * DOT_SPACING;
+          const y = (height % DOT_SPACING) / 2 + j * DOT_SPACING;
+          const phase = (noise(i, j, 1) - .5) * 1.15;
+          const drift = Math.sin(time * .55 + noise(i, j, 3) * Math.PI * 2) * .18;
+          const wave = Math.sin(Math.hypot(x - centerX, y - centerY) * WAVE_FREQUENCY - time * WAVE_SPEED + phase + drift);
+          let intensity = Math.pow(Math.max(0, (wave + 1) / 2) * (.72 + noise(i, j, 2) * .28), 3.2);
+          const mouseDistance = Math.hypot(x - mouse.x, y - mouse.y);
+          if (mouseDistance < 160) intensity = Math.min(1, intensity + Math.pow(1 - mouseDistance / 160, 2) * .85);
+          const radius = BASE_RADIUS + intensity * (MAX_RADIUS - BASE_RADIUS);
+          ctx.beginPath();
+          ctx.ellipse(x, y, radius * (1.15 + intensity * .55), Math.max(.38, radius * .42), Math.atan2(y - centerY, x - centerX), 0, Math.PI * 2);
+          const alpha = .2 + intensity * .76;
+          if (intensity > .38) {
+            ctx.shadowColor = 'rgba(14, 165, 233, .85)';
+            ctx.shadowBlur = 4 + (intensity - .38) * 20;
+            ctx.fillStyle = `rgba(3, 105, 161, ${alpha})`;
+          } else {
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = `rgba(29, 78, 216, ${alpha})`;
+          }
+          ctx.fill();
+        }
+      }
+      requestAnimationFrame(render);
+    }
+    requestAnimationFrame(render);
+  </script>
+</body>
+</html>
