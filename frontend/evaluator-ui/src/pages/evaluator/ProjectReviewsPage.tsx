@@ -86,7 +86,7 @@ export default function ProjectReviewsPage() {
                     GitHub Repo
                   </a>
                 )}
-                {r.submittedFiles.map(f => (
+                {(r.submittedFiles || []).map(f => (
                   <button key={f.fileId} type="button" onClick={() => downloadFile(f.fileId, f.fileName)} className="flex items-center gap-1.5 text-[13px] text-[#1E40AF] hover:underline bg-[#EFF6FF] px-2 py-1 rounded border border-[#BFDBFE]">
                     <span className="material-symbols-outlined text-[16px]">download</span>
                     {f.fileName}

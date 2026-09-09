@@ -1,3 +1,4 @@
+import ErrorBoundary from './components/ErrorBoundary';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import AppShell from './components/layout/AppShell';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -20,7 +21,8 @@ import EvaluatorOnboardingPage from './pages/admin/EvaluatorOnboardingPage';
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
@@ -50,5 +52,6 @@ export default function App() {
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
+    </ErrorBoundary>
   );
 }

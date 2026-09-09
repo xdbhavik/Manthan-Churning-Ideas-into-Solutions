@@ -24,9 +24,9 @@ export default function EvaluationQueuePage() {
     setLoading(true); setError(null);
     try {
       const res = await getEvaluationQueue(page, size, statusFilter || undefined);
-      setCycles(res.content);
-      setTotalElements(res.totalElements);
-      setTotalPages(res.totalPages);
+      setCycles(res?.content || []);
+      setTotalElements(res?.totalElements || 0);
+      setTotalPages(res?.totalPages || 0);
     } catch (e) { setError(getErrorMessage(e)); }
     finally { setLoading(false); }
   }, [page, size, statusFilter]);

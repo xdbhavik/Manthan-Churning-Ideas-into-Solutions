@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  admin-ui:
+    build:
+      context: ./frontend/admin-ui
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    networks:
+      - frontend-network
+
+  evaluator-ui:
+    build:
+      context: ./frontend/evaluator-ui
+      dockerfile: Dockerfile
+    ports:
+      - "3001:80"
+    networks:
+      - frontend-network
+
+  submitter-ui:
+    build:
+      context: ./frontend/submitter-ui
+      dockerfile: Dockerfile
+    ports:
+      - "3002:80"
+    networks:
+      - frontend-network
+
+networks:
+  frontend-network:
+    driver: bridge
