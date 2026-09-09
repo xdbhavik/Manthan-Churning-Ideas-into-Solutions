@@ -14,45 +14,46 @@ export function initRadialDots(selector = '.bg-surface-crisp.rounded-xl') {
     return value - Math.floor(value);
   }
 
+  // Inject CSS to handle z-indexing robustly for current and future children
+  if (!document.getElementById('radial-dots-style')) {
+    const style = document.createElement('style');
+    style.id = 'radial-dots-style';
+    style.textContent = `
+      ${selector} {
+        position: relative;
+        overflow: hidden;
+      }
+      ${selector} > * {
+        position: relative;
+        z-index: 1;
+      }
+      ${selector} > canvas.radial-canvas,
+      ${selector} > div.radial-vignette {
+        position: absolute !important;
+        inset: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        z-index: 0 !important;
+        pointer-events: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   cards.forEach(card => {
-    // Add relative positioning if not present
-    if (getComputedStyle(card).position === 'static') {
-      card.style.position = 'relative';
-    }
-    card.style.overflow = 'hidden';
 
     // Create canvas
     const canvas = document.createElement('canvas');
-    canvas.style.position = 'absolute';
-    canvas.style.inset = '0';
-    canvas.style.width = '100%';
-    canvas.style.height = '100%';
-    canvas.style.zIndex = '0';
-    canvas.style.pointerEvents = 'none';
+    canvas.className = 'radial-canvas';
 
     // Put canvas as first child
     card.insertBefore(canvas, card.firstChild);
     
     // Vignette
     const vignette = document.createElement('div');
-    vignette.style.position = 'absolute';
-    vignette.style.inset = '0';
-    vignette.style.zIndex = '0';
-    vignette.style.pointerEvents = 'none';
-    vignette.style.background = 'radial-gradient(ellipse at center, transparent 40%, rgba(255, 255, 255, 0.8) 85%, transparent 100%)';
+    vignette.className = 'radial-vignette';
+    vignette.style.background = 'radial-gradient(ellipse at center, rgba(255,255,255,0) 40%, rgba(255, 255, 255, 0.8) 85%, rgba(255,255,255,1) 100%)';
     card.insertBefore(vignette, canvas.nextSibling);
-
-    // Make sure other children have higher z-index
-    Array.from(card.children).forEach(child => {
-      if (child !== canvas && child !== vignette) {
-        if (getComputedStyle(child).position === 'static') {
-          child.style.position = 'relative';
-        }
-        if (!child.style.zIndex || parseInt(child.style.zIndex) < 1) {
-          child.style.zIndex = '1';
-        }
-      }
-    });
 
     const ctx = canvas.getContext('2d');
     let width, height;
@@ -91,13 +92,14 @@ export function initRadialDots(selector = '.bg-surface-crisp.rounded-xl') {
     resize();
 
     function render(currentTime) {
-      if (!card.offsetParent) {
+      const rect = card.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) {
          requestAnimationFrame(render);
          return;
       }
       
       // Attempt to resize if it was previously hidden and size was 0
-      if (width === 0 || height === 0) {
+      if (width !== rect.width || height !== rect.height) {
         resize();
       }
 
