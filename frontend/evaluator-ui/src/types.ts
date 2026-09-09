@@ -31,10 +31,11 @@ export interface EvaluatorProfileResponse {
   organization: string | null;
   designation: string | null;
   experienceYears: number | null;
-  maxWorkload: number;
-  active: boolean;
-  regions: string[];
-  status: string;
+  maxWorkload?: number;
+  active?: boolean;
+  regions?: string[];
+  regionStates?: string[];
+  status?: string;
   createdAt: string;
   updatedAt: string;
 }

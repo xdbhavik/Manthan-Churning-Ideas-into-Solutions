@@ -30,7 +30,7 @@ export default function DashboardPage() {
     setCriteriaLoading(true); setCriteriaError(null);
     try {
       const data = await getMyCriteria();
-      setCriteria(data.slice().sort((a, b) => a.sortOrder - b.sortOrder));
+      setCriteria((data || []).slice().sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)));
     } catch (e) { setCriteriaError(getErrorMessage(e)); }
     finally { setCriteriaLoading(false); }
   }, []);
@@ -84,10 +84,10 @@ export default function DashboardPage() {
                 ['Organization', profile.organization ?? '—'],
                 ['Designation', profile.designation ?? '—'],
                 ['Experience', profile.experienceYears != null ? profile.experienceYears + ' years' : '—'],
-                ['Max Workload', profile.maxWorkload.toString()],
+                ['Max Workload', profile.maxWorkload != null ? profile.maxWorkload.toString() : '—'],
                 ['Active', profile.active ? 'Yes' : 'No'],
-                ['Created', new Date(profile.createdAt).toLocaleDateString()],
-                ['Updated', new Date(profile.updatedAt).toLocaleDateString()],
+                ['Created', profile.createdAt ? new Date(profile.createdAt).toLocaleDateString() : '—'],
+                ['Updated', profile.updatedAt ? new Date(profile.updatedAt).toLocaleDateString() : '—'],
               ].map(([label, value]) => (
                 <div key={label}>
                   <div className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider mb-0.5">{label}</div>
@@ -98,11 +98,11 @@ export default function DashboardPage() {
                   )}
                 </div>
               ))}
-              {profile.regions.length > 0 && (
+              {(profile.regions || profile.regionStates || []).length > 0 && (
                 <div className="col-span-2">
                   <div className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider mb-1">Regions</div>
                   <div className="flex flex-wrap gap-1.5">
-                    {profile.regions.map((r) => (
+                    {(profile.regions || profile.regionStates || []).map((r) => (
                       <span key={r} className="px-2 py-0.5 bg-[#F1F5F9] border border-[#E2E8F0] rounded text-[12px] text-[#475569]">{r}</span>
                     ))}
                   </div>
