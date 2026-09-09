@@ -14,7 +14,7 @@ The current evaluator test console is located at `actor-ui/evaluator.html`. It c
 
 Browser requests should normally go through the Caddy gateway:
 
-- Gateway: `http://localhost:8090`
+- Gateway: `http://localhost:8080`
 - Evaluation service: `http://localhost:8083`
 
 Evaluation endpoints are protected by JWT roles:

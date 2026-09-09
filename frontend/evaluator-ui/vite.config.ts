@@ -7,10 +7,10 @@ export default defineConfig({
   server: {
     port: 3001,
     proxy: {
-      "/auth": { target: "http://localhost:8090", changeOrigin: true },
-      "/evaluation": { target: "http://localhost:8090", changeOrigin: true },
-      "/problems": { target: "http://localhost:8090", changeOrigin: true },
-      "/portal": { target: "http://localhost:8090", changeOrigin: true },
+      "/auth": { target: "http://localhost:8080", changeOrigin: true },
+      "/evaluation": { target: "http://localhost:8080", changeOrigin: true },
+      "/problems": { target: "http://localhost:8080", changeOrigin: true },
+      "/portal": { target: "http://localhost:8080", changeOrigin: true },
     },
   },
 });

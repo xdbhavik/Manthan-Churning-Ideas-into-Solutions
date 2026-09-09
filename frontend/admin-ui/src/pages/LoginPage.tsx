@@ -29,27 +29,25 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="w-full min-h-screen flex items-center justify-center p-gutter-mobile bg-background selection:bg-ashoka-blue/20">
+    <main className="w-full min-h-screen flex items-center justify-center p-gutter-mobile bg-[#f5f7f9] selection:bg-slate-200">
       <div className="w-full max-w-md flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-500">
 
-        {/* Sophisticated Insignia */}
         <div className="flex flex-col items-center mb-space-2xl text-center">
-          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-surface-crisp border border-border-hairline shadow-sm mb-space-md">
-            <span className="material-symbols-outlined text-text-primary text-[24px]">shield_person</span>
+          <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-[#edf3ee] border border-emerald-200 shadow-sm mb-space-md">
+            <span className="material-symbols-outlined text-emerald-700 text-[26px]">shield_person</span>
           </div>
-          <h1 className="font-headline-lg text-headline-lg text-text-primary tracking-tight">
+          <h1 className="font-headline-lg text-headline-lg text-[#1f2d3a] tracking-tight">
             Central Nodal Registry
           </h1>
-          <div className="flex items-center gap-space-xs mt-space-sm text-text-muted">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-gov-emerald shadow-[0_0_8px_rgba(22,163,74,0.5)]" aria-hidden="true" />
+          <div className="flex items-center gap-space-xs mt-space-sm text-slate-500">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(22,163,74,0.4)]" aria-hidden="true" />
             <span className="font-mono-code text-[11px] uppercase tracking-[0.2em]">
               Secured Node · Tier-1 Gateway
             </span>
           </div>
         </div>
 
-        {/* Main Canvas Card */}
-        <div className="w-full bg-surface-crisp border border-border-hairline rounded-xl shadow-lg shadow-black/5 overflow-hidden surface-lift">
+        <div className="w-full bg-white border border-slate-200 rounded-xl shadow-[0_10px_25px_rgba(15,23,42,0.04)] overflow-hidden surface-lift">
           
           <div className="p-space-2xl">
             {/* Notice banner */}
@@ -155,14 +153,13 @@ export default function LoginPage() {
                   type="submit"
                   disabled={loading || !checked || phone.length < 10}
                   aria-busy={loading}
-                  className="group relative w-full h-12 bg-text-primary text-background rounded-lg font-label-lg text-label-lg flex items-center justify-center gap-space-sm hover:bg-black transition-all duration-300 shadow-md cursor-pointer pressable disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
+                  className="group relative w-full h-12 bg-[#1e2d3d] text-white rounded-lg font-label-lg text-label-lg flex items-center justify-center gap-space-sm hover:bg-[#172734] transition-all duration-300 shadow-md cursor-pointer pressable disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
                 >
-                  {/* Subtle shine effect on hover */}
                   <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:animate-[shimmer_1.5s_infinite]" />
                   
                   {loading ? (
                     <>
-                      <span className="w-4 h-4 border-2 border-background/30 border-t-background rounded-full animate-spin" aria-hidden="true" />
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" aria-hidden="true" />
                       <span>Negotiating Handshake...</span>
                     </>
                   ) : (

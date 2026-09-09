@@ -1,10 +1,20 @@
 import { api } from '../lib/api';
 import type { OtpResponse, VerifyOtpResponse } from '../types';
 
-/** POST /auth/login — returns challengeId + devOtp */
+/** POST /auth/login — returns challengeId + devOtp. If not found, fall back to register flow. */
 export async function login(phone: string, email?: string): Promise<OtpResponse> {
-  const { data } = await api.post<OtpResponse>('/auth/login', { phone, email });
-  return data;
+  const trimmedPhone = phone.replace(/\D/g, '');
+
+  try {
+    const { data } = await api.post<OtpResponse>('/auth/login', { phone: trimmedPhone, email });
+    return data;
+  } catch (error: any) {
+    if (error?.response?.status === 404) {
+      const { data } = await api.post<OtpResponse>('/auth/register', { phone: trimmedPhone, email: email ?? null });
+      return data;
+    }
+    throw error;
+  }
 }
 
 /** POST /auth/verify-otp — returns JWT pair + user */
