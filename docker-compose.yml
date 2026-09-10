@@ -28,6 +28,15 @@ services:
     networks:
       - frontend-network
 
+  innovation-portal-ui:
+    build:
+      context: ./frontend/innovation-portal-ui
+      dockerfile: Dockerfile
+    ports:
+      - "3003:80"
+    networks:
+      - frontend-network
+
 networks:
   frontend-network:
     driver: bridge
