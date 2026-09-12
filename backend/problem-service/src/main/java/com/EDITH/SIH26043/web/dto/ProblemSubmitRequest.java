@@ -22,6 +22,12 @@ import java.util.UUID;
  * <p>{@code accessRule} is optional and defaults to {@code OPEN_TO_ALL}. When it
  * is {@code SELECTED_UNIVERSITIES}, {@code accessUniversities} must name the
  * allowed universities (a self-contained name snapshot shown to evaluators).</p>
+ *
+ * <p>When it is {@code AUTO_SELECTED_UNIVERSITIES} the audience is resolved
+ * server-side from the problem's domains, and {@code accessUniversities} is
+ * <strong>ignored</strong> — a client cannot name its own audience for an
+ * automatic rule. {@code domainIds} is only a hint to the resolver; if no
+ * audience can be resolved the submission fails with 400 rather than widening.</p>
  */
 public record ProblemSubmitRequest(
         @NotBlank String title,

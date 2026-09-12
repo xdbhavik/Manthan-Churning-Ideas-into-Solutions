@@ -121,6 +121,16 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-sih}
       JWT_SECRET: ${JWT_SECRET:-local-dev-only-secret-key-min-32-bytes-change-me!!}
       EVIDENCE_STORAGE_DIR: /data/evidence
+      # Local OpenAI-compatible LLM, used only to resolve a problem's domains for
+      # the AUTO_SELECTED_UNIVERSITIES access rule. host.docker.internal reaches the
+      # host from inside the container; a bare localhost would target the container.
+      # The key is a real credential, so it is NOT defaulted here — put it in .env
+      # (gitignored, auto-loaded by compose) as OPENAI_API_KEY=sk-…
+      # Unlike evaluation-service, an empty key is NOT a safe fallback here: that
+      # access rule then fails closed with 400 rather than widening the audience.
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-http://host.docker.internal:20128/v1}
+      OPENAI_MODEL: ${OPENAI_MODEL:-agentrouter/deepseek-v4-flash}
       # source-service is resolved through eureka by its service id (load-balanced).
       SOURCE_SERVICE_URL: http://source-service
       EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
@@ -158,6 +168,9 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_BASE_URL: ${OPENAI_BASE_URL:-http://host.docker.internal:20128/v1}
       OPENAI_MODEL: ${OPENAI_MODEL:-agentrouter/deepseek-v4-flash}
+      # Hard kill switch for AI scoring. When false, every AUTO pool degrades to a
+      # human exactly like an unreachable model — the cycle still moves forward.
+      EVALUATION_AUTO_ENABLED: ${EVALUATION_AUTO_ENABLED:-true}
       # problem-service is resolved through eureka by its service id (load-balanced).
       PROBLEM_SERVICE_URL: http://problem-service
       # portal-service is resolved through eureka by its service id (load-balanced)
@@ -204,10 +217,10 @@ services:
     # python3 (the agentic-legibility analyzer), neither of which is in the plain
     # JRE base used by Dockerfile.service.
     build:
-      context: ./codejudge-service
-      dockerfile: ../Dockerfile.codejudge
+      context: .
+      dockerfile: Dockerfile.codejudge
       args:
-        JAR_FILE: target/codejudge-service-0.0.1-SNAPSHOT.jar
+        JAR_FILE: codejudge-service/target/codejudge-service-0.0.1-SNAPSHOT.jar
     image: sih26043-codejudge-service:local
     depends_on:
       db:
@@ -249,7 +262,7 @@ services:
       - codejudge-service
       - eureka-server
     ports:
-      - "8090:8080"
+      - "8080:8080"
     volumes:
       - ./gateway/Caddyfile:/etc/caddy/Caddyfile:ro
 

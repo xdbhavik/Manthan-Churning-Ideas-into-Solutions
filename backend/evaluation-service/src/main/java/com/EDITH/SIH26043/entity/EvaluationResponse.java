@@ -1,5 +1,6 @@
 package com.EDITH.SIH26043.entity;
 
+import com.EDITH.SIH26043.enums.ScoreSource;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
@@ -33,4 +34,12 @@ public class EvaluationResponse {
 
     @Column(name = "comment", columnDefinition = "text")
     private String comment;
+
+    /**
+     * HUMAN (default) or AI — see {@link ScoreSource}. Recorded per row, not per
+     * assignment, so an AI scorecard stays distinguishable in every aggregate.
+     */
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "score_source", nullable = false, columnDefinition = "score_source")
+    private ScoreSource scoreSource = ScoreSource.HUMAN;
 }

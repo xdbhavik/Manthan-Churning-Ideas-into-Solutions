@@ -21,8 +21,20 @@ import java.util.UUID;
 
 /**
  * Final per-cycle aggregation result (1:1 with {@code evaluation_cycle}).
- * {@code perTypeScores} holds the 0-100 score per evaluator type; weights and
- * disagreement details are snapshotted for explainability.
+ *
+ * <p>{@code perTypeScores} is the explainability snapshot: one entry per
+ * {@code EvaluatorType}, always all five. A pool that scored carries
+ * {@code present: true} plus {@code normalisedScore} (0-100), {@code rawScore},
+ * {@code maxScore}, {@code criteriaScored}, {@code scoreSource} (HUMAN/AI),
+ * {@code assignmentId}, {@code submittedAt}, {@code configuredWeight} and
+ * {@code effectiveWeight}; a pool that did not carries {@code present: false} and a
+ * {@code reason}. The effective weights of the present pools sum to 1 because they
+ * are renormalised over the pools that scored, not over all five.</p>
+ *
+ * <p>{@code numAssignments} is the number of scorecards folded in — i.e. how many
+ * pools actually contributed — which is not always five: a pool skipped for want of
+ * an evaluator, or one whose evaluator declined, simply does not appear as present.
+ * Read {@code perTypeScores} rather than assuming {@code numAssignments == 5}.</p>
  */
 @Entity
 @Table(name = "evaluation_aggregation")

@@ -60,6 +60,8 @@ class ProjectReviewServiceTest {
 
     private final UUID userId = UUID.randomUUID();
     private final UUID profileId = UUID.randomUUID();
+    private final UUID aiUserId = UUID.randomUUID();
+    private final UUID aiProfileId = UUID.randomUUID();
     private final UUID submissionId = UUID.randomUUID();
     private final UUID problemId = UUID.randomUUID();
     private final UUID cycleId = UUID.randomUUID();
@@ -180,6 +182,114 @@ class ProjectReviewServiceTest {
         verify(assignmentRepository, never()).findByCycleIdAndStatusIn(any(), anyCollection());
     }
 
+    // ------------------------------------------- reviewer resolution (AI cycles)
+
+    @Test
+    void create_PrefersTheHumanEvaluatorOverAnAiOneWhenBothSubmitted() {
+        // A mixed cycle: one pool on AUTO (AI), the others manual. The AI assignment may
+        // well come back first, but the review must land on the human who can log in.
+        givenCompletedCycle();
+        when(reviewRepository.findBySubmissionIdAndRound(submissionId, 1))
+                .thenReturn(Optional.empty());
+        when(assignmentRepository.findByCycleIdAndStatusIn(eq(cycleId), anyCollection()))
+                .thenReturn(List.of(submittedAssignment(aiProfileId), submittedAssignment()));
+        when(profileRepository.findById(aiProfileId)).thenReturn(Optional.of(systemProfile()));
+        when(profileRepository.findById(profileId)).thenReturn(Optional.of(profile()));
+        when(reviewRepository.save(any(ProjectReview.class))).thenAnswer(inv -> {
+            ProjectReview review = inv.getArgument(0);
+            review.setProjectReviewId(UUID.randomUUID());
+            return review;
+        });
+
+        ProjectReviewCreateResponse response = service.createInternal(request(1));
+
+        assertThat(response.reviewerUserId()).isEqualTo(userId);
+        assertThat(response.evaluatorProfileId()).isEqualTo(profileId);
+        // The human was found on the first pass, so the fallback never ran.
+        verify(profileRepository, never()).findByActiveIsTrue();
+    }
+
+    @Test
+    void create_FallsBackToTheLeastLoadedHumanWhenEverySubmissionIsAi() {
+        UUID busyProfileId = UUID.randomUUID();
+        UUID busyUserId = UUID.randomUUID();
+        UUID freeProfileId = UUID.randomUUID();
+        UUID freeUserId = UUID.randomUUID();
+
+        givenCompletedCycle();
+        when(reviewRepository.findBySubmissionIdAndRound(submissionId, 1))
+                .thenReturn(Optional.empty());
+        when(assignmentRepository.findByCycleIdAndStatusIn(eq(cycleId), anyCollection()))
+                .thenReturn(List.of(submittedAssignment(aiProfileId)));
+        when(profileRepository.findById(aiProfileId)).thenReturn(Optional.of(systemProfile()));
+        when(profileRepository.findByActiveIsTrue()).thenReturn(List.of(
+                systemProfile(),
+                profile(busyProfileId, busyUserId, false),
+                profile(freeProfileId, freeUserId, false)));
+        when(assignmentRepository.countByEvaluatorProfileIdAndStatusIn(busyProfileId, List.of(
+                AssignmentStatus.ASSIGNED, AssignmentStatus.IN_PROGRESS))).thenReturn(4L);
+        when(assignmentRepository.countByEvaluatorProfileIdAndStatusIn(freeProfileId, List.of(
+                AssignmentStatus.ASSIGNED, AssignmentStatus.IN_PROGRESS))).thenReturn(1L);
+        when(reviewRepository.save(any(ProjectReview.class))).thenAnswer(inv -> {
+            ProjectReview review = inv.getArgument(0);
+            review.setProjectReviewId(UUID.randomUUID());
+            return review;
+        });
+
+        ProjectReviewCreateResponse response = service.createInternal(request(1));
+
+        assertThat(response.evaluatorProfileId()).isEqualTo(freeProfileId);
+        assertThat(response.reviewerUserId()).isEqualTo(freeUserId);
+        verify(auditService).record(eq("PROBLEM"), eq(problemId),
+                eq(AuditAction.PROJECT_REVIEW_ASSIGNED), eq(freeUserId), isNull(), anyMap(),
+                eq("internal"));
+    }
+
+    @Test
+    void create_AnAiOnlyCycleWithoutAnyHumanEvaluatorIsAConflict() {
+        givenCompletedCycle();
+        when(reviewRepository.findBySubmissionIdAndRound(submissionId, 1))
+                .thenReturn(Optional.empty());
+        when(assignmentRepository.findByCycleIdAndStatusIn(eq(cycleId), anyCollection()))
+                .thenReturn(List.of(submittedAssignment(aiProfileId)));
+        when(profileRepository.findById(aiProfileId)).thenReturn(Optional.of(systemProfile()));
+        when(profileRepository.findByActiveIsTrue()).thenReturn(List.of(systemProfile()));
+
+        assertThatThrownBy(() -> service.createInternal(request(1)))
+                .isInstanceOf(ApiException.class)
+                .satisfies(ex -> {
+                    assertThat(((ApiException) ex).getStatus()).isEqualTo(HttpStatus.CONFLICT);
+                    assertThat(ex.getMessage()).contains("no human evaluator exists");
+                });
+        verify(reviewRepository, never()).save(any());
+    }
+
+    @Test
+    void create_AnAssignmentWhoseProfileVanishedStillFindsAReviewer() {
+        // Defensive: a dangling evaluator_profile_id must not strand the submission.
+        UUID humanProfileId = UUID.randomUUID();
+        UUID humanUserId = UUID.randomUUID();
+
+        givenCompletedCycle();
+        when(reviewRepository.findBySubmissionIdAndRound(submissionId, 1))
+                .thenReturn(Optional.empty());
+        when(assignmentRepository.findByCycleIdAndStatusIn(eq(cycleId), anyCollection()))
+                .thenReturn(List.of(submittedAssignment(aiProfileId)));
+        when(profileRepository.findById(aiProfileId)).thenReturn(Optional.empty());
+        when(profileRepository.findByActiveIsTrue())
+                .thenReturn(List.of(profile(humanProfileId, humanUserId, false)));
+        when(assignmentRepository.countByEvaluatorProfileIdAndStatusIn(any(), anyCollection()))
+                .thenReturn(0L);
+        when(reviewRepository.save(any(ProjectReview.class))).thenAnswer(inv -> {
+            ProjectReview review = inv.getArgument(0);
+            review.setProjectReviewId(UUID.randomUUID());
+            return review;
+        });
+
+        assertThat(service.createInternal(request(1)).evaluatorProfileId())
+                .isEqualTo(humanProfileId);
+    }
+
     // ------------------------------------------------------------------ decide
 
     @Test
@@ -260,9 +370,24 @@ class ProjectReviewServiceTest {
     }
 
     private EvaluatorProfile profile() {
+        return profile(profileId, userId, false);
+    }
+
+    private EvaluatorProfile profile(UUID id, UUID owner, boolean system) {
         EvaluatorProfile profile = new EvaluatorProfile();
-        profile.setProfileId(profileId);
-        profile.setUserId(userId);
+        profile.setProfileId(id);
+        profile.setUserId(owner);
+        profile.setFullName(system ? "AI Evaluator — GOVERNMENT" : "Human Evaluator");
+        profile.setMaxWorkload(5);
+        profile.setActive(true);
+        profile.setSystem(system);
+        return profile;
+    }
+
+    /** The seeded per-pool AI profile a fully-AUTO cycle's assignment is owned by. */
+    private EvaluatorProfile systemProfile() {
+        EvaluatorProfile profile = profile(aiProfileId, aiUserId, true);
+        profile.setMaxWorkload(100000);
         return profile;
     }
 
@@ -280,10 +405,14 @@ class ProjectReviewServiceTest {
     }
 
     private EvaluationAssignment submittedAssignment() {
+        return submittedAssignment(profileId);
+    }
+
+    private EvaluationAssignment submittedAssignment(UUID ownerProfileId) {
         EvaluationAssignment assignment = new EvaluationAssignment();
         assignment.setAssignmentId(UUID.randomUUID());
         assignment.setCycleId(cycleId);
-        assignment.setEvaluatorProfileId(profileId);
+        assignment.setEvaluatorProfileId(ownerProfileId);
         assignment.setStatus(AssignmentStatus.SUBMITTED);
         return assignment;
     }

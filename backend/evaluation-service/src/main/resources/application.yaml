@@ -40,6 +40,24 @@ app:
   # deadline expires. Deadlines are enforced on read/submit, not by a scheduler.
   evaluation:
     assignment-deadline-days: 7
+    # Hard kill-switch for AI (AUTO-pool) scoring. When false, every AUTO pool
+    # degrades to a human evaluator for that run exactly as an unavailable model
+    # does, and an EVALUATION_AI_UNAVAILABLE audit row says so. Flip it to take
+    # the machine out of the loop in one place, without touching the per-pool
+    # switches the evaluators own.
+    auto-scoring-enabled: ${EVALUATION_AUTO_ENABLED:true}
+    # Aggregation: where a cycle's weighted 0-100 score lands on the impact scale.
+    # Both are inclusive lower bounds, read in descending order.
+    impact-high-threshold: ${EVAL_IMPACT_HIGH:70}
+    impact-medium-threshold: ${EVAL_IMPACT_MEDIUM:40}
+    # Prioritisation: the band a score falls in. priority_score == final_score, so
+    # these are the only knobs that decide P1..P4.
+    priority-p1-threshold: ${EVAL_PRIORITY_P1:80}
+    priority-p2-threshold: ${EVAL_PRIORITY_P2:65}
+    priority-p3-threshold: ${EVAL_PRIORITY_P3:50}
+    # Aggregation: how far apart the five pool scores may be (0-100, max minus min)
+    # before the cycle is flagged for human review. The flag is recorded, never a gate.
+    disagreement-spread-threshold: ${EVAL_DISAGREEMENT_SPREAD:30}
   llm:
     # OpenAI-compatible local model (Phase 2 problem analysis) — currently
     # agentrouter/deepseek-v4-flash on the host. Empty key → heuristic fallback;

@@ -10,6 +10,7 @@ import com.EDITH.SIH26043.entity.EvaluatorProfile;
 import com.EDITH.SIH26043.enums.AssignmentStatus;
 import com.EDITH.SIH26043.enums.AuditAction;
 import com.EDITH.SIH26043.enums.EvaluationStatus;
+import com.EDITH.SIH26043.enums.ScoreSource;
 import com.EDITH.SIH26043.exception.ApiException;
 import com.EDITH.SIH26043.internal.ProblemContextResponse;
 import com.EDITH.SIH26043.repository.EvaluationAssignmentRepository;
@@ -239,6 +240,71 @@ public class EvaluatorAssignmentService {
                                             ScoreSubmissionRequest req, String ipAddress) {
         EvaluatorProfile profile = myProfile(userId);
         EvaluationAssignment assignment = requireOwnAssignment(profile, assignmentId);
+        return persistScorecard(profile, assignment, req, ScoreSource.HUMAN, userId, ipAddress);
+    }
+
+    /**
+     * The machine's counterpart of {@link #submit}: used when the pool is on AUTO
+     * and the assignment is owned by that pool's system AI profile.
+     *
+     * <p>There is no JWT subject to resolve here, so the profile is read from the
+     * assignment itself — and must actually be a system profile, so a human's
+     * assignment can never be scored through this door. Everything after that is
+     * the identical write path, which is the point: the AI produces scores, not a
+     * second, divergent copy of the scoring rules.</p>
+     *
+     * @param provider the model provider that produced the scores (audit only)
+     * @param model    the model id that produced the scores (audit only)
+     */
+    @Transactional
+    public AssignmentOutcomeResponse submitAsSystem(UUID assignmentId, ScoreSubmissionRequest req,
+                                                    String provider, String model,
+                                                    UUID actorUserId, String ipAddress) {
+        EvaluationAssignment assignment = assignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND,
+                        "Assignment " + assignmentId + " not found"));
+        EvaluatorProfile profile = profileRepository.findById(assignment.getEvaluatorProfileId())
+                .orElseThrow(() -> new ApiException(HttpStatus.CONFLICT,
+                        "Evaluator profile " + assignment.getEvaluatorProfileId()
+                                + " no longer exists; cannot store the AI scorecard"));
+        if (!profile.isSystem()) {
+            throw new ApiException(HttpStatus.CONFLICT,
+                    "Assignment " + assignmentId + " belongs to a human evaluator; "
+                            + "it must be submitted by that evaluator");
+        }
+
+        AssignmentOutcomeResponse outcome = persistScorecard(profile, assignment, req,
+                ScoreSource.AI, actorUserId, ipAddress);
+
+        // The EVALUATION_SUBMITTED row written above is the same lifecycle fact a
+        // human submit records — deliberately, so cycle/reporting queries keep
+        // working unchanged. The machine's provenance is this second, separate fact.
+        Map<String, Object> after = new HashMap<>();
+        after.put("assignmentId", assignmentId);
+        after.put("cycleId", assignment.getCycleId());
+        after.put("evaluatorProfileId", profile.getProfileId());
+        after.put("evaluatorType", profile.getEvaluatorType().name());
+        after.put("scoreSource", ScoreSource.AI.name());
+        after.put("provider", provider);
+        after.put("model", model);
+        after.put("criteriaScored", outcome.criteriaScored());
+        auditService.record("PROBLEM", problemIdOf(assignment), AuditAction.EVALUATION_AI_SCORED,
+                actorUserId, null, after, ipAddress);
+        return outcome;
+    }
+
+    /**
+     * The single scorecard write path, shared by the human and the machine:
+     * open-status guard, deadline guard, all-criteria validation, row persistence
+     * with its provenance, the assignment close, the lifecycle audit and the
+     * cycle knock-on. Keeping it in one method is what guarantees the AI can never
+     * bypass a rule a human is held to.
+     */
+    private AssignmentOutcomeResponse persistScorecard(EvaluatorProfile profile,
+                                                       EvaluationAssignment assignment,
+                                                       ScoreSubmissionRequest req,
+                                                       ScoreSource source,
+                                                       UUID actorUserId, String ipAddress) {
         AssignmentStatus before = assignment.getStatus();
         if (before == AssignmentStatus.SUBMITTED) {
             throw new ApiException(HttpStatus.CONFLICT,
@@ -250,7 +316,8 @@ public class EvaluatorAssignmentService {
         }
         requireNotExpired(assignment);
 
-        List<EvaluationResponse> rows = validateScorecard(profile, assignmentId, req);
+        List<EvaluationResponse> rows = validateScorecard(profile, assignment.getAssignmentId(),
+                req, source);
         responseRepository.saveAll(rows);
 
         assignment.setStatus(AssignmentStatus.SUBMITTED);
@@ -263,11 +330,11 @@ public class EvaluatorAssignmentService {
         assignmentRepository.save(assignment);
 
         auditService.record("PROBLEM", problemIdOf(assignment), AuditAction.EVALUATION_SUBMITTED,
-                userId, Map.of("status", before.name()),
-                submitSnapshot(assignment, profile, rows.size()), ipAddress);
+                actorUserId, Map.of("status", before.name()),
+                submitSnapshot(assignment, profile, rows.size(), source), ipAddress);
 
         String message = "Scorecard submitted (" + rows.size() + " criteria)";
-        if (completeCycleIfNoOpenAssignments(assignment, userId, ipAddress)) {
+        if (completeCycleIfNoOpenAssignments(assignment, actorUserId, ipAddress)) {
             message += "; cycle EVALUATION_COMPLETED";
         }
         return new AssignmentOutcomeResponse(assignment.getAssignmentId(), assignment.getStatus(),
@@ -284,7 +351,8 @@ public class EvaluatorAssignmentService {
      * above the criterion's own {@code maxScore}, or a missing criterion.
      */
     private List<EvaluationResponse> validateScorecard(EvaluatorProfile profile, UUID assignmentId,
-                                                       ScoreSubmissionRequest req) {
+                                                       ScoreSubmissionRequest req,
+                                                       ScoreSource source) {
         List<EvaluationCriterion> criteria = activeCriteria(profile);
         if (criteria.isEmpty()) {
             throw new ApiException(HttpStatus.CONFLICT,
@@ -317,6 +385,7 @@ public class EvaluatorAssignmentService {
             row.setId(new EvaluationResponseId(assignmentId, criterion.getCriterionId()));
             row.setScore(score.score());
             row.setComment(score.comment());
+            row.setScoreSource(source);
             rows.add(row);
         }
 
@@ -498,7 +567,8 @@ public class EvaluatorAssignmentService {
     }
 
     private Map<String, Object> submitSnapshot(EvaluationAssignment assignment,
-                                               EvaluatorProfile profile, int criteriaScored) {
+                                               EvaluatorProfile profile, int criteriaScored,
+                                               ScoreSource source) {
         // HashMap (not Map.of): submittedAt/recommendation may legitimately be null.
         Map<String, Object> snap = new HashMap<>();
         snap.put("assignmentId", assignment.getAssignmentId());
@@ -508,6 +578,7 @@ public class EvaluatorAssignmentService {
         snap.put("status", assignment.getStatus().name());
         snap.put("submittedAt", assignment.getSubmittedAt());
         snap.put("criteriaScored", criteriaScored);
+        snap.put("scoreSource", source.name());
         snap.put("recommendation", assignment.getRecommendation());
         return snap;
     }

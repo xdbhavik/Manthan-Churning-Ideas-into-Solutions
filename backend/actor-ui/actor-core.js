@@ -12,7 +12,7 @@ const $ = id => document.getElementById(id);
 
 const ACTOR = (document.body && document.body.dataset.actor) || 'SUBMITTER';
 const ACTOR_LABEL = { SUBMITTER: 'Submitter', REVIEWER: 'Reviewer', ADMIN: 'Admin',
-                      EVALUATOR: 'Evaluator' }[ACTOR];
+                      EVALUATOR: 'Evaluator', PORTAL: 'Portal' }[ACTOR];
 
 /* ---- per-actor local keys ---- */
 function k(suffix) { return 'sih_' + ACTOR.toLowerCase() + '_' + suffix; }
@@ -44,7 +44,10 @@ function setTokens(access, refresh, user){
 }
 function renderUser(){
   const b = $('roleBadge'); if(!b) return;
-  const roleOK = state.user && state.user.role === ACTOR;
+  // Portal participants are NOT a source role (any valid JWT works — the portal
+  // resolves STUDENT vs UNIVERSITY from /portal/me), so a role match is not required.
+  const isPortal = ACTOR === 'PORTAL';
+  const roleOK = state.user && (isPortal || state.user.role === ACTOR);
   b.textContent = state.user
     ? `${state.user.role}${roleOK?'':' ⚠ wrong-actor!'} · KYC ${state.user.kycStatus||'?'}` + (state.user.linkedSourceId?' · linked':'')
     : state.token ? 'authenticated (role unknown)' : `${ACTOR_LABEL} · not logged in`;
@@ -52,9 +55,15 @@ function renderUser(){
   const note = $('roleNote');
   if (note){
     note.className = 'role-note ' + (state.user ? (roleOK ? 'role-ok' : 'role-wrong') : '');
-    if (state.user && roleOK)  note.innerHTML = `✓ Logged in as <b>${ACTOR_LABEL}</b> (${state.user.role}). Ye page sirf ${ACTOR_LABEL} ke ops dikhata hai.`;
+    if (state.user && roleOK){
+      if (isPortal) note.innerHTML = `✓ Logged in as <b>${state.user.role}</b> — portal pe aap <b>participant</b> ho (STUDENT ya UNIVERSITY). ` +
+        `Apni kind confirm karne ke liye neeche <b>GET /portal/me</b> dabao (university account pe auto-bind hota hai, student ko pehle register karna padta hai).`;
+      else note.innerHTML = `✓ Logged in as <b>${ACTOR_LABEL}</b> (${state.user.role}). Ye page sirf ${ACTOR_LABEL} ke ops dikhata hai.`;
+    }
     else if (state.user)       note.innerHTML = `⚠ Ye page <b>${ACTOR_LABEL}</b> ke liye hai, par login role <b>${state.user.role}</b> hai. Sahi actor ka login karo (right-top token bar / Auth card).`;
-    else                       note.innerHTML = ACTOR === 'SUBMITTER'
+    else                       note.innerHTML = isPortal
+      ? 'Portal: pehle source auth se account/login karo (phone → OTP) taaki token mile — phir <b>/portal/me</b> se participant bano/dekho.'
+      : ACTOR === 'SUBMITTER'
       ? 'Submiter: register/login karo, verify-otp se token lo — phir neeche kaam karo.'
       : `${ACTOR_LABEL}: role DB se set hota hai, phir login karo. Phone sahi ho to Auth card bharo.`;
   }

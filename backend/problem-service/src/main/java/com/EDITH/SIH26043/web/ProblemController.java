@@ -9,8 +9,8 @@ import com.EDITH.SIH26043.exception.ApiException;
 import com.EDITH.SIH26043.repository.ProblemRepository;
 import com.EDITH.SIH26043.security.AuthUser;
 import com.EDITH.SIH26043.service.EvidenceUploadService;
-import com.EDITH.SIH26043.service.ProblemCollectionEngine;
 import com.EDITH.SIH26043.service.ProblemStatusService;
+import com.EDITH.SIH26043.service.ProblemSubmissionService;
 import com.EDITH.SIH26043.web.dto.ProblemResponse;
 import com.EDITH.SIH26043.web.dto.ProblemSubmitRequest;
 import com.EDITH.SIH26043.web.dto.StatusPatchRequest;
@@ -35,16 +35,16 @@ import java.util.UUID;
 @RequestMapping("/problems")
 public class ProblemController {
 
-    private final ProblemCollectionEngine engine;
+    private final ProblemSubmissionService submissionService;
     private final ProblemStatusService statusService;
     private final ProblemRepository problemRepository;
     private final EvidenceUploadService evidenceUploadService;
 
-    public ProblemController(ProblemCollectionEngine engine,
+    public ProblemController(ProblemSubmissionService submissionService,
                              ProblemStatusService statusService,
                              ProblemRepository problemRepository,
                              EvidenceUploadService evidenceUploadService) {
-        this.engine = engine;
+        this.submissionService = submissionService;
         this.statusService = statusService;
         this.problemRepository = problemRepository;
         this.evidenceUploadService = evidenceUploadService;
@@ -55,7 +55,7 @@ public class ProblemController {
     public ProblemResponse submit(@Valid @RequestBody ProblemSubmitRequest req,
                                   @AuthenticationPrincipal AuthUser me,
                                   jakarta.servlet.http.HttpServletRequest http) {
-        Problem created = engine.receiveSubmission(req, me, clientIp(http));
+        Problem created = submissionService.submit(req, me, clientIp(http));
         return ProblemResponse.from(created);
     }
 
