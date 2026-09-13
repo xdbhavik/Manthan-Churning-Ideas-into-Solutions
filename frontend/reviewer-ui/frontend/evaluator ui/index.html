@@ -1,0 +1,1650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>SIH26043 — Reviewer Case Management & Statutory Verification Portal</title>
+  
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&amp;family=Noto+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+
+  <!-- Base Styles -->
+  <style>
+    @layer base {
+      html, body { margin: 0; padding: 0; }
+      body { overscroll-behavior: none; }
+      main > :first-child { margin-top: 0 !important; }
+      main > :last-child { margin-bottom: 0 !important; }
+    }
+    ::-webkit-scrollbar { display: none; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .screen-view { display: none; }
+    .screen-view.active { display: block; }
+    .toast-animate {
+      animation: slideInDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes slideInDown {
+      from { transform: translateY(-100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    /* Profile Dropdown */
+    .profile-dropdown {
+      transform-origin: top right;
+      animation: profileDropIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes profileDropIn {
+      from { transform: scale(0.92) translateY(-4px); opacity: 0; }
+      to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .profile-dropdown-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+    }
+  </style>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-primary": "#ffffff",
+            "on-surface-variant": "#43474d",
+            "on-primary-fixed-variant": "#314865",
+            "status-review-border": "#DDD6FE",
+            "inverse-primary": "#b0c8eb",
+            "secondary-container": "#8fa7fe",
+            "surface-dim": "#cbdbf5",
+            "on-secondary-container": "#1d3989",
+            "on-error": "#ffffff",
+            "surface-container-highest": "#d3e4fe",
+            "on-tertiary-fixed": "#002114",
+            "status-review-text": "#5B21B6",
+            "surface-container-high": "#dce9ff",
+            "on-surface": "#0b1c30",
+            "on-background": "#0b1c30",
+            "on-primary-fixed": "#001c37",
+            "secondary-fixed-dim": "#b6c4ff",
+            "primary-container": "#0a2540",
+            "on-tertiary-fixed-variant": "#005137",
+            "tertiary": "#001209",
+            "background": "#f8f9ff",
+            "ashoka-blue": "#0A2540",
+            "outline-variant": "#c4c6ce",
+            "status-approved-text": "#065F46",
+            "status-review-bg": "#F5F3FF",
+            "on-secondary-fixed-variant": "#264191",
+            "primary-fixed-dim": "#b0c8eb",
+            "on-secondary-fixed": "#00164e",
+            "inverse-on-surface": "#eaf1ff",
+            "primary-fixed": "#d2e4ff",
+            "status-approved-border": "#A7F3D0",
+            "on-error-container": "#93000a",
+            "on-secondary": "#ffffff",
+            "tertiary-fixed": "#85f8c4",
+            "surface-container-lowest": "#ffffff",
+            "status-action-border": "#FED7AA",
+            "institutional-navy": "#1E3A8A",
+            "tertiary-fixed-dim": "#68dba9",
+            "on-tertiary-container": "#1a9e70",
+            "gov-emerald": "#059669",
+            "on-tertiary": "#ffffff",
+            "text-muted": "#64748B",
+            "surface-container": "#e5eeff",
+            "surface": "#f8f9ff",
+            "status-submitted-text": "#1E40AF",
+            "status-approved-bg": "#ECFDF5",
+            "tertiary-container": "#002a1b",
+            "secondary-fixed": "#dce1ff",
+            "surface-variant": "#d3e4fe",
+            "error-container": "#ffdad6",
+            "surface-tint": "#49607e",
+            "surface-muted": "#F1F5F9",
+            "text-secondary": "#475569",
+            "surface-subtle": "#F8FAFC",
+            "inverse-surface": "#213145",
+            "on-primary-container": "#768dad",
+            "border-strong": "#CBD5E1",
+            "text-primary": "#0F172A",
+            "primary": "#000f22",
+            "surface-bright": "#f8f9ff",
+            "surface-crisp": "#FFFFFF",
+            "status-action-bg": "#FFF7ED",
+            "status-action-text": "#9A3412",
+            "outline": "#74777e",
+            "border-hairline": "#E2E8F0",
+            "error": "#ba1a1a",
+            "status-submitted-bg": "#EFF6FF",
+            "status-submitted-border": "#BFDBFE",
+            "secondary": "#4059aa",
+            "saffron-accent": "#E05A10",
+            "surface-container-low": "#eff4ff"
+          },
+          borderRadius: {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          spacing: {
+            "space-3xl": "4rem",
+            "gutter-desktop": "1.5rem",
+            "space-lg": "1.5rem",
+            "space-xl": "2rem",
+            "space-sm": "0.5rem",
+            "space-base": "1rem",
+            "space-2xs": "0.125rem",
+            "form-max-width": "42rem",
+            "space-xs": "0.25rem",
+            "gutter-mobile": "1rem",
+            "space-2xl": "3rem",
+            "space-md": "0.75rem",
+            "container-max-width": "96rem"
+          },
+          fontFamily: {
+            "body-md": ["Noto Sans", "sans-serif"],
+            "mono-code": ["JetBrains Mono", "monospace"],
+            "label-sm": ["Noto Sans", "sans-serif"],
+            "label-md": ["Noto Sans", "sans-serif"],
+            "body-sm": ["Noto Sans", "sans-serif"],
+            "headline-xl-mobile": ["Noto Sans", "sans-serif"],
+            "body-lg": ["Noto Sans", "sans-serif"],
+            "headline-lg": ["Noto Sans", "sans-serif"],
+            "headline-sm": ["Noto Sans", "sans-serif"],
+            "headline-xl": ["Noto Sans", "sans-serif"],
+            "headline-md": ["Noto Sans", "sans-serif"],
+            "label-lg": ["Noto Sans", "sans-serif"]
+          },
+          fontSize: {
+            "body-md": ["14px", { "lineHeight": "22px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "mono-code": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "700" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+            "headline-xl-mobile": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+            "body-lg": ["16px", { "lineHeight": "26px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "700" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" }],
+            "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }]
+          }
+        }
+      }
+    };
+  </script>
+</head>
+
+<body class="bg-surface-subtle font-body-md text-text-primary min-h-screen antialiased selection:bg-ashoka-blue selection:text-white flex flex-col">
+  <!-- Top Tricolor Ribbon -->
+  <div class="w-full fixed top-0 left-0 h-1 flex z-[60]">
+    <div class="h-full flex-1 bg-saffron-accent"></div>
+    <div class="h-full flex-1 bg-surface-crisp"></div>
+    <div class="h-full flex-1 bg-gov-emerald"></div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- GLOBAL HEADER (Visible on Dashboard and Detail screens)                   -->
+  <!-- ========================================================================= -->
+    <!-- ========================================================================= -->
+  <!-- GLOBAL HEADER (Persistent across all views)                               -->
+  <!-- ========================================================================= -->
+  <header id="global-portal-header" class="fixed top-1 left-0 right-0 z-40 bg-surface-crisp shadow-sm border-b border-border-hairline h-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between">
+      <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.hash = AppState.authenticatedUser.role === 'REVIEWER' ? '#/dashboard' : '#/login'">
+        <!-- Ashoka Emblem SVG -->
+        <div class="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-lg bg-surface-container-low shadow-sm border border-border-hairline/60">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="w-7 h-7" fill="none">
+            <circle cx="24" cy="24" r="22" fill="#0A2540" stroke="#E2E8F0" stroke-width="1.5"/>
+            <circle cx="24" cy="24" r="16" fill="#F8FAFC" stroke="#0A2540" stroke-width="1"/>
+            <circle cx="24" cy="24" r="11" stroke="#1E3A8A" stroke-width="1.2" fill="none"/>
+            <circle cx="24" cy="24" r="3" fill="#1E3A8A"/>
+            <line x1="24" y1="13" x2="24" y2="35" stroke="#1E3A8A" stroke-width="1"/>
+            <line x1="13" y1="24" x2="35" y2="24" stroke="#1E3A8A" stroke-width="1"/>
+            <line x1="16" y1="16" x2="32" y2="32" stroke="#1E3A8A" stroke-width="1"/>
+            <line x1="16" y1="32" x2="32" y2="16" stroke="#1E3A8A" stroke-width="1"/>
+          </svg>
+        </div>
+        <div class="flex flex-col">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-ashoka-blue tracking-tight text-base sm:text-lg leading-tight">Reviewer Case Management Portal</span>
+            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-status-submitted-bg text-status-submitted-text uppercase leading-none">Gov.in</span>
+          </div>
+          <span class="text-xs text-text-muted hidden sm:inline leading-tight">Statutory Review &amp; Verification Authority | सांविधानिक समीक्षा प्राधिकरण</span>
+        </div>
+      </div>
+
+      <!-- Navigation Menu (shown when logged in) -->
+      <nav class="hidden md:flex items-center gap-1.5" id="nav-menu">
+        <a class="nav-link px-3 py-1.5 transition-colors flex items-center text-xs sm:text-sm rounded-lg font-medium" data-target="dashboard" href="#/dashboard" id="nav-link-dashboard">
+          <span class="material-symbols-outlined text-[16px] mr-1">folder_supervised</span>
+          <span>Registration Queue</span>
+          <span class="ml-1.5 px-1.5 py-0.2 bg-surface-muted text-institutional-navy rounded-full text-[10px] font-bold" id="nav-reg-count">4</span>
+        </a>
+        <a class="nav-link px-3 py-1.5 transition-colors flex items-center text-xs sm:text-sm rounded-lg font-medium text-on-surface-variant hover:bg-surface-container-high" data-target="problem-queue" href="#/problem-queue" id="nav-link-problem-queue">
+          <span class="material-symbols-outlined text-[16px] mr-1">report_problem</span>
+          <span>Problem Queue</span>
+          <span class="ml-1.5 px-1.5 py-0.2 bg-surface-muted text-saffron-accent rounded-full text-[10px] font-bold" id="nav-prb-count">6</span>
+        </a>
+        <a class="nav-link px-3 py-1.5 transition-colors flex items-center text-xs sm:text-sm rounded-lg font-medium text-on-surface-variant hover:bg-surface-container-high" data-target="my-reviews" href="#/my-reviews" id="nav-link-my-reviews">
+          <span class="material-symbols-outlined text-[16px] mr-1">assignment</span>
+          <span>My Reviews</span>
+          <span class="ml-1.5 px-1.5 py-0.2 bg-status-review-bg text-status-review-text rounded-full text-[10px] font-bold" id="nav-my-count">4</span>
+        </a>
+      </nav>
+
+      <!-- User Profile / Session Status Button -->
+      <div class="flex items-center gap-3">
+        <div class="relative" id="profile-btn-container">
+          <button type="button" onclick="toggleProfileDropdown()" id="profile-btn"
+                  class="flex items-center gap-2 bg-surface-muted hover:bg-surface-container-low px-3 py-1.5 rounded-lg border border-border-hairline transition-colors cursor-pointer">
+            <div class="w-7 h-7 rounded-full bg-ashoka-blue text-surface-crisp flex items-center justify-center text-xs font-bold" id="header-avatar-initials">
+              <span class="material-symbols-outlined text-[16px]">person</span>
+            </div>
+            <div class="flex flex-col text-left hidden sm:flex">
+              <span class="text-xs font-bold text-ashoka-blue leading-tight" id="header-officer-name">Guest</span>
+              <span class="text-[10px] text-text-muted leading-none font-mono" id="header-officer-id">Not Logged In</span>
+            </div>
+            <span class="material-symbols-outlined text-text-muted text-[18px] transition-transform" id="header-dropdown-arrow">expand_more</span>
+          </button>
+
+          <!-- Profile Dropdown Panel -->
+          <div id="profile-dropdown" class="hidden absolute right-0 top-[calc(100%+8px)] w-72 sm:w-80 bg-surface-crisp rounded-xl shadow-xl border border-border-hairline z-[100] profile-dropdown overflow-hidden">
+            <!-- User Identity Header -->
+            <div class="px-5 pt-5 pb-4 bg-gradient-to-br from-primary/5 via-surface-crisp to-secondary-container/10">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary shadow-sm shrink-0">
+                  <span class="material-symbols-outlined text-[20px]">person</span>
+                </div>
+                <div class="flex flex-col min-w-0">
+                  <span class="font-headline-sm text-sm sm:text-headline-sm text-text-primary truncate font-bold" id="dropdown-user-name">Reviewer Officer</span>
+                  <span class="font-mono-code text-[11px] text-text-muted uppercase" id="dropdown-user-id">ROLE_REVIEWER</span>
+                </div>
+              </div>
+              <div class="mt-3 flex items-center gap-2 flex-wrap">
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gov-emerald/10 text-gov-emerald font-label-sm text-[10px] uppercase tracking-wider font-bold">
+                  <span class="w-1.5 h-1.5 rounded-full bg-gov-emerald animate-pulse"></span>
+                  Active Session
+                </span>
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary-container/20 text-primary font-label-sm text-[10px] uppercase tracking-wider font-bold" id="dropdown-role-badge">
+                  Reviewer Level 2
+                </span>
+              </div>
+            </div>
+            <!-- Session Details -->
+            <div class="px-5 py-3 border-t border-border-hairline bg-surface-subtle/50 text-xs">
+              <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+                <div>
+                  <span class="text-text-muted block text-[10px] uppercase">Node:</span>
+                  <span class="font-mono text-text-primary font-medium">NIC-HQ-DELHI</span>
+                </div>
+                <div>
+                  <span class="text-text-muted block text-[10px] uppercase">Login Time:</span>
+                  <span class="font-mono text-text-primary font-medium" id="profile-login-time">09:15 AM</span>
+                </div>
+              </div>
+            </div>
+            <div class="py-1">
+              <a href="#/dashboard" onclick="closeProfileDropdown()" class="w-full flex items-center gap-3 px-4 py-2 text-xs sm:text-sm text-text-primary hover:bg-surface-muted transition-colors">
+                <span class="material-symbols-outlined text-[18px] text-text-muted">folder_supervised</span>
+                <span>Registration Queue</span>
+              </a>
+              <a href="#/problem-queue" onclick="closeProfileDropdown()" class="w-full flex items-center gap-3 px-4 py-2 text-xs sm:text-sm text-text-primary hover:bg-surface-muted transition-colors">
+                <span class="material-symbols-outlined text-[18px] text-text-muted">report_problem</span>
+                <span>Problem Queue</span>
+              </a>
+              <a href="#/my-reviews" onclick="closeProfileDropdown()" class="w-full flex items-center gap-3 px-4 py-2 text-xs sm:text-sm text-text-primary hover:bg-surface-muted transition-colors">
+                <span class="material-symbols-outlined text-[18px] text-text-muted">assignment</span>
+                <span>My Reviews Caseload</span>
+              </a>
+            </div>
+            <div class="border-t border-border-hairline p-2 bg-surface-subtle/30">
+              <button onclick="handleLogout(); closeProfileDropdown();" class="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold text-error hover:bg-error/10 rounded-lg transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-[16px]">logout</span>
+                <span>Logout &amp; Terminate Session</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- SCREEN 1: LOGIN (OTP Request) — Route: #/login                           -->
+  <!-- ========================================================================= -->
+    <!-- ============================================================ -->
+  <!-- SCREEN 1: LOGIN (OTP Request) — Route: #/login              -->
+  <!-- ============================================================ -->
+  <section id="screen-login" class="screen-view">
+    <main class="flex-1 pt-24 pb-12 px-4 sm:px-6 max-w-7xl mx-auto w-full flex flex-col items-center justify-center min-h-[calc(100vh-4.5rem)]">
+      <div class="w-full max-w-md bg-surface-crisp rounded-xl shadow-xl p-6 sm:p-8 relative overflow-hidden border border-border-hairline">
+        <!-- Top Tricolor Gradient Strip -->
+        <div class="w-full h-1 bg-gradient-to-r from-saffron-accent via-surface-muted to-gov-emerald absolute top-0 left-0"></div>
+
+        <div class="flex flex-col mb-6 text-center sm:text-left">
+          <div class="flex items-center justify-center sm:justify-start gap-2 mb-2">
+            <span class="material-symbols-outlined text-ashoka-blue text-xl">shield_person</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-saffron-accent">Statutory SSO Gateway</span>
+          </div>
+          <h1 class="text-2xl font-bold text-ashoka-blue mb-1">Sign in to Reviewer Portal</h1>
+          <p class="text-sm text-text-secondary">Passwordless OTP login for Authorized Reviewers &amp; Nodal Officers</p>
+        </div>
+
+        <form onsubmit="event.preventDefault(); handleLoginRequestOtp();" class="flex flex-col gap-4">
+          <div class="flex flex-col gap-1.5">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-bold uppercase tracking-wider text-text-primary" for="mobile-number">
+                Official Mobile Number <span class="text-saffron-accent">*</span>
+              </label>
+              <span class="font-mono text-[11px] text-text-muted font-semibold">10 DIGITS</span>
+            </div>
+            
+            <div class="relative flex items-center rounded-lg border border-border-hairline bg-surface-subtle/50 focus-within:border-ashoka-blue focus-within:ring-1 focus-within:ring-ashoka-blue focus-within:bg-surface-crisp transition-all overflow-hidden">
+              <div class="flex items-center gap-1.5 px-3.5 py-2.5 bg-surface-muted text-text-primary select-none pointer-events-none border-r border-border-hairline shrink-0">
+                <svg class="w-5 h-3.5 rounded-sm shadow-xs border border-border-hairline shrink-0" viewBox="0 0 640 480" aria-label="India">
+                  <path fill="#FF9933" d="M0 0h640v160H0z"/>
+                  <path fill="#FFFFFF" d="M0 160h640v160H0z"/>
+                  <path fill="#128807" d="M0 320h640v160H0z"/>
+                  <circle cx="320" cy="240" r="38" fill="none" stroke="#000080" stroke-width="6"/>
+                  <circle cx="320" cy="240" r="8" fill="#000080"/>
+                </svg>
+                <span class="font-mono text-sm font-semibold text-text-primary">+91</span>
+              </div>
+              <input autocomplete="tel-national" class="w-full h-11 px-3.5 bg-transparent font-mono text-sm text-text-primary placeholder:text-text-muted focus:outline-none min-w-0" id="mobile-number" inputmode="numeric" maxlength="11" placeholder="98298 58790" type="tel" value="98298 58790"/>
+              <div class="px-3 text-gov-emerald opacity-100 transition-opacity shrink-0" id="mobile-check-icon">
+                <span class="material-symbols-outlined text-base">check_circle</span>
+              </div>
+            </div>
+            <div class="flex items-center justify-between text-xs pt-1">
+              <span class="text-text-muted">6-digit OTP will be requested from Gateway</span>
+              <button type="button" onclick="fillReviewerDemo()" class="text-institutional-navy font-bold hover:underline cursor-pointer">
+                Fill Demo (9829858790)
+              </button>
+            </div>
+          </div>
+
+          <!-- Gateway Connectivity Status Pill -->
+          <div class="px-3 py-2 bg-surface-subtle/90 rounded-lg border border-border-hairline text-xs flex items-center justify-between">
+            <span class="text-text-muted flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[15px] text-institutional-navy">hub</span>
+              <span>Backend Gateway:</span>
+            </span>
+            <span id="gateway-status-pill" class="font-mono text-[11px] font-semibold text-gov-emerald flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-gov-emerald animate-pulse"></span>
+              <span>http://localhost:8090</span>
+            </span>
+          </div>
+
+          <button class="w-full h-11 bg-ashoka-blue hover:bg-institutional-navy active:bg-primary text-on-primary font-semibold text-sm rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer mt-1" id="btn-request-otp" type="submit">
+            <span id="btn-request-otp-text">Send Verification Code (OTP)</span>
+            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+          </button>
+        </form>
+
+        <!-- Statutory Notice Footer inside Card -->
+        <div class="mt-6 pt-4 border-t border-border-hairline flex items-center justify-between text-xs text-text-muted flex-wrap gap-2">
+          <span class="flex items-center gap-1">
+            <span class="material-symbols-outlined text-[15px] text-gov-emerald">lock</span>
+            256-Bit TLS Protected
+          </span>
+          <span class="font-mono text-[10px]">RCMS-IND-04</span>
+        </div>
+      </div>
+    </main>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- SCREEN 2: OTP VERIFICATION — Route: #/otp                                 -->
+  <!-- ========================================================================= -->
+    <!-- ============================================================ -->
+  <!-- SCREEN 2: OTP VERIFICATION — Route: #/otp                    -->
+  <!-- ============================================================ -->
+  <section id="screen-otp" class="screen-view">
+    <main class="flex-1 pt-24 pb-12 px-4 sm:px-6 max-w-7xl mx-auto w-full flex flex-col items-center justify-center min-h-[calc(100vh-4.5rem)]">
+      <div class="w-full max-w-md bg-surface-crisp rounded-xl shadow-xl p-6 sm:p-8 relative overflow-hidden border border-border-hairline">
+        <!-- Top Tricolor Gradient Strip -->
+        <div class="w-full h-1 bg-gradient-to-r from-saffron-accent via-surface-muted to-gov-emerald absolute top-0 left-0"></div>
+
+        <div class="flex flex-col mb-6 text-center sm:text-left">
+          <div class="flex items-center justify-center sm:justify-start gap-2 mb-2">
+            <span class="material-symbols-outlined text-ashoka-blue text-xl">verified_user</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-institutional-navy">Two-Factor Authentication</span>
+          </div>
+          <h1 class="text-2xl font-bold text-ashoka-blue mb-1">Verify Reviewer Identity</h1>
+          <div class="flex flex-wrap items-center justify-center sm:justify-start gap-1 text-sm text-text-secondary">
+            <span>Enter 6-digit OTP code sent to</span>
+            <span class="font-mono text-text-primary font-bold" id="otp-mobile-label">+91 ----------</span>
+            <a class="text-saffron-accent hover:underline text-xs font-medium ml-1" href="#/login">Edit</a>
+          </div>
+        </div>
+
+        <form class="flex flex-col gap-5" id="otp-form" onsubmit="event.preventDefault(); handleVerification();">
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center justify-between text-xs">
+              <label class="font-bold uppercase tracking-wider text-text-primary" for="otp-0">One-Time Passcode</label>
+              <span class="text-text-muted text-[11px]">NIC-SMS Gateway</span>
+            </div>
+
+            <!-- Segmented 6-Cell Grid -->
+            <div class="grid grid-cols-6 gap-2" id="otp-container">
+              <input autocomplete="one-time-code" autofocus="" class="otp-cell w-full h-12 text-center font-mono text-xl font-bold text-text-primary bg-surface-subtle focus:bg-surface-crisp rounded-lg border border-border-hairline focus:border-ashoka-blue focus:ring-1 focus:ring-ashoka-blue transition-all focus:outline-none" data-index="0" id="otp-0" inputmode="numeric" maxlength="1" pattern="[0-9]*" type="text"/>
+              <input class="otp-cell w-full h-12 text-center font-mono text-xl font-bold text-text-primary bg-surface-subtle focus:bg-surface-crisp rounded-lg border border-border-hairline focus:border-ashoka-blue focus:ring-1 focus:ring-ashoka-blue transition-all focus:outline-none" data-index="1" id="otp-1" inputmode="numeric" maxlength="1" pattern="[0-9]*" type="text"/>
+              <input class="otp-cell w-full h-12 text-center font-mono text-xl font-bold text-text-primary bg-surface-subtle focus:bg-surface-crisp rounded-lg border border-border-hairline focus:border-ashoka-blue focus:ring-1 focus:ring-ashoka-blue transition-all focus:outline-none" data-index="2" id="otp-2" inputmode="numeric" maxlength="1" pattern="[0-9]*" type="text"/>
+              <input class="otp-cell w-full h-12 text-center font-mono text-xl font-bold text-text-primary bg-surface-subtle focus:bg-surface-crisp rounded-lg border border-border-hairline focus:border-ashoka-blue focus:ring-1 focus:ring-ashoka-blue transition-all focus:outline-none" data-index="3" id="otp-3" inputmode="numeric" maxlength="1" pattern="[0-9]*" type="text"/>
+              <input class="otp-cell w-full h-12 text-center font-mono text-xl font-bold text-text-primary bg-surface-subtle focus:bg-surface-crisp rounded-lg border border-border-hairline focus:border-ashoka-blue focus:ring-1 focus:ring-ashoka-blue transition-all focus:outline-none" data-index="4" id="otp-4" inputmode="numeric" maxlength="1" pattern="[0-9]*" type="text"/>
+              <input class="otp-cell w-full h-12 text-center font-mono text-xl font-bold text-text-primary bg-surface-subtle focus:bg-surface-crisp rounded-lg border border-border-hairline focus:border-ashoka-blue focus:ring-1 focus:ring-ashoka-blue transition-all focus:outline-none" data-index="5" id="otp-5" inputmode="numeric" maxlength="1" pattern="[0-9]*" type="text"/>
+            </div>
+
+            <!-- Countdown Timer & Resend Button -->
+            <div class="flex items-center justify-between pt-1 text-xs text-text-muted">
+              <div class="flex items-center gap-1">
+                <span class="material-symbols-outlined text-[15px]">schedule</span>
+                <span>Expires in:</span>
+                <span class="font-mono font-semibold text-ashoka-blue" id="timer-display">00:45s</span>
+              </div>
+              <button class="font-medium text-text-muted cursor-not-allowed hover:text-ashoka-blue transition-colors flex items-center gap-1" disabled="" id="resend-btn" type="button" onclick="handleResendOtp()">
+                <span class="material-symbols-outlined text-[15px]">refresh</span>
+                <span>Resend OTP</span>
+              </button>
+            </div>
+          </div>
+
+          <button class="w-full h-11 bg-ashoka-blue hover:bg-institutional-navy active:bg-primary text-on-primary font-semibold text-sm rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer mt-1" id="submit-btn" type="submit">
+            <span>Verify &amp; Continue</span>
+            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+          </button>
+        </form>
+
+        <div class="mt-6 pt-4 border-t border-border-hairline text-xs text-text-muted leading-relaxed">
+          <p><strong>RBAC Protocol:</strong> Validated against JWT profile claims. Accounts lacking <code class="font-mono bg-surface-subtle px-1 py-0.5 rounded text-institutional-navy">ROLE_REVIEWER</code> clearance are redirected to Access Denied.</p>
+        </div>
+      </div>
+    </main>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- SCREEN 3: ACCESS DENIED — Route: #/access-denied                          -->
+  <!-- ========================================================================= -->
+    <!-- ============================================================ -->
+  <!-- SCREEN 3: ACCESS DENIED — Route: #/access-denied             -->
+  <!-- ============================================================ -->
+  <section id="screen-access-denied" class="screen-view">
+    <main class="flex-1 pt-24 pb-12 px-4 sm:px-6 max-w-7xl mx-auto w-full flex flex-col items-center justify-center min-h-[calc(100vh-4.5rem)]">
+      <div class="w-full max-w-md bg-surface-crisp rounded-xl shadow-xl p-6 sm:p-8 relative overflow-hidden border border-border-hairline">
+        <!-- Top Red/Saffron Strip -->
+        <div class="w-full h-1 bg-gradient-to-r from-saffron-accent to-error absolute top-0 left-0"></div>
+
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-11 h-11 rounded-xl bg-status-action-bg text-status-action-text flex items-center justify-center shrink-0 shadow-sm">
+            <span class="material-symbols-outlined text-[24px]">gpp_maybe</span>
+          </div>
+          <div>
+            <span class="font-mono text-[11px] text-status-action-text uppercase font-bold tracking-wider block">Error 403 • Forbidden</span>
+            <h1 class="text-xl font-bold text-on-surface leading-tight">Reviewer Clearance Required</h1>
+          </div>
+        </div>
+
+        <p class="text-sm text-on-surface-variant leading-relaxed mb-5">
+          Your authenticated identity (<span class="font-mono text-xs font-semibold text-text-primary" id="denied-user-mobile">+91 ----------</span>) does not carry <code class="font-mono text-xs bg-surface-subtle px-1.5 py-0.5 rounded text-institutional-navy font-bold">ROLE_REVIEWER</code> privileges required to triage statutory registrations.
+        </p>
+
+        <!-- Role Telemetry Box -->
+        <div class="bg-surface-subtle rounded-lg p-3.5 border border-border-hairline mb-6 flex flex-col gap-2.5 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="text-text-muted">Current Role:</span>
+            <span class="px-2 py-0.5 rounded-full bg-status-action-bg text-status-action-text font-bold text-[10px] uppercase">SUBMITTER</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-text-muted">Required Role:</span>
+            <span class="px-2 py-0.5 rounded-full bg-status-review-bg text-status-review-text font-bold text-[10px] uppercase">REVIEWER</span>
+          </div>
+          <div class="flex items-center justify-between pt-1 border-t border-border-hairline/80 font-mono text-[11px]">
+            <span class="text-text-muted">Audit Code:</span>
+            <span class="text-text-secondary">#REF-DENIED-RBAC</span>
+          </div>
+        </div>
+
+        <button class="w-full h-11 bg-ashoka-blue hover:bg-institutional-navy text-on-primary font-semibold text-sm rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer" onclick="handleLogout()" type="button">
+          <span class="material-symbols-outlined text-[18px]">logout</span>
+          <span>Logout &amp; Switch Account</span>
+        </button>
+      </div>
+    </main>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- SCREEN 4: REGISTRATION QUEUE DASHBOARD — Route: #/dashboard              -->
+  <!-- ========================================================================= -->
+  <section id="screen-dashboard" class="screen-view">
+    <main class="w-full pt-16 bg-surface">
+      <div class="flex flex-col w-full">
+        <!-- Main Container -->
+        <div class="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8 lg:py-10">
+          <!-- Top Administrative Command Strip -->
+          <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6 mb-6 sm:mb-8">
+            <div class="space-y-1.5">
+              <div class="flex items-center gap-space-sm text-text-muted font-mono-code text-[11px] sm:text-label-sm uppercase tracking-wider flex-wrap">
+                <span>STATUTORY OVERSIGHT CONSOLE</span>
+                <span>/</span>
+                <span class="text-institutional-navy font-semibold">QUEUE ID: REG-NORTH-09</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-gov-emerald animate-pulse"></span>
+              </div>
+              <h1 class="font-headline-xl text-2xl sm:text-3xl lg:text-headline-xl text-text-primary tracking-tight">
+                Registration Review Queue
+              </h1>
+              <p class="font-body-md text-sm sm:text-body-md text-text-secondary max-w-3xl">
+                Authorized verification intake for statutory entity identity verification, local governance credentials, and regulatory KYC triage.
+              </p>
+            </div>
+            <!-- Quick Operational Indicators -->
+            <div class="flex items-center gap-2 sm:gap-space-md self-start md:self-auto bg-surface-crisp p-2 sm:p-space-sm rounded-xl shadow-sm flex-wrap">
+              <div class="flex items-center gap-space-xs px-3 py-1.5 sm:px-space-md sm:py-space-xs rounded-lg bg-surface-subtle">
+                <span class="material-symbols-outlined text-gov-emerald text-[18px] sm:text-[20px]">verified_user</span>
+                <div class="flex flex-col">
+                  <span class="font-label-sm text-[10px] sm:text-label-sm text-text-muted uppercase">Digital Seal</span>
+                  <span class="font-mono-code text-[11px] sm:text-[12px] text-text-primary font-semibold">NIC-TSA-ACTIVE</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-space-xs px-3 py-1.5 sm:px-space-md sm:py-space-xs rounded-lg bg-surface-subtle">
+                <span class="material-symbols-outlined text-secondary text-[18px] sm:text-[20px]">schedule</span>
+                <div class="flex flex-col">
+                  <span class="font-label-sm text-[10px] sm:text-label-sm text-text-muted uppercase">Cadence Sync</span>
+                  <span class="font-mono-code text-[11px] sm:text-[12px] text-text-primary font-semibold">Just now</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Summary Metrics Strip -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8 lg:mb-10">
+            <!-- Metric 1: Pending Inbox -->
+            <div class="bg-surface-crisp rounded-xl p-5 sm:p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all cursor-pointer border border-border-hairline" onclick="switchQueueTab('inbox')">
+              <div class="flex items-center justify-between mb-space-sm">
+                <span class="font-label-sm text-[11px] sm:text-label-sm text-text-muted uppercase tracking-wider">Pending Intake</span>
+                <span class="p-2 rounded-lg bg-surface-container-high text-primary">
+                  <span class="material-symbols-outlined text-[20px]">move_to_inbox</span>
+                </span>
+              </div>
+              <div class="flex items-baseline justify-between">
+                <span class="font-headline-xl text-3xl sm:text-headline-xl text-text-primary tracking-tight" id="metric-inbox-count">0</span>
+                <span class="font-label-sm text-xs sm:text-label-sm text-status-action-text bg-status-action-bg px-2 py-0.5 rounded-full font-bold">In Queue</span>
+              </div>
+              <div class="mt-space-md pt-space-xs flex items-center justify-between">
+                <span class="font-body-sm text-xs sm:text-body-sm text-text-muted">Triage Stage</span>
+                <span class="font-mono-code text-[11px] text-institutional-navy font-semibold">Active Triage</span>
+              </div>
+            </div>
+
+            <!-- Metric 2: Assigned to Me -->
+            <div class="bg-surface-crisp rounded-xl p-5 sm:p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all cursor-pointer border border-border-hairline" onclick="switchQueueTab('my-reviews')">
+              <div class="flex items-center justify-between mb-space-sm">
+                <span class="font-label-sm text-[11px] sm:text-label-sm text-text-muted uppercase tracking-wider">Assigned to Me</span>
+                <span class="p-2 rounded-lg bg-surface-container-high text-institutional-navy">
+                  <span class="material-symbols-outlined text-[20px]">assignment_ind</span>
+                </span>
+              </div>
+              <div class="flex items-baseline justify-between">
+                <span class="font-headline-xl text-3xl sm:text-headline-xl text-text-primary tracking-tight" id="metric-assigned-count">0</span>
+                <span class="font-label-sm text-xs sm:text-label-sm text-status-review-text bg-status-review-bg px-2 py-0.5 rounded-full font-bold">Under Review</span>
+              </div>
+              <div class="mt-space-md pt-space-xs flex items-center justify-between">
+                <span class="font-body-sm text-xs sm:text-body-sm text-text-muted">Officer Caseload</span>
+                <span class="font-mono-code text-[11px] text-institutional-navy font-semibold">REV-419082</span>
+              </div>
+            </div>
+
+            <!-- Metric 3: Completed History -->
+            <div class="bg-surface-crisp rounded-xl p-5 sm:p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all cursor-pointer border border-border-hairline" onclick="switchQueueTab('history')">
+              <div class="flex items-center justify-between mb-space-sm">
+                <span class="font-label-sm text-[11px] sm:text-label-sm text-text-muted uppercase tracking-wider">Decided History</span>
+                <span class="p-2 rounded-lg bg-surface-container-high text-gov-emerald">
+                  <span class="material-symbols-outlined text-[20px]">task_alt</span>
+                </span>
+              </div>
+              <div class="flex items-baseline justify-between">
+                <span class="font-headline-xl text-3xl sm:text-headline-xl text-text-primary tracking-tight" id="metric-history-count">0</span>
+                <div class="flex items-center text-gov-emerald font-label-sm text-xs sm:text-label-sm">
+                  <span class="material-symbols-outlined text-[16px]">verified</span>
+                  <span>Adjudicated</span>
+                </div>
+              </div>
+              <div class="mt-space-md pt-space-xs flex items-center justify-between">
+                <span class="font-body-sm text-xs sm:text-body-sm text-text-muted">Archival Records</span>
+                <span class="font-mono-code text-[11px] text-gov-emerald font-semibold">DSC Signed</span>
+              </div>
+            </div>
+
+            <!-- Metric 4: Avg SLA Turnaround -->
+            <div class="bg-surface-crisp rounded-xl p-5 sm:p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all border border-border-hairline">
+              <div class="flex items-center justify-between mb-space-sm">
+                <span class="font-label-sm text-[11px] sm:text-label-sm text-text-muted uppercase tracking-wider">Statutory SLA Compliance</span>
+                <span class="p-2 rounded-lg bg-surface-container-high text-saffron-accent">
+                  <span class="material-symbols-outlined text-[20px]">timer</span>
+                </span>
+              </div>
+              <div class="flex items-baseline justify-between">
+                <span class="font-headline-xl text-3xl sm:text-headline-xl text-gov-emerald tracking-tight">100%</span>
+                <span class="font-label-sm text-xs sm:text-label-sm text-gov-emerald bg-status-approved-bg px-2 py-0.5 rounded-full font-bold">Standard</span>
+              </div>
+              <div class="mt-space-md pt-space-xs flex items-center justify-between">
+                <span class="font-body-sm text-xs sm:text-body-sm text-text-muted">Target Resolution</span>
+                <span class="font-mono-code text-[11px] text-text-primary font-semibold">&lt; 48 Hours</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Section: Triage Interface Panel -->
+          <div class="bg-surface-crisp rounded-xl shadow-sm flex flex-col overflow-hidden border border-border-hairline">
+            <!-- Queue Filter & Navigation Control Strip -->
+            <div class="p-4 sm:p-6 bg-surface-crisp flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6">
+              <!-- Tab Switcher -->
+              <div class="flex items-center p-1 bg-surface-muted rounded-lg self-start overflow-x-auto no-scrollbar max-w-full">
+                <button class="tab-btn px-3 sm:px-space-lg py-2 rounded-md font-label-md text-xs sm:text-label-md transition-all flex items-center gap-1.5 sm:gap-space-xs bg-surface-crisp text-primary shadow-sm cursor-pointer whitespace-nowrap" id="tab-inbox" onclick="switchQueueTab('inbox')">
+                  <span>Inbox</span>
+                  <span class="bg-primary-container text-on-primary font-mono-code text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded-full" id="tab-inbox-badge">0</span>
+                </button>
+                <button class="tab-btn px-3 sm:px-space-lg py-2 rounded-md font-label-md text-xs sm:text-label-md transition-all flex items-center gap-1.5 sm:gap-space-xs text-text-secondary hover:text-text-primary cursor-pointer whitespace-nowrap" id="tab-my-reviews" onclick="switchQueueTab('my-reviews')">
+                  <span>My Reviews</span>
+                  <span class="bg-surface-container-high text-institutional-navy font-mono-code text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded-full" id="tab-my-reviews-badge">0</span>
+                </button>
+                <button class="tab-btn px-3 sm:px-space-lg py-2 rounded-md font-label-md text-xs sm:text-label-md transition-all flex items-center gap-1.5 sm:gap-space-xs text-text-secondary hover:text-text-primary cursor-pointer whitespace-nowrap" id="tab-history" onclick="switchQueueTab('history')">
+                  <span>History</span>
+                  <span class="bg-surface-container-high text-text-muted font-mono-code text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded-full" id="tab-history-badge">0</span>
+                </button>
+              </div>
+
+              <!-- Search Bar and Status Filter Dropdown -->
+              <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 flex-1 w-full lg:max-w-2xl">
+                <!-- Unified Search Input -->
+                <div class="relative flex-1 min-w-[200px]">
+                  <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[18px]">search</span>
+                  <input class="w-full h-10 pl-9 pr-space-md bg-surface-subtle text-text-primary placeholder:text-text-muted font-body-md text-sm sm:text-body-md rounded-lg focus:outline-none focus:bg-surface-crisp focus:shadow-md transition-all border border-transparent focus:border-border-hairline" id="registration-search" oninput="filterQueueRows()" placeholder="Search by Org name, LGD, CIN or Token..." type="text"/>
+                </div>
+                <!-- Explicit Status Filter Dropdown -->
+                <div class="relative min-w-full sm:min-w-[200px]">
+                  <select class="w-full h-10 pl-3 sm:pl-space-md pr-8 bg-surface-subtle text-text-primary font-label-md text-xs sm:text-label-md rounded-lg appearance-none cursor-pointer focus:outline-none focus:bg-surface-crisp focus:shadow-md transition-all border border-transparent focus:border-border-hairline" id="status-filter" onchange="filterQueueRows()">
+                    <option value="ALL">All Statuses (Active)</option>
+                    <option value="SUBMITTED">SUBMITTED</option>
+                    <option value="UNDER_REVIEW">UNDER_REVIEW</option>
+                    <option value="ACTION_REQUIRED">ACTION_REQUIRED</option>
+                    <option value="DRAFT">DRAFT</option>
+                    <option value="APPROVED">APPROVED</option>
+                    <option value="REJECTED">REJECTED</option>
+                  </select>
+                  <span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none text-[18px]">expand_more</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Live Notice Sub-strip -->
+            <div class="px-4 sm:px-6 py-2.5 sm:py-3 bg-surface-subtle flex flex-wrap items-center justify-between text-xs sm:text-body-sm text-text-muted gap-2 sm:gap-4 border-t border-b border-border-hairline">
+              <div class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[16px] text-text-secondary">shield_lock</span>
+                <span>Role Guard: Statutory KYC Level 2 Clearance Officer</span>
+              </div>
+              <div class="flex items-center gap-3 sm:gap-space-base font-mono-code text-[11px] sm:text-[12px]">
+                <span>Displaying <strong class="text-text-primary font-semibold" id="displayed-count">0</strong> records</span>
+                <span class="text-border-strong">•</span>
+                <span class="text-institutional-navy cursor-pointer hover:underline" onclick="resetFilters()">Reset Triage Filters</span>
+              </div>
+            </div>
+
+            <!-- Data Table Responsive Container -->
+            <div class="w-full overflow-x-auto">
+              <table class="w-full text-left border-collapse min-w-[820px]">
+                <thead>
+                  <tr class="bg-surface-container-high/40 text-text-secondary font-label-md text-xs sm:text-label-md uppercase tracking-wider border-b border-border-hairline">
+                    <th class="py-3 px-4 sm:px-6" scope="col">Org Name</th>
+                    <th class="py-3 px-4 sm:px-6" scope="col">Entity Type</th>
+                    <th class="py-3 px-4 sm:px-6" scope="col">Submitted Date</th>
+                    <th class="py-3 px-4 sm:px-6" scope="col">Current Status</th>
+                    <th class="py-3 px-4 sm:px-6 text-right" scope="col">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="registration-table-body" class="divide-y divide-border-hairline">
+                  <!-- Dynamically populated from AppState.registrations -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Bottom Pagination & Audit Stamp Strip -->
+            <div class="p-4 sm:p-6 bg-surface-crisp flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 border-t border-border-hairline">
+              <div class="flex items-center gap-space-xs font-mono-code text-[11px] sm:text-[12px] text-text-muted flex-wrap justify-center sm:justify-start text-center sm:text-left">
+                <span>GOVERNANCE PROTOCOL:</span>
+                <span class="text-text-secondary font-semibold">NIC-KYC-SECTION-14</span>
+                <span>• Triage Pool: National Reviewer Directorate</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="seedSampleLiveRegistration()" class="inline-flex items-center gap-1.5 px-3 py-1 bg-surface-subtle hover:bg-surface-container border border-border-hairline rounded text-xs font-semibold text-institutional-navy transition-all cursor-pointer" title="Create live test cases in the backend database">
+                  <span class="material-symbols-outlined text-[15px]">database</span>
+                  <span>Seed Live Test Case</span>
+                </button>
+                <span class="text-xs text-text-muted font-mono">Gateway: 8090</span>
+                <span class="px-2.5 py-1 text-xs font-mono text-text-secondary bg-surface-subtle rounded border border-border-hairline">Active Triage Batch</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Secondary Structural Layout: Reviewer Protocol Guidelines -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-8 sm:mt-10 lg:mt-12">
+            <!-- Panel 1: Statutory Claim Protocol -->
+            <div class="bg-surface-crisp rounded-xl p-5 sm:p-space-lg shadow-sm flex flex-col justify-between border border-border-hairline">
+              <div class="space-y-space-sm">
+                <div class="flex items-center gap-space-xs text-institutional-navy">
+                  <span class="material-symbols-outlined text-[20px]">gavel</span>
+                  <h3 class="font-headline-sm text-headline-sm font-semibold">Claim &amp; Lock SLA</h3>
+                </div>
+                <p class="font-body-sm text-xs sm:text-body-sm text-text-secondary leading-relaxed">
+                  Claiming an entity moves it immediately from <code class="font-mono-code text-[11px] bg-surface-subtle px-1 py-0.5 rounded">SUBMITTED</code> to <code class="font-mono-code text-[11px] bg-status-review-bg text-status-review-text px-1 py-0.5 rounded">UNDER_REVIEW</code>. Officers have a statutory 24-hour SLA to issue an Approval, Deficiency Notice, or Statutory Hearing notice.
+                </p>
+              </div>
+              <div class="mt-space-md pt-space-sm flex items-center gap-space-xs text-text-muted font-mono-code text-[11px] border-t border-border-hairline">
+                <span class="material-symbols-outlined text-[14px]">info</span>
+                <span>Section 14(A) National Statutory Portal Act</span>
+              </div>
+            </div>
+
+            <!-- Panel 2: Deficiency & Action Required Directives -->
+            <div class="bg-surface-crisp rounded-xl p-5 sm:p-space-lg shadow-sm flex flex-col justify-between border border-border-hairline">
+              <div class="space-y-space-sm">
+                <div class="flex items-center gap-space-xs text-saffron-accent">
+                  <span class="material-symbols-outlined text-[20px]">warning</span>
+                  <h3 class="font-headline-sm text-headline-sm font-semibold">Deficiency Notice Rules</h3>
+                </div>
+                <p class="font-body-sm text-xs sm:text-body-sm text-text-secondary leading-relaxed">
+                  Registrations flagged as <code class="font-mono-code text-[11px] bg-status-action-bg text-status-action-text px-1 py-0.5 rounded">ACTION_REQUIRED</code> allow applicants 15 calendar days to furnish clarifying documentation. Unresolved deficiencies default to Statutory Hearing triage.
+                </p>
+              </div>
+              <div class="mt-space-md pt-space-sm flex items-center justify-between font-mono-code text-[11px] border-t border-border-hairline">
+                <span class="text-text-muted">Auto-escalation timer: Active</span>
+                <span class="text-gov-emerald font-semibold">100% Traceability</span>
+              </div>
+            </div>
+
+            <!-- Panel 3: Quick Desk Reference -->
+            <div class="bg-surface-crisp rounded-xl p-5 sm:p-space-lg shadow-sm flex flex-col justify-between border border-border-hairline md:col-span-2 lg:col-span-1">
+              <div class="space-y-space-sm">
+                <div class="flex items-center gap-space-xs text-gov-emerald">
+                  <span class="material-symbols-outlined text-[20px]">rule_folder</span>
+                  <h3 class="font-headline-sm text-headline-sm font-semibold">Integrity Safeguards</h3>
+                </div>
+                <p class="font-body-sm text-xs sm:text-body-sm text-text-secondary leading-relaxed">
+                  All claimed actions log reviewer biometric/DSC signatures to sovereign audit logs. Draft applications are strictly untouchable until finalized and cryptographically submitted by the applicant.
+                </p>
+              </div>
+              <div class="mt-space-md pt-space-sm flex items-center justify-between border-t border-border-hairline">
+                <span class="font-mono-code text-[11px] text-text-muted">Audit Version: SEC-2024.11</span>
+                <span class="font-label-sm text-xs sm:text-label-sm text-institutional-navy hover:underline cursor-pointer" >NIC-KYC-POL-V4</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <!-- Footer -->
+    <footer class="w-full bg-surface-crisp shadow-[0_-1px_8px_rgba(0,0,0,0.02)] mt-space-3xl border-t border-border-hairline">
+      <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8 flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4 text-center md:text-left">
+        <div class="flex items-center gap-space-sm">
+          <span class="font-label-md text-xs sm:text-label-md text-text-primary">SIH26043 Institutional Verification Core</span>
+          <span class="text-border-strong">•</span>
+          <span class="font-mono-code text-[11px] sm:text-label-sm text-text-muted">v2.4.1-prod</span>
+        </div>
+        <div class="font-body-sm text-xs sm:text-body-sm text-text-muted">
+          © 2024 Ministry Statutory Triage &amp; Compliance System. All institutional rights reserved.
+        </div>
+      </div>
+    </footer>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- SCREEN 5: REGISTRATION DETAIL VIEW — Route: #/detail/:id                  -->
+  <!-- ========================================================================= -->
+  <section id="screen-detail" class="screen-view">
+    <main class="w-full pt-16 bg-surface">
+      <div class="flex flex-col w-full">
+        <!-- Interactive Top Action / Notification Ribbon -->
+        <div class="w-full bg-surface-container-low shadow-sm border-b border-border-hairline">
+          <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-4 flex flex-wrap items-center justify-between gap-3 sm:gap-4">
+            <!-- Breadcrumb Path & Case Identifier -->
+            <div class="flex items-center gap-2 sm:gap-space-sm flex-wrap text-xs sm:text-label-md">
+              <a class="font-label-md text-text-muted hover:text-ashoka-blue transition-colors flex items-center gap-1 cursor-pointer" href="#/dashboard">
+                <span class="material-symbols-outlined text-[16px]">folder_supervised</span>
+                Registration Queue
+              </a>
+              <span class="text-text-muted font-mono-code">/</span>
+              <span class="font-mono-code text-institutional-navy bg-surface-crisp px-2 py-0.5 rounded-lg shadow-sm font-semibold" id="detail-dossier-id">
+                #PRI-KYC-2024-88912
+              </span>
+              <span class="text-text-muted font-mono-code">/</span>
+              <span class="font-label-md text-on-surface font-semibold">Triage &amp; Statutory Review</span>
+            </div>
+            <!-- Live Operational SLA & Officer Ownership Badges -->
+            <div class="flex items-center gap-2 sm:gap-space-md flex-wrap">
+              <!-- SLA countdown token -->
+              <div class="flex items-center gap-1.5 sm:gap-space-xs bg-surface-crisp px-3 py-1 sm:px-space-md rounded-full shadow-sm">
+                <span class="material-symbols-outlined text-[16px] sm:text-[18px] text-saffron-accent animate-pulse">timer</span>
+                <span class="font-label-sm text-[10px] sm:text-label-sm uppercase text-text-muted">Statutory SLA:</span>
+                <span class="font-mono-code text-xs sm:text-label-md text-text-primary font-bold">68h 14m remaining</span>
+              </div>
+              <!-- Status Pill -->
+              <div class="flex items-center gap-1.5 sm:gap-space-xs px-3 py-1 sm:px-space-md rounded-full shadow-sm bg-status-review-bg text-status-review-text" id="detail-status-pill">
+                <span class="w-2 h-2 rounded-full bg-status-review-text"></span>
+                <span class="font-label-sm text-[10px] sm:text-label-sm tracking-wider uppercase font-bold text-status-review-text" id="detail-status-pill-text">UNDER_REVIEW</span>
+                <span class="text-text-muted text-[10px] sm:text-label-sm hidden sm:inline">(ROLE_REVIEWER)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Primary Workspace Canvas: High-Density Split Layout -->
+        <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8 lg:py-10">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 xl:gap-10 items-start">
+            
+            <!-- LEFT PANE: Structured Read-Only Record & Documents & Audit -->
+            <div class="lg:col-span-7 flex flex-col gap-6">
+              <!-- Entity Record Hero Header -->
+              <div class="bg-surface-crisp rounded-xl p-4 sm:p-6 shadow-sm relative overflow-hidden border border-border-hairline">
+                <div class="absolute -right-8 -top-8 w-36 h-36 rounded-full bg-surface-container-high opacity-40 pointer-events-none"></div>
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative z-10">
+                  <div>
+                    <div class="flex items-center gap-space-xs mb-1 flex-wrap">
+                      <span class="px-2 py-0.5 rounded-sm bg-surface-container text-text-secondary font-label-sm text-[10px] uppercase font-bold tracking-wider" id="detail-entity-tier">--</span>
+                      <span class="font-mono-code text-[11px] sm:text-label-sm text-text-muted" id="detail-lgd-code">--</span>
+                    </div>
+                    <h1 class="font-headline-lg text-xl sm:text-2xl lg:text-headline-lg text-primary tracking-tight" id="detail-entity-name">Loading registration details...</h1>
+                    <p class="font-body-md text-xs sm:text-body-md text-text-secondary mt-1 flex items-center gap-1" id="detail-location-container">
+                      <span class="material-symbols-outlined text-[16px] sm:text-[18px] text-text-muted">location_on</span>
+                      <span id="detail-location">--</span>
+                    </p>
+                  </div>
+                  <!-- Authentic Institutional Stamp Avatar / Seal -->
+                  <div class="flex flex-row sm:flex-col items-center justify-center p-2.5 sm:p-space-sm rounded-lg bg-surface-subtle text-center shrink-0 w-full sm:w-24 gap-2 sm:gap-0">
+                    <span class="material-symbols-outlined text-[24px] sm:text-[32px] text-institutional-navy">assured_workload</span>
+                    <span class="font-label-sm text-[10px] text-text-muted font-bold uppercase sm:mt-1">LGD Valid</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Visual Entity Overview & Demographics -->
+              <div class="bg-surface-crisp rounded-xl p-4 sm:p-6 shadow-sm border border-border-hairline">
+                <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                  <h2 class="font-headline-sm text-sm sm:text-headline-sm text-primary flex items-center gap-2 font-semibold">
+                    <span class="material-symbols-outlined text-institutional-navy text-[18px] sm:text-[20px]">badge</span>
+                    <span id="detail-category-label">Entity Registry Metadata</span>
+                  </h2>
+                  <span class="font-mono-code text-[11px] sm:text-label-sm text-text-muted bg-surface-subtle px-2 py-0.5 rounded">KYC DOSSIER</span>
+                </div>
+                <!-- Structured Read-Only Data Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 bg-surface-subtle p-3.5 sm:p-space-base rounded-lg border border-border-hairline">
+                  <div class="flex flex-col gap-0.5">
+                    <span class="font-label-sm text-[10px] sm:text-label-sm text-text-muted uppercase">Institutional Category</span>
+                    <span class="font-body-md text-xs sm:text-body-md text-text-primary font-semibold" id="detail-meta-category">--</span>
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <span class="font-label-sm text-[10px] sm:text-label-sm text-text-muted uppercase">Statutory Entity Name</span>
+                    <span class="font-body-md text-xs sm:text-body-md text-text-primary font-semibold" id="detail-meta-name">--</span>
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <span class="font-label-sm text-[10px] sm:text-label-sm text-text-muted uppercase">Authorized Signatory</span>
+                    <span class="font-body-md text-xs sm:text-body-md text-text-primary font-semibold flex items-center gap-1.5" id="detail-meta-signatory">--</span>
+                  </div>
+                  <div class="flex flex-col gap-0.5">
+                    <span class="font-label-sm text-[10px] sm:text-label-sm text-text-muted uppercase">Statutory Identifier</span>
+                    <span class="font-mono-code text-xs sm:text-label-md text-institutional-navy font-semibold" id="detail-meta-ref">--</span>
+                  </div>
+                  <div class="flex flex-col gap-0.5 sm:col-span-2">
+                    <span class="font-label-sm text-[10px] sm:text-label-sm text-text-muted uppercase">Bank Account Disbursement Status</span>
+                    <div class="flex items-center justify-between bg-surface-crisp px-3 py-1.5 rounded shadow-sm border border-border-hairline">
+                      <span class="font-mono-code text-xs sm:text-label-md text-text-primary" id="detail-meta-bank">--</span>
+                      <span class="px-2 py-0.5 rounded-full bg-status-approved-bg text-status-approved-text font-label-sm text-[10px] uppercase font-bold">PFMS Linked</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Nodal Administrative Officer Section -->
+                <div class="mt-5 sm:mt-6">
+                  <span class="font-label-sm text-[10px] sm:text-label-sm uppercase text-text-muted tracking-wider block mb-2">
+                    Appointed Nodal Officer (Administrative Custodian)
+                  </span>
+                  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 p-3.5 sm:p-space-base bg-surface-subtle rounded-lg border border-border-hairline">
+                    <div class="flex items-center gap-3 sm:gap-space-md">
+                      <div class="w-10 h-10 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-bold text-label-lg shrink-0" id="detail-nodal-avatar">--</div>
+                      <div>
+                        <h3 class="font-headline-sm text-sm sm:text-headline-sm text-text-primary font-semibold" id="detail-nodal-name">--</h3>
+                        <p class="font-body-sm text-xs sm:text-body-sm text-text-secondary" id="detail-nodal-title">--</p>
+                      </div>
+                    </div>
+                    <div class="flex flex-col gap-1 text-left sm:text-right w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-border-hairline">
+                      <span class="font-mono-code text-xs sm:text-body-sm text-text-primary flex items-center gap-1 sm:justify-end" id="detail-nodal-phone">--</span>
+                      <span class="font-mono-code text-xs sm:text-body-sm text-institutional-navy flex items-center gap-1 sm:justify-end" id="detail-nodal-email">--</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Submitted JSON Record View (Specification Section 3) -->
+              <div class="bg-surface-crisp rounded-xl p-4 sm:p-6 shadow-sm border border-border-hairline">
+                <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+                  <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-institutional-navy text-[20px]">data_object</span>
+                    <h2 class="font-headline-sm text-sm sm:text-headline-sm text-primary font-semibold">Submitted Registration JSON (Read-Only)</h2>
+                  </div>
+                  <button type="button" onclick="toggleJsonView()" class="px-2.5 py-1 text-xs font-label-md rounded bg-surface-subtle hover:bg-surface-container text-institutional-navy border border-border-hairline cursor-pointer flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[15px]" id="json-toggle-icon">expand_more</span>
+                    <span id="json-toggle-label">Expand Raw JSON</span>
+                  </button>
+                </div>
+                <p class="font-body-sm text-xs text-text-muted mb-2">Immutable payload submitted by Nodal Custodian under statutory DSC.</p>
+                <div id="raw-json-container" class="hidden">
+                  <pre class="bg-[#0b1c30] text-[#85f8c4] p-4 rounded-lg font-mono-code text-[11px] sm:text-[12px] leading-relaxed overflow-x-auto shadow-inner border border-white/10" id="raw-json-block">// Real database JSON payload will appear here when loaded</pre>
+                </div>
+              </div>
+
+              <!-- Uploaded Statutory Documents Matrix -->
+              <div class="bg-surface-crisp rounded-xl p-4 sm:p-6 shadow-sm border border-border-hairline">
+                <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                  <div>
+                    <h2 class="font-headline-sm text-sm sm:text-headline-sm text-primary flex items-center gap-2 font-semibold">
+                      <span class="material-symbols-outlined text-institutional-navy text-[18px] sm:text-[20px]">inventory_2</span>
+                      <span id="detail-docs-header">Statutory Evidence Documents</span>
+                    </h2>
+                    <p class="font-body-sm text-xs sm:text-body-sm text-text-muted mt-0.5">Encrypted at rest with e-Gov HSM SHA-256 validation</p>
+                  </div>
+                  <span class="font-mono-code text-[11px] sm:text-label-sm text-gov-emerald flex items-center gap-1 bg-status-approved-bg px-2 py-1 rounded">
+                    <span class="material-symbols-outlined text-[16px]">lock</span>
+                    Tamper Evident
+                  </span>
+                </div>
+                <div class="flex flex-col gap-3 sm:gap-4" id="documents-list-container">
+                  <!-- Rendered dynamically per registration by loadRegistrationDetail() -->
+                </div>
+              </div>
+
+              <!-- Chronological Audit Trail & Event Log -->
+              <div class="bg-surface-crisp rounded-xl p-4 sm:p-6 shadow-sm border border-border-hairline">
+                <div class="flex items-center justify-between mb-4">
+                  <h2 class="font-headline-sm text-sm sm:text-headline-sm text-primary flex items-center gap-2 font-semibold">
+                    <span class="material-symbols-outlined text-institutional-navy text-[18px] sm:text-[20px]">history_edu</span>
+                    Chronological Audit &amp; Event Log
+                  </h2>
+                  <span class="font-label-sm text-[10px] sm:text-label-sm text-text-muted uppercase">Statutory Ledger</span>
+                </div>
+                <div class="relative pl-6 flex flex-col gap-4 before:content-[''] before:absolute before:left-2 before:top-2 before:bottom-2 before:w-[2px] before:bg-surface-container" id="audit-trail-container"><p class="font-body-sm text-xs text-text-muted">Loading live audit trail...</p></div></div></div>
+            </div>
+
+            <!-- RIGHT PANE: Statutory Decision Module (Sticky Review Form) -->
+            <div class="lg:col-span-5 flex flex-col gap-6 lg:sticky lg:top-20">
+              <div class="bg-surface-crisp rounded-xl p-4 sm:p-6 shadow-md border border-border-hairline">
+                <!-- Module Header -->
+                <div class="flex items-center justify-between pb-3 sm:pb-space-base bg-surface-subtle p-3 sm:p-space-base rounded-lg mb-4 border border-border-hairline">
+                  <div>
+                    <span class="font-label-sm text-[10px] sm:text-label-sm uppercase tracking-wider text-text-muted block">Quasi-Judicial Action</span>
+                    <h2 class="font-headline-md text-base sm:text-headline-md text-primary font-bold">Statutory Decision Module</h2>
+                  </div>
+                  <div class="w-8 h-8 rounded-full bg-institutional-navy text-on-primary flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[18px]">gavel</span>
+                  </div>
+                </div>
+
+                <!-- Section Instruction -->
+                <p class="font-body-sm text-xs sm:text-body-sm text-text-secondary mb-4 leading-relaxed">
+                  Select statutory verdict. If recommending deficiency correction or disqualification, specific substantive feedback is required for audit conformity.
+                </p>
+
+                <!-- Action Button Triad -->
+                <div class="grid grid-cols-3 gap-1.5 sm:gap-2 mb-4 sm:mb-6" id="action-selector-group">
+                  <!-- Approve Button -->
+                  <button class="decision-tab flex flex-col items-center justify-center p-2 sm:p-3 rounded-lg bg-surface-subtle hover:bg-surface-container transition-all text-center group cursor-pointer border border-border-hairline" id="btn-approve" onclick="selectDecision('APPROVE')" type="button">
+                    <span class="material-symbols-outlined text-[20px] sm:text-[24px] text-gov-emerald mb-1">check_circle</span>
+                    <span class="font-label-md text-xs sm:text-label-md text-text-primary font-bold block truncate w-full">Approve</span>
+                    <span class="font-label-sm text-[9px] sm:text-[10px] text-text-muted mt-0.5 leading-tight block truncate w-full">Provision</span>
+                  </button>
+                  <!-- Request Action Button (Preselected) -->
+                  <button class="decision-tab flex flex-col items-center justify-center p-2 sm:p-3 rounded-lg bg-status-action-bg text-status-action-text shadow-sm transition-all text-center cursor-pointer border border-status-action-border" id="btn-request" onclick="selectDecision('REQUEST_ACTION')" type="button">
+                    <span class="material-symbols-outlined text-[20px] sm:text-[24px] text-saffron-accent mb-1">replay</span>
+                    <span class="font-label-md text-xs sm:text-label-md font-bold block truncate w-full">Request Action</span>
+                    <span class="font-label-sm text-[9px] sm:text-[10px] text-saffron-accent mt-0.5 leading-tight block truncate w-full">Deficiency</span>
+                  </button>
+                  <!-- Reject Button -->
+                  <button class="decision-tab flex flex-col items-center justify-center p-2 sm:p-3 rounded-lg bg-surface-subtle hover:bg-surface-container transition-all text-center group cursor-pointer border border-border-hairline" id="btn-reject" onclick="selectDecision('REJECT')" type="button">
+                    <span class="material-symbols-outlined text-[20px] sm:text-[24px] text-error mb-1">cancel</span>
+                    <span class="font-label-md text-xs sm:text-label-md text-text-primary font-bold block truncate w-full">Reject</span>
+                    <span class="font-label-sm text-[9px] sm:text-[10px] text-text-muted mt-0.5 leading-tight block truncate w-full">Decline</span>
+                  </button>
+                </div>
+
+                <!-- Dynamic Consequence / Impact Banner -->
+                <div class="p-3.5 sm:p-space-base rounded-lg bg-status-action-bg text-status-action-text mb-4 flex items-start gap-2.5 sm:gap-space-sm border border-status-action-border" id="consequence-box">
+                  <span class="material-symbols-outlined text-[18px] sm:text-[20px] shrink-0 text-saffron-accent mt-0.5">info</span>
+                  <div class="text-xs sm:text-body-sm font-body-sm leading-relaxed" id="consequence-text">
+                    <strong class="font-bold">State Transition Consequence:</strong> Registration will transition to <span class="font-mono-code font-bold">ACTION_REQUIRED</span>. Edit access unlocked for submitter to re-upload deficient documents. SLA clock paused.
+                  </div>
+                </div>
+
+                <!-- Mandatory Comment / Remarks Form -->
+                <form class="flex flex-col gap-3.5 sm:gap-space-base" id="statutory-decision-form" onsubmit="event.preventDefault();">
+                  <div class="flex flex-col gap-1.5">
+                    <div class="flex items-center justify-between">
+                      <label class="font-label-md text-xs sm:text-label-md text-text-primary font-semibold flex items-center gap-1" for="reviewer-remarks">
+                        Reviewer Comment / Official Order
+                        <span class="text-saffron-accent font-bold" id="mandatory-asterisk">*</span>
+                      </label>
+                      <span class="font-mono-code text-[10px] sm:text-[11px] text-text-muted" id="char-counter">0 / 1000 chars</span>
+                    </div>
+                    <textarea class="w-full rounded-lg p-3 font-body-md text-xs sm:text-body-md text-text-primary bg-surface-crisp border border-border-hairline focus:border-institutional-navy focus:outline-none focus:bg-surface-crisp transition-colors resize-none shadow-sm" id="reviewer-remarks" oninput="handleRemarksInput()" placeholder="Enter mandatory legal findings, document deficiency notes, or statutory gazette citations..." rows="4"></textarea>
+                    <span class="font-body-sm text-[11px] sm:text-body-sm text-text-muted italic" id="validation-hint">A formal statutory notice will be dispatched directly to the official nodal custodian.</span>
+                  </div>
+
+                  <!-- Statutory Compliance Checkbox -->
+                  <div class="p-3 rounded-lg bg-surface-subtle flex items-start gap-2.5 sm:gap-space-sm border border-border-hairline">
+                    <input checked="" class="mt-0.5 w-4 h-4 rounded text-institutional-navy focus:ring-institutional-navy cursor-pointer" id="statutory-checkbox" onchange="evaluateSubmitReadiness()" type="checkbox"/>
+                    <label class="font-body-sm text-xs sm:text-body-sm text-text-secondary select-none cursor-pointer leading-relaxed" for="statutory-checkbox">I, <strong class="text-text-primary" id="attest-officer-name">Reviewer Officer</strong>, hereby attest that this administrative review is rendered in accordance with statutory guidelines.</label>
+                  </div>
+
+                  <!-- Execution Action Button -->
+                  <div class="mt-1 flex flex-col gap-2">
+                    <button class="w-full py-3 sm:py-space-md px-4 bg-institutional-navy hover:bg-primary-container text-on-primary font-headline-sm text-sm sm:text-headline-sm rounded-lg shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer" id="btn-execute-decision" onclick="executeStatutoryTransition()" type="button">
+                      <span class="material-symbols-outlined text-[18px] sm:text-[20px]">send_time_extension</span>
+                      <span id="submit-btn-label">Confirm Deficiency &amp; Dispatch Notice</span>
+                    </button>
+                    <div class="flex items-center justify-between px-1">
+                      <span class="font-mono-code text-[10px] sm:text-[11px] text-text-muted">SESSION: SIH26043-REV-ACTIVE</span>
+                      <span class="font-mono-code text-[10px] sm:text-[11px] text-gov-emerald flex items-center gap-0.5">
+                        <span class="material-symbols-outlined text-[12px]">verified</span> Digital Sign Active
+                      </span>
+                    </div>
+                  </div>
+                </form>
+              </div>
+
+              </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full bg-surface-crisp shadow-[0_-1px_8px_rgba(0,0,0,0.02)] mt-space-3xl border-t border-border-hairline">
+      <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8 flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4 text-center md:text-left">
+        <div class="flex items-center gap-space-sm">
+          <span class="font-label-md text-xs sm:text-label-md text-text-primary">SIH26043 Institutional Verification Core</span>
+          <span class="text-border-strong">•</span>
+          <span class="font-mono-code text-[11px] sm:text-label-sm text-text-muted">v2.4.1-prod</span>
+        </div>
+        <div class="font-body-sm text-xs sm:text-body-sm text-text-muted">
+          © 2024 Ministry Statutory Triage &amp; Compliance System. All institutional rights reserved.
+        </div>
+      </div>
+    </footer>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- DOCUMENT PREVIEW MODAL                                                    -->
+  <!-- ========================================================================= -->
+  <div id="doc-preview-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-surface-crisp rounded-xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="p-4 bg-primary text-on-primary flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-[20px]">visibility</span>
+          <h3 class="font-headline-sm text-headline-sm" id="modal-doc-title">Document Inspection Preview</h3>
+        </div>
+        <button class="p-1 rounded hover:bg-white/20 transition-colors cursor-pointer" onclick="closeDocPreview()">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+      <div class="p-6 overflow-y-auto flex flex-col gap-4 bg-surface-subtle" id="modal-doc-body">
+        <!-- Injected via JavaScript -->
+      </div>
+      <div class="p-4 bg-surface-crisp border-t border-border-hairline flex items-center justify-between">
+        <span class="font-mono-code text-[11px] text-text-muted">HSM Cryptographic Seal Validated</span>
+        <button class="px-space-lg py-2 bg-ashoka-blue text-on-primary rounded font-label-md hover:bg-institutional-navy transition-colors cursor-pointer" onclick="closeDocPreview()">
+          Close Preview
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast-container" class="fixed top-20 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ========================================================================= -->
+
+  <!-- ========================================================================= -->
+  <!-- SCREEN: PROBLEM QUEUE DASHBOARD — Route: #/problem-queue                  -->
+  <!-- ========================================================================= -->
+  <section id="screen-problem-queue" class="screen-view">
+    <main class="w-full pt-16 bg-surface">
+      <div class="flex flex-col w-full">
+        <!-- Main Container -->
+        <div class="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8 lg:py-10">
+          
+          <!-- Top Administrative Command Strip -->
+          <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6 mb-6 sm:mb-8">
+            <div class="space-y-1.5">
+              <div class="flex items-center gap-space-sm text-text-muted font-mono-code text-[11px] sm:text-label-sm uppercase tracking-wider flex-wrap">
+                <span>STATUTORY PROBLEM REVIEW CONSOLE</span>
+                <span>/</span>
+                <span class="text-saffron-accent font-semibold">QUEUE ID: PRB-NATIONAL-01</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-gov-emerald animate-pulse"></span>
+              </div>
+              <h1 class="font-headline-xl text-2xl sm:text-3xl lg:text-headline-xl text-text-primary tracking-tight">
+                Problem Statement Review Queue
+              </h1>
+              <p class="font-body-md text-sm sm:text-body-md text-text-secondary max-w-3xl">
+                Authorized technical verification and statutory validation of inbound problem statements from Government Departments, Panchayats, Urban Local Bodies, and Cooperatives before National SIH Cataloging.
+              </p>
+            </div>
+            
+            <!-- Quick Operational Indicators -->
+            <div class="flex items-center gap-2 sm:gap-space-md self-start md:self-auto bg-surface-crisp p-2 sm:p-space-sm rounded-xl shadow-sm flex-wrap border border-border-hairline">
+              <div class="flex items-center gap-space-xs px-3 py-1.5 sm:px-space-md sm:py-space-xs rounded-lg bg-surface-subtle">
+                <span class="material-symbols-outlined text-gov-emerald text-[18px] sm:text-[20px]">verified_user</span>
+                <div class="flex flex-col">
+                  <span class="font-label-sm text-[10px] sm:text-label-sm text-text-muted uppercase">Digital Seal</span>
+                  <span class="font-mono-code text-[11px] sm:text-[12px] text-text-primary font-semibold">NIC-TSA-ACTIVE</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-space-xs px-3 py-1.5 sm:px-space-md sm:py-space-xs rounded-lg bg-surface-subtle">
+                <span class="material-symbols-outlined text-institutional-navy text-[18px] sm:text-[20px]">sync</span>
+                <div class="flex flex-col">
+                  <span class="font-label-sm text-[10px] sm:text-label-sm text-text-muted uppercase">Registry Sync</span>
+                  <span class="font-mono-code text-[11px] sm:text-[12px] text-text-primary font-semibold">SIH-LIVE-V2</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Summary Metrics Strip -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8 lg:mb-10">
+            <!-- Metric 1: Total Problems -->
+            <div class="bg-surface-crisp rounded-xl p-5 sm:p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all cursor-pointer border border-border-hairline" onclick="switchProblemTab('all')">
+              <div class="flex items-center justify-between mb-space-sm">
+                <span class="font-label-sm text-[11px] sm:text-label-sm text-text-muted uppercase tracking-wider">Total Active Intake</span>
+                <span class="p-2 rounded-lg bg-surface-container-high text-primary">
+                  <span class="material-symbols-outlined text-[20px]">inbox</span>
+                </span>
+              </div>
+              <div class="flex items-baseline justify-between">
+                <span class="font-headline-xl text-3xl sm:text-headline-xl text-text-primary tracking-tight" id="prb-metric-total">0</span>
+                <span class="font-label-sm text-xs sm:text-label-sm text-saffron-accent bg-status-action-bg px-2 py-0.5 rounded-full font-bold">Active</span>
+              </div>
+              <div class="mt-space-md pt-space-xs flex items-center gap-2">
+                <div class="h-1.5 w-full bg-surface-muted rounded-full overflow-hidden">
+                  <div class="h-full bg-saffron-accent rounded-full" style="width: 75%;"></div>
+                </div>
+                <span class="font-mono-code text-[11px] text-text-muted">75%</span>
+              </div>
+            </div>
+
+            <!-- Metric 2: Under Triage (Source Verifying) -->
+            <div class="bg-surface-crisp rounded-xl p-5 sm:p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all cursor-pointer border border-border-hairline" onclick="switchProblemTab('my-reviews')">
+              <div class="flex items-center justify-between mb-space-sm">
+                <span class="font-label-sm text-[11px] sm:text-label-sm text-text-muted uppercase tracking-wider">Assigned to Me</span>
+                <span class="p-2 rounded-lg bg-surface-container-high text-institutional-navy">
+                  <span class="material-symbols-outlined text-[20px]">assignment_ind</span>
+                </span>
+              </div>
+              <div class="flex items-baseline justify-between">
+                <span class="font-headline-xl text-3xl sm:text-headline-xl text-text-primary tracking-tight" id="prb-metric-my">0</span>
+                <span class="font-label-sm text-xs sm:text-label-sm text-status-review-text bg-status-review-bg px-2 py-0.5 rounded-full font-bold">Under Review</span>
+              </div>
+              <div class="mt-space-md pt-space-xs flex items-center justify-between">
+                <span class="font-body-sm text-xs sm:text-body-sm text-text-muted">Triage Capacity</span>
+                <span class="font-mono-code text-[11px] text-institutional-navy font-semibold">2 / 4 cases</span>
+              </div>
+            </div>
+
+            <!-- Metric 3: Verified & Registered -->
+            <div class="bg-surface-crisp rounded-xl p-5 sm:p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all cursor-pointer border border-border-hairline" onclick="switchProblemTab('registered')">
+              <div class="flex items-center justify-between mb-space-sm">
+                <span class="font-label-sm text-[11px] sm:text-label-sm text-text-muted uppercase tracking-wider">Registered in SIH</span>
+                <span class="p-2 rounded-lg bg-surface-container-high text-gov-emerald">
+                  <span class="material-symbols-outlined text-[20px]">task_alt</span>
+                </span>
+              </div>
+              <div class="flex items-baseline justify-between">
+                <span class="font-headline-xl text-3xl sm:text-headline-xl text-text-primary tracking-tight" id="prb-metric-registered">0</span>
+                <div class="flex items-center text-gov-emerald font-label-sm text-xs sm:text-label-sm">
+                  <span class="material-symbols-outlined text-[16px]">verified</span>
+                  <span>Cataloged</span>
+                </div>
+              </div>
+              <div class="mt-space-md pt-space-xs flex items-center justify-between">
+                <span class="font-body-sm text-xs sm:text-body-sm text-text-muted">National Repository</span>
+                <span class="font-mono-code text-[11px] text-gov-emerald font-semibold">Phase-1 Ready</span>
+              </div>
+            </div>
+
+            <!-- Metric 4: Critical & High Priority -->
+            <div class="bg-surface-crisp rounded-xl p-5 sm:p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all cursor-pointer border border-border-hairline">
+              <div class="flex items-center justify-between mb-space-sm">
+                <span class="font-label-sm text-[11px] sm:text-label-sm text-text-muted uppercase tracking-wider">Critical Severity</span>
+                <span class="p-2 rounded-lg bg-surface-container-high text-error">
+                  <span class="material-symbols-outlined text-[20px]">emergency</span>
+                </span>
+              </div>
+              <div class="flex items-baseline justify-between">
+                <span class="font-headline-xl text-3xl sm:text-headline-xl text-text-primary tracking-tight" id="prb-metric-critical">0</span>
+                <span class="font-label-sm text-xs sm:text-label-sm text-error bg-error/10 px-2 py-0.5 rounded-full font-bold">Urgent Action</span>
+              </div>
+              <div class="mt-space-md pt-space-xs flex items-center justify-between">
+                <span class="font-body-sm text-xs sm:text-body-sm text-text-muted">High Population Impact</span>
+                <span class="font-mono-code text-[11px] text-error font-semibold">Priority Triage</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Queue Management Panel -->
+          <div class="bg-surface-crisp rounded-xl shadow-md border border-border-hairline overflow-hidden">
+            
+            <!-- Tab Header & Quick Filters -->
+            <div class="p-4 sm:p-space-lg border-b border-border-hairline flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-surface-subtle/30">
+              
+              <!-- Tab Pills -->
+              <div class="flex items-center gap-1 sm:gap-2 bg-surface-container-low p-1 rounded-lg self-start border border-border-hairline flex-wrap">
+                <button class="tab-btn-prb px-3 sm:px-space-md py-1.5 rounded-md font-label-md text-xs sm:text-label-md transition-all flex items-center gap-1.5 bg-surface-crisp text-primary shadow-sm cursor-pointer" id="tab-prb-all" onclick="switchProblemTab('all')">
+                  <span>All Active Intake</span>
+                  <span class="font-mono-code text-[10px] px-1.5 py-0.2 rounded-full bg-surface-container-high text-text-primary font-bold" id="tab-prb-all-badge">0</span>
+                </button>
+                <button class="tab-btn-prb px-3 sm:px-space-md py-1.5 rounded-md font-label-md text-xs sm:text-label-md transition-all flex items-center gap-1.5 text-text-secondary hover:text-text-primary cursor-pointer" id="tab-prb-my" onclick="switchProblemTab('my-reviews')">
+                  <span>Assigned to Me</span>
+                  <span class="font-mono-code text-[10px] px-1.5 py-0.2 rounded-full bg-status-review-bg text-status-review-text font-bold" id="tab-prb-my-badge">0</span>
+                </button>
+                <button class="tab-btn-prb px-3 sm:px-space-md py-1.5 rounded-md font-label-md text-xs sm:text-label-md transition-all flex items-center gap-1.5 text-text-secondary hover:text-text-primary cursor-pointer" id="tab-prb-registered" onclick="switchProblemTab('registered')">
+                  <span>Verified &amp; Registered</span>
+                  <span class="font-mono-code text-[10px] px-1.5 py-0.2 rounded-full bg-status-approved-bg text-status-approved-text font-bold" id="tab-prb-registered-badge">0</span>
+                </button>
+                <button class="tab-btn-prb px-3 sm:px-space-md py-1.5 rounded-md font-label-md text-xs sm:text-label-md transition-all flex items-center gap-1.5 text-text-secondary hover:text-text-primary cursor-pointer" id="tab-prb-rejected" onclick="switchProblemTab('rejected')">
+                  <span>Deficiency / Rejected</span>
+                  <span class="font-mono-code text-[10px] px-1.5 py-0.2 rounded-full bg-surface-muted text-text-muted font-bold" id="tab-prb-rejected-badge">0</span>
+                </button>
+              </div>
+
+              <!-- Filter Strip -->
+              <div class="flex items-center gap-2.5 sm:gap-space-sm flex-wrap w-full lg:w-auto">
+                <!-- Search Box -->
+                <div class="relative flex-1 sm:w-64 min-w-[200px]">
+                  <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[18px]">search</span>
+                  <input class="w-full pl-9 pr-3 py-1.5 rounded-lg border border-border-hairline bg-surface-crisp font-body-sm text-xs sm:text-body-sm text-text-primary placeholder:text-text-muted focus:border-institutional-navy focus:outline-none transition-colors" id="problem-search" oninput="filterProblemRows()" placeholder="Search title, ID, submitter..." type="text"/>
+                </div>
+
+                <!-- Source Bucket Filter -->
+                <select class="py-1.5 px-3 rounded-lg border border-border-hairline bg-surface-crisp font-label-sm text-xs sm:text-label-sm text-text-primary focus:border-institutional-navy focus:outline-none cursor-pointer" id="problem-bucket-filter" onchange="filterProblemRows()">
+                  <option value="ALL">All Source Buckets</option>
+                  <option value="GOVT">Government (GOVT)</option>
+                  <option value="COMMUNITY">Community / Co-op</option>
+                  <option value="INDUSTRY">Industry / Corporate</option>
+                  <option value="HEI">Academia / University (HEI)</option>
+                </select>
+
+                <!-- Severity Filter -->
+                <select class="py-1.5 px-3 rounded-lg border border-border-hairline bg-surface-crisp font-label-sm text-xs sm:text-label-sm text-text-primary focus:border-institutional-navy focus:outline-none cursor-pointer" id="problem-severity-filter" onchange="filterProblemRows()">
+                  <option value="ALL">All Severities</option>
+                  <option value="CRITICAL">Critical Severity</option>
+                  <option value="HIGH">High Severity</option>
+                  <option value="MEDIUM">Medium Severity</option>
+                </select>
+
+                <button class="p-1.5 rounded-lg border border-border-hairline bg-surface-crisp text-text-muted hover:text-text-primary hover:bg-surface-subtle transition-colors cursor-pointer" onclick="resetProblemFilters()" title="Reset Filters" type="button">
+                  <span class="material-symbols-outlined text-[18px]">refresh</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Queue Counter Info -->
+            <div class="px-4 sm:px-space-lg py-2.5 bg-surface-subtle/50 border-b border-border-hairline flex items-center justify-between text-xs text-text-muted flex-wrap gap-2">
+              <div class="flex items-center gap-2">
+                <span>Displaying <strong class="text-text-primary font-semibold" id="prb-displayed-count">0</strong> problem statements</span>
+                <span class="text-border-strong">•</span>
+                <span class="text-institutional-navy cursor-pointer hover:underline" onclick="resetProblemFilters()">Reset Filters</span>
+              </div>
+              <div class="font-mono text-[11px] text-text-muted">
+                Statutory SLA Standard: 48h from Intake Dispatch
+              </div>
+            </div>
+
+            <!-- Data Table Responsive Container -->
+            <div class="w-full overflow-x-auto">
+              <table class="w-full text-left border-collapse min-w-[880px]">
+                <thead>
+                  <tr class="bg-surface-container-high/40 text-text-secondary font-label-md text-xs sm:text-label-md uppercase tracking-wider border-b border-border-hairline">
+                    <th class="py-3 px-4 sm:px-6" scope="col">Problem Statement &amp; Dossier</th>
+                    <th class="py-3 px-4 sm:px-6" scope="col">Source Bucket &amp; Entity</th>
+                    <th class="py-3 px-4 sm:px-6" scope="col">Location &amp; Impact</th>
+                    <th class="py-3 px-4 sm:px-6" scope="col">Severity / Urgency</th>
+                    <th class="py-3 px-4 sm:px-6" scope="col">Triage Status</th>
+                    <th class="py-3 px-4 sm:px-6 text-right" scope="col">Statutory Action</th>
+                  </tr>
+                </thead>
+                <tbody id="problem-table-body" class="divide-y divide-border-hairline">
+                  <!-- Dynamically populated by renderProblemTable() -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Table Footer -->
+            <div class="p-4 sm:p-space-base border-t border-border-hairline flex flex-col sm:flex-row items-center justify-between gap-3 bg-surface-subtle/20 text-xs text-text-secondary">
+              <span class="font-mono-code text-[11px]">Audit Protocol: SIH26043-SECTION-14-REGISTRY</span>
+              <span class="font-body-sm text-[11px] text-text-muted">Optimistic Version Control Enabled • Multi-Factor Signatures Active</span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </main>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- SCREEN: MY REVIEWS CASELOAD WORKBENCH — Route: #/my-reviews               -->
+  <!-- ========================================================================= -->
+  <section id="screen-my-reviews" class="screen-view">
+    <main class="w-full pt-16 bg-surface">
+      <div class="flex flex-col w-full">
+        <!-- Main Container -->
+        <div class="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8 lg:py-10">
+          
+          <!-- Top Administrative Command Strip -->
+          <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6 mb-6 sm:mb-8">
+            <div class="space-y-1.5">
+              <div class="flex items-center gap-space-sm text-text-muted font-mono-code text-[11px] sm:text-label-sm uppercase tracking-wider flex-wrap">
+                <span>OFFICER CASELOAD WORKBENCH</span>
+                <span>/</span>
+                <span class="text-institutional-navy font-semibold">NODAL OFFICER: REV-419082</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-gov-emerald animate-pulse"></span>
+              </div>
+              <h1 class="font-headline-xl text-2xl sm:text-3xl lg:text-headline-xl text-text-primary tracking-tight">
+                <span id="workbench-officer-heading">My Active Caseload</span>
+              </h1>
+              <p class="font-body-md text-sm sm:text-body-md text-text-secondary max-w-3xl">
+                Consolidated statutory triage queue for entity registrations and technical problem statements claimed under your quasi-judicial review authority.
+              </p>
+            </div>
+            
+            <div class="flex items-center gap-2 self-start md:self-auto bg-surface-crisp p-2.5 rounded-xl shadow-sm border border-border-hairline">
+              <div class="w-8 h-8 rounded-full bg-institutional-navy text-on-primary flex items-center justify-center font-bold text-xs" id="workbench-avatar">RO</div>
+              <div class="flex flex-col text-xs">
+                <span class="font-bold text-ashoka-blue" id="workbench-officer-name">Reviewer Officer</span>
+                <span class="font-mono text-text-muted text-[10px]" id="workbench-officer-role">ROLE_REVIEWER</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Caseload Metrics Strip -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            <div class="bg-surface-crisp rounded-xl p-5 shadow-sm border border-border-hairline flex items-center justify-between">
+              <div>
+                <span class="text-xs uppercase font-bold text-text-muted tracking-wider block mb-1">Claimed Registrations</span>
+                <span class="text-2xl font-bold text-text-primary" id="my-reg-count">0</span>
+                <span class="text-xs text-status-review-text block mt-0.5">Awaiting Statutory Decision</span>
+              </div>
+              <div class="w-11 h-11 rounded-xl bg-status-review-bg text-status-review-text flex items-center justify-center">
+                <span class="material-symbols-outlined text-[24px]">folder_supervised</span>
+              </div>
+            </div>
+
+            <div class="bg-surface-crisp rounded-xl p-5 shadow-sm border border-border-hairline flex items-center justify-between">
+              <div>
+                <span class="text-xs uppercase font-bold text-text-muted tracking-wider block mb-1">Claimed Problems</span>
+                <span class="text-2xl font-bold text-text-primary" id="my-prb-count">0</span>
+                <span class="text-xs text-saffron-accent block mt-0.5">Source Verifying in Progress</span>
+              </div>
+              <div class="w-11 h-11 rounded-xl bg-status-action-bg text-status-action-text flex items-center justify-center">
+                <span class="material-symbols-outlined text-[24px]">report_problem</span>
+              </div>
+            </div>
+
+            <div class="bg-surface-crisp rounded-xl p-5 shadow-sm border border-border-hairline flex items-center justify-between">
+              <div>
+                <span class="text-xs uppercase font-bold text-text-muted tracking-wider block mb-1">SLA Compliance Rate</span>
+                <span class="text-2xl font-bold text-gov-emerald">100%</span>
+                <span class="text-xs text-text-muted block mt-0.5">Average Decision Time: 6.4h</span>
+              </div>
+              <div class="w-11 h-11 rounded-xl bg-status-approved-bg text-gov-emerald flex items-center justify-center">
+                <span class="material-symbols-outlined text-[24px]">verified</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 1: Claimed Registrations Table -->
+          <div class="bg-surface-crisp rounded-xl shadow-md border border-border-hairline overflow-hidden mb-8">
+            <div class="p-4 sm:p-5 border-b border-border-hairline bg-surface-subtle/40 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-institutional-navy text-[20px]">assignment_ind</span>
+                <h2 class="text-base font-bold text-ashoka-blue">Assigned Entity Registrations (KYC Clearance)</h2>
+              </div>
+              <a href="#/dashboard" class="text-xs text-institutional-navy hover:underline font-medium flex items-center gap-1">
+                <span>View Full Intake Queue</span>
+                <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+              </a>
+            </div>
+            
+            <div class="w-full overflow-x-auto">
+              <table class="w-full text-left border-collapse min-w-[780px]">
+                <thead>
+                  <tr class="bg-surface-container-high/30 text-text-secondary font-label-md text-xs uppercase tracking-wider border-b border-border-hairline">
+                    <th class="py-3 px-4 sm:px-6">Organization Entity</th>
+                    <th class="py-3 px-4 sm:px-6">Entity Category</th>
+                    <th class="py-3 px-4 sm:px-6">Claimed Date</th>
+                    <th class="py-3 px-4 sm:px-6">Triage Status</th>
+                    <th class="py-3 px-4 sm:px-6 text-right">Direct Action</th>
+                  </tr>
+                </thead>
+                <tbody id="my-registrations-tbody" class="divide-y divide-border-hairline">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Section 2: Claimed Problems Table -->
+          <div class="bg-surface-crisp rounded-xl shadow-md border border-border-hairline overflow-hidden">
+            <div class="p-4 sm:p-5 border-b border-border-hairline bg-surface-subtle/40 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-saffron-accent text-[20px]">engineering</span>
+                <h2 class="text-base font-bold text-ashoka-blue">Assigned Problem Statements (Technical Verification)</h2>
+              </div>
+              <a href="#/problem-queue" class="text-xs text-institutional-navy hover:underline font-medium flex items-center gap-1">
+                <span>View All Problems</span>
+                <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+              </a>
+            </div>
+            
+            <div class="w-full overflow-x-auto">
+              <table class="w-full text-left border-collapse min-w-[780px]">
+                <thead>
+                  <tr class="bg-surface-container-high/30 text-text-secondary font-label-md text-xs uppercase tracking-wider border-b border-border-hairline">
+                    <th class="py-3 px-4 sm:px-6">Problem Title &amp; ID</th>
+                    <th class="py-3 px-4 sm:px-6">Submitting Agency</th>
+                    <th class="py-3 px-4 sm:px-6">Location &amp; Scope</th>
+                    <th class="py-3 px-4 sm:px-6">Severity</th>
+                    <th class="py-3 px-4 sm:px-6 text-right">Direct Action</th>
+                  </tr>
+                </thead>
+                <tbody id="my-problems-tbody" class="divide-y divide-border-hairline">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: PROBLEM VERIFICATION & STATUTORY TRIAGE                            -->
+  <!-- ========================================================================= -->
+  <div id="problem-verification-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-primary/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 transition-opacity">
+    <div class="relative bg-surface-crisp rounded-xl shadow-2xl border border-border-hairline max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      
+      <!-- Top Colored Stripe -->
+      <div class="w-full h-1.5 bg-gradient-to-r from-saffron-accent via-surface-crisp to-gov-emerald"></div>
+
+      <!-- Modal Header -->
+      <div class="px-5 py-4 bg-surface-subtle border-b border-border-hairline flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-lg bg-institutional-navy text-on-primary flex items-center justify-center shrink-0 shadow-sm">
+            <span class="material-symbols-outlined text-[20px]">verified</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-mono text-xs font-bold text-saffron-accent" id="modal-prb-id">#PRB-2024-PB092</span>
+              <span class="px-2 py-0.2 rounded-full text-[10px] font-bold uppercase bg-status-review-bg text-status-review-text" id="modal-prb-status-pill">SOURCE VERIFYING</span>
+            </div>
+            <h2 class="text-base sm:text-lg font-bold text-ashoka-blue line-clamp-1" id="modal-prb-title">Groundwater Arsenic &amp; Heavy Metal Contamination</h2>
+          </div>
+        </div>
+        <button type="button" onclick="closeProblemModal()" class="w-8 h-8 rounded-lg hover:bg-surface-container text-text-muted hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Scrollable Content -->
+      <div class="p-5 sm:p-6 overflow-y-auto flex flex-col gap-6 text-xs sm:text-sm">
+        
+        <!-- Metadata Overview Card -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-surface-subtle/60 p-3.5 rounded-lg border border-border-hairline">
+          <div>
+            <span class="text-text-muted text-[10px] uppercase font-bold block">Submitting Agency</span>
+            <span class="font-semibold text-text-primary block mt-0.5" id="modal-prb-agency">--</span>
+          </div>
+          <div>
+            <span class="text-text-muted text-[10px] uppercase font-bold block">Nodal Officer</span>
+            <span class="font-semibold text-text-primary block mt-0.5" id="modal-prb-nodal">--</span>
+          </div>
+          <div>
+            <span class="text-text-muted text-[10px] uppercase font-bold block">Jurisdiction / Scope</span>
+            <span class="font-semibold text-text-primary block mt-0.5" id="modal-prb-location">--</span>
+          </div>
+          <div>
+            <span class="text-text-muted text-[10px] uppercase font-bold block">Affected Population</span>
+            <span class="font-semibold text-gov-emerald block mt-0.5" id="modal-prb-population">--</span>
+          </div>
+        </div>
+
+        <!-- Problem Statement Description -->
+        <div class="space-y-1.5">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-text-muted flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[16px] text-institutional-navy">description</span>
+            <span>Problem Description &amp; Technical Bottleneck</span>
+          </h3>
+          <p class="text-text-primary bg-surface-crisp p-3.5 rounded-lg border border-border-hairline leading-relaxed" id="modal-prb-description">
+            Loading problem details...
+          </p>
+        </div>
+
+        <!-- Expected Outcome & Acceptance Criteria -->
+        <div class="space-y-1.5">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-text-muted flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[16px] text-gov-emerald">task_alt</span>
+            <span>Expected Outcome &amp; Success Metric</span>
+          </h3>
+          <p class="text-text-secondary bg-surface-crisp p-3.5 rounded-lg border border-border-hairline leading-relaxed" id="modal-prb-outcome">
+            Loading expected outcome...
+          </p>
+        </div>
+
+        <!-- Evidence & Technical Documentation -->
+        <div class="space-y-2">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-text-muted flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[16px] text-saffron-accent">attach_file</span>
+            <span>Empirical Evidence &amp; Supporting Documents</span>
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5" id="modal-prb-evidence-list">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Quasi-Judicial Decision Form -->
+        <div class="border-t border-border-hairline pt-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-xs font-bold uppercase tracking-wider text-text-muted block">Quasi-Judicial Action</span>
+              <h3 class="text-sm font-bold text-ashoka-blue">Select Statutory Verification Verdict</h3>
+            </div>
+            <span class="font-mono text-[10px] text-gov-emerald bg-gov-emerald/10 px-2 py-0.5 rounded-full font-bold">DSC Sign Required</span>
+          </div>
+
+          <!-- Decision Action Selector -->
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" id="prb-btn-register" onclick="selectProblemVerdict('REGISTERED')" class="p-3 rounded-lg border border-border-hairline bg-status-approved-bg text-status-approved-text flex flex-col items-center justify-center cursor-pointer transition-all">
+              <span class="material-symbols-outlined text-[20px] text-gov-emerald mb-1">verified</span>
+              <span class="font-bold text-xs">Verify &amp; Register</span>
+              <span class="text-[10px] opacity-80">Catalog in SIH Repo</span>
+            </button>
+            <button type="button" id="prb-btn-action" onclick="selectProblemVerdict('ACTION_REQUIRED')" class="p-3 rounded-lg border border-border-hairline bg-surface-subtle text-text-primary hover:bg-surface-container flex flex-col items-center justify-center cursor-pointer transition-all">
+              <span class="material-symbols-outlined text-[20px] text-saffron-accent mb-1">replay</span>
+              <span class="font-bold text-xs">Request Action</span>
+              <span class="text-[10px] text-text-muted">Return for Correction</span>
+            </button>
+            <button type="button" id="prb-btn-reject" onclick="selectProblemVerdict('REJECTED')" class="p-3 rounded-lg border border-border-hairline bg-surface-subtle text-text-primary hover:bg-surface-container flex flex-col items-center justify-center cursor-pointer transition-all">
+              <span class="material-symbols-outlined text-[20px] text-error mb-1">cancel</span>
+              <span class="font-bold text-xs">Reject Problem</span>
+              <span class="text-[10px] text-text-muted">Out of Mandate</span>
+            </button>
+          </div>
+
+          <!-- Impact Notice -->
+          <div class="p-3 rounded-lg bg-status-approved-bg text-status-approved-text text-xs flex items-start gap-2 border border-status-approved-border" id="prb-impact-box">
+            <span class="material-symbols-outlined text-[18px] text-gov-emerald shrink-0 mt-0.5">info</span>
+            <span id="prb-impact-text">
+              <strong>State Transition:</strong> Problem will transition to <code class="font-mono font-bold">REGISTERED</code>. Problem statement enters the national SIH 2024 active challenge catalog with full evidence attachments.
+            </span>
+          </div>
+
+          <!-- Comments Textarea -->
+          <div class="space-y-1">
+            <div class="flex items-center justify-between text-xs">
+              <label for="prb-reviewer-remarks" class="font-bold text-text-primary">
+                Technical Review Remarks <span class="text-saffron-accent font-bold" id="prb-asterisk" style="display:none;">*</span>
+              </label>
+              <span class="font-mono text-[10px] text-text-muted" id="prb-char-count">0 / 1000</span>
+            </div>
+            <textarea id="prb-reviewer-remarks" rows="3" oninput="handlePrbRemarksInput()" class="w-full rounded-lg p-3 text-xs bg-surface-crisp border border-border-hairline focus:border-institutional-navy focus:outline-none resize-none" placeholder="Provide statutory notes, technological evaluation remarks, or deficiency citations..."></textarea>
+          </div>
+
+          <!-- Attestation Checkbox -->
+          <div class="p-3 rounded-lg bg-surface-subtle flex items-start gap-2 border border-border-hairline">
+            <input type="checkbox" id="prb-attest-check" onchange="evaluatePrbReadiness()" checked class="mt-0.5 rounded text-institutional-navy focus:ring-institutional-navy cursor-pointer">
+            <label for="prb-attest-check" class="text-xs text-text-secondary select-none cursor-pointer">
+              I, <strong class="text-text-primary" id="prb-attest-officer-name">Reviewer Officer</strong>, certify that this problem statement has been evaluated against statutory jurisdiction, authenticity, and technical viability.
+            </label>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-5 py-3.5 bg-surface-subtle border-t border-border-hairline flex items-center justify-between">
+        <span class="font-mono text-[11px] text-text-muted">SESSION: SIH26043-REV-ACTIVE</span>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="closeProblemModal()" class="px-4 py-2 text-xs font-semibold rounded-lg bg-surface-crisp hover:bg-surface-container border border-border-hairline text-text-secondary cursor-pointer transition-colors">
+            Cancel
+          </button>
+          <button type="button" id="btn-submit-prb-decision" onclick="executeProblemTransition()" class="px-5 py-2 text-xs font-semibold rounded-lg bg-institutional-navy hover:bg-primary text-on-primary flex items-center gap-1.5 shadow-sm cursor-pointer transition-all">
+            <span class="material-symbols-outlined text-[16px]">how_to_reg</span>
+            <span id="prb-submit-btn-label">Execute Problem Registration</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- CORE CLIENT-SIDE APPLICATION JAVASCRIPT LOGIC                             -->
+  <!-- ========================================================================= -->
+  <script src="app.js"></script>
+
+</body>
+</html>
