@@ -5,7 +5,6 @@
     --font-headline: 'IBM Plex Sans', sans-serif;
     --font-body: 'Inter', sans-serif;
     --font-code: 'JetBrains Mono', monospace;
-<<<<<<< HEAD
 
     /* Design tokens */
     --saffron: #FF9933;
@@ -16,46 +15,28 @@
     --hairline: #E5E7EB;
     --body-text: #1E293B;
     --muted-text: #64748B;
-=======
->>>>>>> d732201aa7e34898c938c4647556e99cdd33643d
   }
 
   body {
     font-family: var(--font-body);
-<<<<<<< HEAD
     background-color: var(--surface);
     color: var(--body-text);
     margin: 0;
     padding: 0;
     overflow-x: hidden;
-=======
-    background-color: #f8f9ff;
-    color: #0b1c30;
-    margin: 0;
-    padding: 0;
->>>>>>> d732201aa7e34898c938c4647556e99cdd33643d
   }
 }
 
 .font-headline {
   font-family: 'IBM Plex Sans', sans-serif;
 }
-<<<<<<< HEAD
 .font-body {
   font-family: 'Inter', sans-serif;
 }
-=======
-
-.font-body {
-  font-family: 'Inter', sans-serif;
-}
-
->>>>>>> d732201aa7e34898c938c4647556e99cdd33643d
 .font-code {
   font-family: 'JetBrains Mono', monospace;
 }
 
-<<<<<<< HEAD
 /* ── Tricolor utilities with slow, continuous subtle shimmer/gradient sweep ── */
 @keyframes tricolorSweep {
   0% {
@@ -207,15 +188,11 @@
 }
 
 /* ── Custom scrollbar ── */
-=======
-/* Custom scrollbar */
->>>>>>> d732201aa7e34898c938c4647556e99cdd33643d
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-<<<<<<< HEAD
   background: #f1f5f9;
 }
 ::-webkit-scrollbar-thumb {
@@ -224,14 +201,4 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
-=======
-  background: #eff4ff;
-}
-::-webkit-scrollbar-thumb {
-  background: #c4c6cf;
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #74777f;
->>>>>>> d732201aa7e34898c938c4647556e99cdd33643d
 }
