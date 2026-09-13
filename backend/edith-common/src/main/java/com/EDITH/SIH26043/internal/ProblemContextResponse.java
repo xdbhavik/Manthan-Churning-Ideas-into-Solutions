@@ -17,7 +17,11 @@ import java.util.UUID;
  * @param accessRule one of the {@code ProblemAccessRule} names, e.g.
  *                   {@code OPEN_TO_ALL}; who may access/work on this problem statement
  * @param accessUniversities university-name snapshot allowed to work on the problem;
- *                           populated only when {@code accessRule == SELECTED_UNIVERSITIES}
+ *                           populated for the named-snapshot rules
+ *                           ({@code SELECTED_UNIVERSITIES} and
+ *                           {@code AUTO_SELECTED_UNIVERSITIES}), empty otherwise. The
+ *                           automatic rule stores the audience it resolved here too,
+ *                           so consumers need no special case.
  */
 public record ProblemContextResponse(
         UUID problemId,

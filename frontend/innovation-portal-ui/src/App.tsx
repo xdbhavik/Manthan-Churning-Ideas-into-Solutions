@@ -1,5 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
+<<<<<<< HEAD
 import { motion, AnimatePresence } from 'framer-motion';
+=======
+>>>>>>> d732201aa7e34898c938c4647556e99cdd33643d
 import {
   JwtRole,
   NavPath,
@@ -26,8 +29,11 @@ import { ProfileModal } from './components/ProfileModal';
 import { NotificationsDrawer } from './components/NotificationsDrawer';
 import { AuthFlow } from './components/AuthFlow';
 import { RegisterParticipant } from './components/RegisterParticipant';
+<<<<<<< HEAD
 import { ProfileView } from './components/ProfileView';
 import { ToastProvider } from './components/Toast';
+=======
+>>>>>>> d732201aa7e34898c938c4647556e99cdd33643d
 import { getRole, isAuthenticated, logout, getRefreshToken, getSessionUser } from './lib/auth';
 import { getErrorMessage } from './lib/api';
 import * as portal from './services/portalService';
@@ -263,6 +269,7 @@ export default function App() {
   }
 
   return (
+<<<<<<< HEAD
     <ToastProvider>
       <div className="min-h-screen bg-[#F7F8FC] text-[#1E293B] flex flex-col antialiased selection:bg-[#BFDBFE] selection:text-[#0A2540]">
         <Header
@@ -475,5 +482,175 @@ export default function App() {
         />
       </div>
     </ToastProvider>
+=======
+    <div className="min-h-screen bg-[#f8f9ff] text-[#0b1c30] flex flex-col antialiased selection:bg-[#dce9ff] selection:text-[#00152f]">
+      <Header
+        displayName={displayName}
+        roleLabel={roleLabel}
+        avatarText={avatar(displayName)}
+        onOpenProfile={() => setIsProfileOpen(true)}
+        notificationsCount={notificationsCount}
+        onOpenNotifications={() => setIsNotificationsOpen(true)}
+        onLogout={handleLogout}
+      />
+
+      <div className="flex pt-16 min-h-[calc(100vh-64px)]">
+        <Sidebar
+          currentPath={selectedProblem ? 'problem-catalog' : currentPath}
+          onNavigate={handleNavigate}
+          role={role ?? 'SUBMITTER'}
+          problemsCount={problems.length}
+          submissionsCount={submissions.length}
+          pendingReviewsCount={reviews.filter((r) => r.reviewStatus === 'ASSIGNED').length}
+        />
+
+        <main className="flex-1 ml-64 p-6 sm:p-8 max-w-7xl mx-auto w-full">
+          {error && (
+            <div className="mb-4 p-3 rounded-xl bg-[#ffdad6] border border-[#ffb4ab] text-[#93000a] flex items-center justify-between text-[13px] font-semibold">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[20px]">error</span>
+                <span>{error}</span>
+              </div>
+              <button onClick={() => setError(null)} className="text-[#93000a]">
+                <span className="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            </div>
+          )}
+
+          {loading && !selectedProblem ? (
+            <div className="flex items-center justify-center py-24 text-[#74777f] text-[14px]">
+              <span className="material-symbols-outlined text-[20px] animate-spin mr-2">progress_activity</span>
+              Loading…
+            </div>
+          ) : selectedProblem ? (
+            <ProblemDetail
+              problem={selectedProblem}
+              participant={participant}
+              existingSubmission={submissions.find((s) => s.problemId === selectedProblem.problemId)}
+              onBack={handleBackToCatalog}
+              onViewSubmission={(sub) => {
+                setSelectedProblem(null);
+                setSelectedSubmissionId(sub.submissionId);
+                setCurrentPath('my-submissions');
+              }}
+              onCreateSubmission={handleCreateSubmission}
+              onUpdateMeta={handleUpdateMeta}
+              onSubmitSubmission={handleSubmitSubmission}
+              onUploadFile={handleUploadFile}
+              onDeleteFile={handleDeleteFile}
+            />
+          ) : currentPath === 'problem-catalog' ? (
+            <ProblemCatalog
+              problems={problems}
+              onSelectProblem={handleSelectProblem}
+            />
+          ) : currentPath === 'my-submissions' ? (
+            <SubmissionsDossier
+              submissions={submissions}
+              selectedSubmissionId={selectedSubmissionId ?? ''}
+              onSelectSubmission={setSelectedSubmissionId}
+              onNewSubmissionClick={() => setCurrentPath('problem-catalog')}
+              onUpdateMeta={handleUpdateMeta}
+              onSubmitSubmission={handleSubmitSubmission}
+              onUploadFile={handleUploadFile}
+              onDeleteFile={handleDeleteFile}
+            />
+          ) : currentPath === 'project-review-queue' ? (
+            <ReviewWorkbench
+              workItems={reviews}
+              selectedItemId={selectedReviewId ?? ''}
+              onSelectItem={setSelectedReviewId}
+              onCommitDecision={handleCommitReviewDecision}
+            />
+          ) : currentPath === 'overview' ? (
+            <DashboardView
+              problems={problems}
+              submissions={submissions}
+              reviews={reviews}
+              cycles={cycles}
+              role={role ?? 'SUBMITTER'}
+              participant={participant}
+              onNavigate={handleNavigate}
+              onSelectProblem={handleSelectProblem}
+            />
+          ) : currentPath === 'admin-cycles-and-publish' ? (
+            <AdministrationView cycles={cycles} onPublish={handlePublishToPortal} />
+          ) : currentPath === 'nodal-officers-directory' ? (
+            <NodalInstitutesView />
+          ) : currentPath === 'evaluation-rubrics' ? (
+            <ScoringRubricsView criteria={criteria} />
+          ) : currentPath === 'my-profile' ? (
+            <div className="bg-white rounded-xl p-8 max-w-xl shadow-xs border border-[#e2e8f0]">
+              <h2 className="font-headline text-[20px] font-bold text-[#0b1c30] mb-4">
+                User Profile & Credentials
+              </h2>
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-[#eff4ff] border border-[#dce9ff] mb-6">
+                <div className="w-14 h-14 rounded-full bg-[#00152f] text-white flex items-center justify-center font-bold text-[20px]">
+                  {avatar(displayName)}
+                </div>
+                <div>
+                  <div className="font-headline text-[18px] font-bold text-[#0b1c30]">{displayName}</div>
+                  <div className="text-[12px] text-[#795900] font-semibold flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[15px]">verified</span>
+                    {roleLabel}
+                  </div>
+                  <div className="text-[11px] text-[#74777f]">
+                    {participant?.participantType || role} · Phone +91 {session?.phone}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3 text-[13px]">
+                <div className="flex justify-between py-2 border-b border-[#f1f5f9]">
+                  <span className="text-[#74777f]">Participant ID</span>
+                  <span className="font-mono text-[#00152f] font-semibold">
+                    {participant?.participantId || session?.userId}
+                  </span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-[#f1f5f9]">
+                  <span className="text-[#74777f]">Type</span>
+                  <span className="font-semibold text-[#0b1c30]">
+                    {participant?.participantType || '—'}
+                  </span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-[#f1f5f9]">
+                  <span className="text-[#74777f]">Email</span>
+                  <span className="font-mono text-[#00152f]">{participant?.email || session?.email || '—'}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-[#f1f5f9]">
+                  <span className="text-[#74777f]">Phone</span>
+                  <span className="font-mono text-[#00152f]">+91 {session?.phone}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-[#f1f5f9]">
+                  <span className="text-[#74777f]">Institution / Panel</span>
+                  <span className="font-semibold text-[#0b1c30]">
+                    {participant?.institutionName || '—'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </main>
+      </div>
+
+      <ProfileModal
+        displayName={displayName}
+        roleLabel={roleLabel}
+        avatarText={avatar(displayName)}
+        participant={participant}
+        session={session}
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+        onLogout={handleLogout}
+      />
+
+      <NotificationsDrawer
+        isOpen={isNotificationsOpen}
+        onClose={() => setIsNotificationsOpen(false)}
+        submissions={isParticipant ? submissions : []}
+        reviews={isEvaluator ? reviews : []}
+      />
+    </div>
+>>>>>>> d732201aa7e34898c938c4647556e99cdd33643d
   );
 }

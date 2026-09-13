@@ -74,6 +74,25 @@ class PublishedProblemServiceTest {
         assertThat(saved.getAccessUniversities()).containsExactly("IIT Madras");
     }
 
+    /**
+     * The automatic rule publishes the audience the server resolved into the same
+     * snapshot column. This also guards the {@code enumOf} fallback: a rule name the
+     * portal does not know silently becomes OPEN_TO_ALL, which would leak a
+     * restricted problem to everyone.
+     */
+    @Test
+    void upsert_CopiesTheAutoSelectedRuleAndItsResolvedSnapshot() {
+        when(problemRepository.findById(problemId)).thenReturn(Optional.empty());
+        when(problemRepository.save(any(PublishedProblem.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        PublishedProblem saved = service.upsert(cycleId, snapshot(problemId,
+                "AUTO_SELECTED_UNIVERSITIES", List.of("IIT Delhi", "IIT Madras")));
+
+        assertThat(saved.getAccessRule()).isEqualTo(ProblemAccessRule.AUTO_SELECTED_UNIVERSITIES);
+        assertThat(saved.getAccessUniversities()).containsExactly("IIT Delhi", "IIT Madras");
+    }
+
     @Test
     void upsert_RefreshesAnExistingRowOnRePublish() {
         PublishedProblem existing = problem(ProblemAccessRule.UNIVERSITY_ONLY);
@@ -127,6 +146,24 @@ class PublishedProblemServiceTest {
 
         assertThat(visible).extracting(PublishedProblemSummary::problemId)
                 .containsExactly(open.getProblemId(), selectedMine.getProblemId());
+    }
+
+    /** An automatically-routed problem is visible exactly like a hand-picked one. */
+    @Test
+    void list_AnAutomaticProblemFollowsTheSameVisibilityAsASelectedOne() {
+        PublishedProblem autoMine = problem(ProblemAccessRule.AUTO_SELECTED_UNIVERSITIES);
+        autoMine.setProblemId(UUID.randomUUID());
+        autoMine.setAccessUniversities(List.of("IIT Madras"));
+        PublishedProblem autoOther = problem(ProblemAccessRule.AUTO_SELECTED_UNIVERSITIES);
+        autoOther.setProblemId(UUID.randomUUID());
+        autoOther.setAccessUniversities(List.of("IIT Bombay"));
+        when(problemRepository.findAllByOrderByPublishedAtDesc())
+                .thenReturn(List.of(autoMine, autoOther));
+
+        assertThat(service.list(student())).isEmpty();
+        assertThat(service.list(university("IIT Madras")))
+                .extracting(PublishedProblemSummary::problemId)
+                .containsExactly(autoMine.getProblemId());
     }
 
     @Test

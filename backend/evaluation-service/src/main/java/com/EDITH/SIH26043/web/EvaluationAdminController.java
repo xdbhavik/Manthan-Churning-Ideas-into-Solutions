@@ -8,17 +8,29 @@ import com.EDITH.SIH26043.exception.ApiException;
 import com.EDITH.SIH26043.repository.EvaluationCycleRepository;
 import com.EDITH.SIH26043.repository.EvaluationStatusHistoryRepository;
 import com.EDITH.SIH26043.security.AuthUser;
+import com.EDITH.SIH26043.service.EvaluationCompletionService;
 import com.EDITH.SIH26043.service.EvaluationIntakeService;
 import com.EDITH.SIH26043.service.EvaluationRoutingService;
 import com.EDITH.SIH26043.service.PortalPublishService;
+import com.EDITH.SIH26043.service.PrioritizationService;
 import com.EDITH.SIH26043.service.ProblemAnalysisService;
+import com.EDITH.SIH26043.service.ScoreAggregationService;
+import com.EDITH.SIH26043.web.dto.AggregationResponse;
 import com.EDITH.SIH26043.web.dto.EvaluationCycleResponse;
 import com.EDITH.SIH26043.web.dto.EvaluationStatusHistoryResponse;
+import com.EDITH.SIH26043.web.dto.PrioritizationResponse;
 import com.EDITH.SIH26043.web.dto.ProblemAnalysisResponse;
+import com.EDITH.SIH26043.web.dto.RouteAllOutcomeResponse;
 import com.EDITH.SIH26043.web.dto.RouteOutcomeResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -49,10 +61,15 @@ import java.util.UUID;
 @PreAuthorize("hasRole('ADMIN') or hasRole('REVIEWER')")
 public class EvaluationAdminController {
 
+    private static final Logger log = LoggerFactory.getLogger(EvaluationAdminController.class);
+
     private final EvaluationIntakeService intakeService;
     private final ProblemAnalysisService analysisService;
     private final EvaluationRoutingService routingService;
     private final PortalPublishService portalPublishService;
+    private final ScoreAggregationService aggregationService;
+    private final PrioritizationService prioritizationService;
+    private final EvaluationCompletionService completionService;
     private final EvaluationCycleRepository cycleRepository;
     private final EvaluationStatusHistoryRepository historyRepository;
 
@@ -60,12 +77,18 @@ public class EvaluationAdminController {
                                      ProblemAnalysisService analysisService,
                                      EvaluationRoutingService routingService,
                                      PortalPublishService portalPublishService,
+                                     ScoreAggregationService aggregationService,
+                                     PrioritizationService prioritizationService,
+                                     EvaluationCompletionService completionService,
                                      EvaluationCycleRepository cycleRepository,
                                      EvaluationStatusHistoryRepository historyRepository) {
         this.intakeService = intakeService;
         this.analysisService = analysisService;
         this.routingService = routingService;
         this.portalPublishService = portalPublishService;
+        this.aggregationService = aggregationService;
+        this.prioritizationService = prioritizationService;
+        this.completionService = completionService;
         this.cycleRepository = cycleRepository;
         this.historyRepository = historyRepository;
     }
@@ -94,24 +117,38 @@ public class EvaluationAdminController {
                     returns unusable JSON, a deterministic heuristic profile is stored instead,
                     so the pipeline never blocks on the network. The profile is advisory: it
                     never contributes to the evaluation score. Idempotent — re-running replaces
-                    the existing profile. Advances the cycle to ROUTING and, when a matching
-                    evaluator has capacity, immediately routes it (auto-route).""")
+                    the existing profile. Advances the cycle to ROUTING and then runs the
+                    five-pool routing pass: every pool gets an assignment, an AUTO pool is
+                    scored and submitted by the AI, a MANUAL pool goes to its least-loaded
+                    human evaluator. When every pool is on AUTO the cycle reaches
+                    EVALUATION_COMPLETED here and the problem is published to the portal.""")
     @PostMapping("/cycles/{cycleId}/analyze")
     public ProblemAnalysisResponse analyze(@PathVariable UUID cycleId,
                                            @AuthenticationPrincipal AuthUser me,
                                            HttpServletRequest http) {
         ProblemAnalysisResponse response = ProblemAnalysisResponse.from(
                 analysisService.analyze(cycleId, me.getUserId(), clientIp(http)));
-        // Auto-route: analysis has just moved the cycle to ROUTING, so try to hand the
-        // problem to the least-loaded evaluator of the matching pool now. This is a separate
-        // transaction from analysis, so a routing no-op/failure cannot roll back the
-        // committed profile. No candidate keeps the cycle at ROUTING — retry via POST …/route.
-        routingService.route(cycleId, me.getUserId(), clientIp(http));
+        // Auto-route: analysis has just moved the cycle to ROUTING, so hand the problem to
+        // all five pools now. This is a separate transaction from analysis, so a routing
+        // no-op/failure cannot roll back the committed profile. Pools with nobody available
+        // are skipped — retry via POST …/route (bucket pool) or …/route-pools (all pools).
+        RouteAllOutcomeResponse routing =
+                routingService.routeAllPools(cycleId, me.getUserId(), clientIp(http));
+        // Publish gate: an all-AUTO pass scores and submits every scorecard inside routing,
+        // so the cycle can already be EVALUATION_COMPLETED. Fire the portal publish after
+        // that transaction committed (best effort) — a portal outage must not roll back the
+        // scorecards; the ADMIN can retry via POST /evaluation/cycles/{cycleId}/publish-to-portal.
+        if (passedAndCompleted(routing)) {
+            publishQuietly(cycleId, "analyze");
+            // Then fold the scorecards the pass just wrote into a result. Also best-effort
+            // and also after the routing transaction committed.
+            completionService.runBestEffort(cycleId, "analyze");
+        }
         return response;
     }
 
     @Operation(
-            summary = "📤 Route to an evaluator",
+            summary = "📤 Route to the bucket's evaluator",
             description = """
                     Hands the problem to the least-loaded active evaluator of the pool that
                     matches its origin bucket (GOVT→GOVERNMENT, INDUSTRY→INDUSTRY, …). Exactly
@@ -123,6 +160,100 @@ public class EvaluationAdminController {
                                       @AuthenticationPrincipal AuthUser me,
                                       HttpServletRequest http) {
         return routingService.route(cycleId, me.getUserId(), clientIp(http));
+    }
+
+    @Operation(
+            summary = "📤 Route to all five pools",
+            description = """
+                    The five-pool repair pass: creates one assignment per evaluator pool that
+                    does not already have one — an AUTO pool is scored and submitted by its
+                    system AI evaluator, a MANUAL pool goes to its least-loaded human. Pools
+                    that already hold an assignment are reported as skipped, so running this
+                    twice is safe. Accepts a cycle in ROUTING or EVALUATION_IN_PROGRESS, which
+                    is how a pool skipped for want of an evaluator gets filled in later. When
+                    the pass completes the cycle (every pool on AUTO) the problem is published
+                    to the portal.""")
+    @PostMapping("/cycles/{cycleId}/route-pools")
+    public RouteAllOutcomeResponse routePools(@PathVariable UUID cycleId,
+                                              @AuthenticationPrincipal AuthUser me,
+                                              HttpServletRequest http) {
+        RouteAllOutcomeResponse outcome =
+                routingService.routeAllPools(cycleId, me.getUserId(), clientIp(http));
+        if (passedAndCompleted(outcome)) {
+            publishQuietly(cycleId, "route-pools");
+            completionService.runBestEffort(cycleId, "route-pools");
+        }
+        return outcome;
+    }
+
+    @Operation(
+            summary = "🧮 Aggregate the pool scorecards",
+            description = """
+                    Folds the cycle's submitted scorecards into one result: each pool is
+                    normalised to 0-100 against its own criteria maxima, weighted by
+                    `weight_config` (equal weights when that configuration is missing or does
+                    not sum to 1), and written to `evaluation_aggregation` together with a
+                    per-pool snapshot. Sets the cycle's `final_score` and `impact_level` and
+                    advances EVALUATION_COMPLETED -> SCORES_AGGREGATED. A pool that never
+                    produced a scorecard is excluded and its weights are renormalised over
+                    the pools that did, so a skipped pool cannot drag a good problem down.
+                    When the present pools' scores spread beyond the configured threshold the
+                    row is marked REVIEW_REQUIRED and a disagreement flag is audited — but
+                    the pipeline does not stop; read the detail back from
+                    `GET /evaluation/cycles/{cycleId}/aggregation`. Idempotent: re-running
+                    upserts the same row. This normally runs by itself the moment a cycle
+                    completes; call it to retry or to re-apply a changed weight config.""")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "✅ Aggregated",
+                    content = @Content(schema = @Schema(implementation = AggregationResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Unknown cycle"),
+            @ApiResponse(responseCode = "409",
+                    description = "Cycle not completed, or no pool produced a scorecard")
+    })
+    @PostMapping("/cycles/{cycleId}/aggregate")
+    public AggregationResponse aggregate(@PathVariable UUID cycleId,
+                                         @AuthenticationPrincipal AuthUser me,
+                                         HttpServletRequest http) {
+        return aggregationService.aggregate(cycleId, me.getUserId(), clientIp(http));
+    }
+
+    @Operation(
+            summary = "⭐ Prioritise the aggregated problem",
+            description = """
+                    Bands the aggregated score: `priority_score` is the same 0-100 number as
+                    `final_score` (nothing else in the domain may influence a score), and
+                    `priority_band` is its bucket — P1/P2/P3/P4 by descending threshold. The
+                    cycle then advances SCORES_AGGREGATED -> PRIORITIZED -> PHASE_3_READY and
+                    is handed to phase 3. Runs automatically right after aggregation; call it
+                    to re-apply changed band thresholds (idempotent) or to finish a run that
+                    stopped. A flagged disagreement does not block prioritisation.""")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "✅ Prioritised",
+                    content = @Content(schema = @Schema(implementation = PrioritizationResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Unknown cycle"),
+            @ApiResponse(responseCode = "409", description = "Cycle has not been aggregated")
+    })
+    @PostMapping("/cycles/{cycleId}/prioritize")
+    public PrioritizationResponse prioritize(@PathVariable UUID cycleId,
+                                             @AuthenticationPrincipal AuthUser me,
+                                             HttpServletRequest http) {
+        return prioritizationService.prioritize(cycleId, me.getUserId(), clientIp(http));
+    }
+
+    @Operation(
+            summary = "📊 Read a cycle's aggregation",
+            description = """
+                    The stored aggregation without recomputing it, including the per-pool
+                    snapshot (every pool appears, with `present` and a `reason` when it did
+                    not score), the effective weights used, and the disagreement evidence.""")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "✅ Stored aggregation",
+                    content = @Content(schema = @Schema(implementation = AggregationResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Unknown or not-yet-aggregated cycle")
+    })
+    @GetMapping("/cycles/{cycleId}/aggregation")
+    public AggregationResponse aggregation(@PathVariable UUID cycleId) {
+        return aggregationService.get(cycleId);
     }
 
     @Operation(
@@ -173,6 +304,31 @@ public class EvaluationAdminController {
         return cycleRepository.findById(cycleId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND,
                         "Evaluation cycle " + cycleId + " not found"));
+    }
+
+    /**
+     * True when the routing pass actually ran (it reports one outcome per pool) and left
+     * the cycle completed. The empty pool list matters: a pass that refused to run because
+     * the cycle was already out of {@code ROUTING}/{@code EVALUATION_IN_PROGRESS} also
+     * reports {@code EVALUATION_COMPLETED}, and publishing on that would append a
+     * {@code PROBLEM_PUBLISHED} audit row for a request that routed nothing.
+     */
+    private boolean passedAndCompleted(RouteAllOutcomeResponse routing) {
+        return !routing.pools().isEmpty()
+                && EvaluationStatus.EVALUATION_COMPLETED.name().equals(routing.cycleStatus());
+    }
+
+    /**
+     * Best-effort portal publish from an automatic step. The scorecards are already
+     * committed, so a portal outage is logged and swallowed; the ADMIN retries via
+     * {@code POST /evaluation/cycles/{cycleId}/publish-to-portal}.
+     */
+    private void publishQuietly(UUID cycleId, String origin) {
+        try {
+            portalPublishService.publishCompletedCycle(cycleId);
+        } catch (ApiException e) {
+            log.warn("Portal publish after {} skipped (cycle {}): {}", origin, cycleId, e.getMessage());
+        }
     }
 
     private String clientIp(HttpServletRequest http) {

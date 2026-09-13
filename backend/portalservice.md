@@ -2,7 +2,7 @@
 
 > The **Innovation Portal** — the public surface where a fully-evaluated problem statement
 > is *published* for students / universities to solve, and where project submissions are
-> handed back to the **same evaluator** for a pass/return decision.
+> handed back to the problem's **human evaluator** for a pass/return decision.
 >
 > This file is the reference for everything portal-service does: architecture & integration,
 > data model (ER), flowcharts, UML (class + sequence), the full HTTP surface, internal
@@ -18,15 +18,19 @@ scorecard: the cycle hit `EVALUATION_COMPLETED` and **nothing consumed the outco
 portal closes that gap —
 
 1. **Auto-publishes** the problem statement the moment evaluation completes
-   (gate: `EVALUATION_COMPLETED`, fired from the evaluator's scorecard submit);
+   (gate: `EVALUATION_COMPLETED`, fired after the last scorecard of the cycle — which, when
+   every evaluator pool is on `AUTO`, is submitted by the AI itself and needs no human);
 2. **Shows it to the right audience** — each problem carries an access rule
-   (`OPEN_TO_ALL` / `UNIVERSITY_ONLY` / `SELECTED_UNIVERSITIES`), and every read is filtered
+   (`OPEN_TO_ALL` / `UNIVERSITY_ONLY` / `SELECTED_UNIVERSITIES` /
+   `AUTO_SELECTED_UNIVERSITIES`), and every read is filtered
    per-participant, so a student never sees a restricted statement;
 3. **Accepts project solutions** — solo students or teams (participants) create a
    submission on a problem they can see, attach artifacts (title/summary/github link/files),
    and submit;
-4. **Routes the review to the same evaluator** who scored that problem's evaluation cycle
-   (continuity), and receives the ACCEPT / RETURN decision back;
+4. **Routes the review to an evaluator of that problem's cycle** (continuity), and receives the
+   ACCEPT / RETURN decision back. Project reviews are always human: when the cycle was scored
+   entirely by the AI, the review goes to the least-loaded human evaluator instead of to a
+   machine account nobody can sign in as;
 5. **Hosts the submission files** itself (bytes on a `portal-files` volume) and hands out
    JWT-authorized download URLs to the assigned reviewer.
 
@@ -65,9 +69,9 @@ internal JSON HTTP.
 
 | # | Direction | Contract | When |
 |---|---|---|---|
-| 1 | **eval → portal** | `POST /internal/published-problems` `{cycleId, problem: ProblemContextResponse}` | Auto after the last scorecard of a cycle (`EVALUATION_COMPLETED`), plus manual ADMIN/REVIEWER retry |
+| 1 | **eval → portal** | `POST /internal/published-problems` `{cycleId, problem: ProblemContextResponse}` | Auto after the last scorecard of a cycle (`EVALUATION_COMPLETED`), plus manual ADMIN/REVIEWER retry. **The last scorecard may be the AI's** when every pool is on `AUTO` — publish then needs no human at all |
 | 2 | **portal → source** | `GET /internal/users/{userId}/source-accounts` → `List<SourceAccountDetail>` | First contact: classify caller as STUDENT or UNIVERSITY participant (HEI account detection) |
-| 3 | **portal → eval** | `POST /internal/project-reviews` `ProjectReviewCreateRequest` → `ProjectReviewCreateResponse` | On submission/resubmission: open a review work item for the same evaluator |
+| 3 | **portal → eval** | `POST /internal/project-reviews` `ProjectReviewCreateRequest` → `ProjectReviewCreateResponse` | On submission/resubmission: open a review work item for the same evaluator **— always a human**, see below |
 | 4 | **eval → portal** | `POST /internal/submissions/{submissionId}/review-result` `{decision, comment}` | Evaluator ACCEPT / RETURN lands back on the portal submission |
 
 No DB is shared; every arrow is a JSON DTO in `edith-common` / service-local `client` packages,
@@ -92,11 +96,19 @@ routed through the public gateway (`/internal/**` stays on internal ports).
 > **Locked decisions** (owner-approved, see the original plan `splendid-leaping-owl.md`):
 > 1. Identity = reuse source auth (OTP + shared JWT); portal keeps only the participant profile.
 > 2. Publish gate = automatic on `EVALUATION_COMPLETED` (best-effort, manual retry endpoint too).
-> 3. Visibility = institution accounts only; `UNIVERSITY_ONLY` / `SELECTED_UNIVERSITIES` are
->    invisible to students.
+> 3. Visibility = institution accounts only; `UNIVERSITY_ONLY`,
+>    `SELECTED_UNIVERSITIES` and `AUTO_SELECTED_UNIVERSITIES` are invisible to students.
+>    Portal never resolves the automatic rule — problem-service does, and publishes the
+>    resolved names in `access_universities`, so both named rules read exactly the same way here.
 > 4. Project review = extends evaluation-service's queue model (a `project_review` work item).
 > 5. Who solves restricted problems = the UNIVERSITY participant leads it (no student→college link).
 > 6. Which evaluator reviews a submission = the same profile that scored the problem's cycle.
+> 7. **Always a human.** Since evaluation can now be fully AI-scored (all pools on `AUTO`), rule 6
+>    is qualified: eval picks the first `SUBMITTED` assignment whose profile is not the machine,
+>    drops back to the least-loaded human evaluator when the whole cycle was AI-scored, and 409s
+>    only when no human evaluator exists. A submission is therefore never parked on an account that
+>    nobody can log in as — the failure mode the old "first SUBMITTED assignment" rule would have
+>    produced on an all-`AUTO` problem.
 
 ---
 
@@ -156,8 +168,8 @@ erDiagram
         jsonb location
         jsonb domains
         int evidence_count
-        access_rule access_rule "OPEN_TO_ALL|UNIVERSITY_ONLY|SELECTED_UNIVERSITIES"
-        jsonb access_universities "SELECTED snapshot"
+        access_rule access_rule "OPEN_TO_ALL|UNIVERSITY_ONLY|SELECTED_UNIVERSITIES|AUTO_SELECTED_UNIVERSITIES"
+        jsonb access_universities "SELECTED / AUTO snapshot"
         timestamptz published_at
         timestamptz updated_at
         bigint version
@@ -222,7 +234,12 @@ erDiagram
 | `sub_entity_type` | (department/PRIs/ULB/company/startup/NGO/HEI sub-types…) |
 | `urgency` | `IMMEDIATE`, `SHORT_TERM`, `LONG_TERM` |
 | `severity` | `CRITICAL`, `HIGH`, `MEDIUM`, `LOW` |
-| `access_rule` | `OPEN_TO_ALL`, `UNIVERSITY_ONLY`, `SELECTED_UNIVERSITIES` |
+| `access_rule` | `OPEN_TO_ALL`, `UNIVERSITY_ONLY`, `SELECTED_UNIVERSITIES`, `AUTO_SELECTED_UNIVERSITIES` |
+
+> `AUTO_SELECTED_UNIVERSITIES` is written by problem-service (the AI picks the domains, Java
+> intersects them with the seeded university catalog) and persisted in `access_universities`
+> exactly like `SELECTED_UNIVERSITIES`. Portal stores no extra state: `enumOf` must know the
+> name, because an unrecognised value degrades to `OPEN_TO_ALL` — a leak, not an error.
 
 ### 4.3 Evaluation-service side (`sih_eval`, `V3__project_review.sql`)
 
@@ -255,6 +272,11 @@ erDiagram
 New audit actions added by `ALTER TYPE audit_action ADD VALUE IF NOT EXISTS`:
 `PROBLEM_PUBLISHED`, `PROJECT_REVIEW_ASSIGNED`, `PROJECT_REVIEW_DECIDED` (eval audit_log only).
 
+> `reviewer_user_id` must always resolve to a **human** `evaluator_profile`. Since evaluation can be
+> fully AI-scored, `evaluator_profile.is_system` (added by `V4__auto_evaluation.sql`) marks the five
+> seeded machine profiles, and eval's reviewer resolution excludes them. Portal stores whatever
+> `reviewerUserId` the create response carries — the guarantee is enforced on the eval side.
+
 ---
 
 ## 5. Flowcharts
@@ -284,7 +306,7 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    E[Evaluator submits last scorecard] --> T[scoring transaction commits]
+    E[Last scorecard of the cycle is submitted] --> T[scoring transaction commits]
     T --> C{cycleStatus == EVALUATION_COMPLETED?}
     C -- no --> X[no publish]
     C -- yes --> P[PortalPublishService.publishCompletedCycleByAssignment]
@@ -297,8 +319,19 @@ flowchart LR
     L --> M[ADMIN retries later:<br/>POST /evaluation/cycles/{id}/publish-to-portal]
 ```
 
+> The trigger is the **last scorecard**, not a human's specifically: with every pool on `AUTO`,
+> `analyze` submits all five itself and the publish gate fires inside that same request
+> (`EvaluationAdminController`). Portal-side nothing changes — it still just receives
+> `POST /internal/published-problems`.
+>
 > Fired **after** the scorecard transaction, outside it — a portal outage can never roll a
 > scorecard back. Re-publishing is idempotent: portal upserts on `problem_id`.
+>
+> Evaluate-side note: the same request then folds the scorecards into a result and bands it, so the
+> cycle may already be past `EVALUATION_COMPLETED` (`SCORES_AGGREGATED`/`PRIORITIZED`/`PHASE_3_READY`)
+> by the time anyone reads it. Publishing is unaffected — `PUBLISHABLE_STATUSES` already covers all
+> four — and the manual `publish-to-portal` retry keeps working after aggregation has moved the
+> cycle on (evaluation-service §7.6).
 
 ### 5.3 Submission lifecycle (with resubmit loop)
 
@@ -329,6 +362,7 @@ flowchart TD
     D -- OPEN_TO_ALL --> V
     D -- UNIVERSITY_ONLY --> V
     D -- SELECTED_UNIVERSITIES --> M{normalized institution_name<br/>in access_universities?}
+    D -- AUTO_SELECTED_UNIVERSITIES --> M
     M -- yes --> V
     M -- no --> H
 ```
@@ -505,7 +539,7 @@ sequenceDiagram
     EG->>EA: POST /internal/project-reviews
     EA->>IC: (internal, not via gateway)
     IC->>PRS: createInternal(req)
-    Note over PRS: cycle -> SUBMITTED assignment -> same evaluator<br/>UNIQUE(submission_id, round) => idempotent
+    Note over PRS: cycle must be complete, a SUBMITTED assignment exists;<br/>reviewer = first NON-system submitted profile,<br/>else least-loaded human (all-AUTO cycle);<br/>UNIQUE(submission_id, round) => idempotent
     PRS-->>IC: ProjectReviewCreateResponse{projectReviewId, reviewerUserId, ...}
     IC-->>EG: 200
     EG-->>SS: response
@@ -513,6 +547,16 @@ sequenceDiagram
     SS-->>PC: 200 submission view
     PC-->>S: submission UNDER_REVIEW
 ```
+
+> **The `EvaluationApi` proxy needs `@RequestBody` on its parameter.** Found the hard way on
+> 2026-09-12: without it the `RestClient` proxy cannot bind the argument and every push dies with
+> `IllegalStateException: Could not resolve parameter [0] … No suitable resolver` before a single
+> byte leaves the JVM — surfacing to the student as a bare `500`. Both sibling clients do it right
+> (`SourceAccountsApi` for a `@PathVariable`, evaluation's `PortalApi` for its `@RequestBody`), so
+> the rule is: every parameter of an `@HttpExchange` method carries its own web annotation. The
+> portal-side failure mapping (`503 Evaluation service unreachable`) covers the *transport* failure,
+> not this binding failure — a resolved-but-unreachable peer and a never-sent request look very
+> different in the logs, which is why the e2e step for this flow matters (§12).
 
 ### 6.4 Sequence: evaluator decision → portal result
 
@@ -593,11 +637,12 @@ sequenceDiagram
 
 | Method | Path | Access | Purpose |
 |---|---|---|---|
-| POST | `/internal/project-reviews` | internal (permitAll) | Open a review for a submitted project (portal → eval) |
+| POST | `/internal/project-reviews` | internal (permitAll) | Open a review for a submitted project (portal → eval). The response's `reviewerUserId` is **always a human evaluator** — an all-`AUTO` cycle falls back to the least-loaded one |
 | GET | `/evaluation/me/project-reviews` | EVALUATOR | My review queue (optional `status` filter) |
 | GET | `/evaluation/me/project-reviews/{id}` | EVALUATOR | Detail; files enriched with portal `contentUrl`s |
 | POST | `/evaluation/me/project-reviews/{id}/decision` | EVALUATOR | `{decision: ACCEPTED\|RETURNED, comment?}` |
 | POST | `/evaluation/cycles/{cycleId}/publish-to-portal` | ADMIN / REVIEWER | Manual retry of the auto publish (idempotent) |
+| GET / PUT | `/evaluation/pool-modes[/{pool}]` | EVALUATOR / ADMIN | The per-pool `MANUAL`/`AUTO` switch. `AUTO` lets the AI score that pool and submit on its own, which is what can complete a cycle — and therefore publish — with no human at all |
 
 ### 7.4 Source-service — internal account lookup
 
@@ -685,11 +730,17 @@ fails, the submission rolls back and never lands `SUBMITTED` without a review.
 2. **Publish gate** — walk a problem to `REGISTERED` → start → analyze → evaluator accepts &
    submits scorecard; assert `cycleStatus = EVALUATION_COMPLETED`, eval log shows the push,
    `GET /portal/problems` lists it, `sih_portal.published_problem` has the `access_rule` row.
-3. **Restricted visibility** — a `UNIVERSITY_ONLY` / `SELECTED_UNIVERSITIES` problem is
+3. **Restricted visibility** — a `UNIVERSITY_ONLY` / `SELECTED_UNIVERSITIES` /
+   `AUTO_SELECTED_UNIVERSITIES` problem is
    invisible to a fresh STUDENT participant; the UNIVERSITY login auto-binds on `GET /portal/me`
-   and sees it (SELECTED only when its institution is named).
+   and sees it (SELECTED / AUTO only when its institution is named — for the automatic rule,
+   named in the snapshot problem-service resolved).
 4. **Student solve + review** — student creates a team, uploads a doc + video + github link,
    submits → portal `UNDER_REVIEW`, eval `project_review` ASSIGNED to the GOV evaluator profile.
+   **Run this against an all-`AUTO` problem too** (all five eval assignments system-owned): the
+   reviewer must still come back **human**, `is_system = f` in `sih_eval.evaluator_profile`. That
+   variant is the one that exercises the reviewer-preference rule, and it is what exposed the
+   `@RequestBody` binding bug above — a happy-path run on a single-pool cycle would not have.
 5. **Evaluator decision** — evaluator lists, downloads through the `contentUrl`, returns →
    portal `RETURNED`; student resubmits (new round) → evaluator ACCEPTS → portal `ACCEPTED`.
 6. **Authz spot-checks** — cross-student file access 403, cross-evaluator review 403,

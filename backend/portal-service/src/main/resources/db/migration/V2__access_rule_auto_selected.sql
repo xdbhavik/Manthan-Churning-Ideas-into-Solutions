@@ -1,0 +1,11 @@
+-- V2: mirror the 4th ProblemAccessRule value into the portal catalog.
+--
+-- Deliberately ALONE in its own migration -- same PostgreSQL 12+ rule as
+-- problem-service V4: ADD VALUE is allowed inside a transaction, but the new
+-- value cannot be referenced until that transaction commits.
+--
+-- This is load-bearing for security, not cosmetics. PublishedProblemService
+-- resolves the inbound rule name with Enum.valueOf and falls back to
+-- OPEN_TO_ALL when the name is unknown; without this migration an
+-- AUTO_SELECTED_UNIVERSITIES problem would publish as visible to everyone.
+ALTER TYPE access_rule ADD VALUE IF NOT EXISTS 'AUTO_SELECTED_UNIVERSITIES';

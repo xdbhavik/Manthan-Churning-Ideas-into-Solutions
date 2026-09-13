@@ -5,6 +5,7 @@ import com.EDITH.SIH26043.enums.AssignmentStatus;
 import com.EDITH.SIH26043.enums.EvaluationStatus;
 import com.EDITH.SIH26043.exception.ApiException;
 import com.EDITH.SIH26043.security.AuthUser;
+import com.EDITH.SIH26043.service.EvaluationCompletionService;
 import com.EDITH.SIH26043.service.EvaluatorAssignmentService;
 import com.EDITH.SIH26043.service.PortalPublishService;
 import com.EDITH.SIH26043.web.dto.AssignmentDetailResponse;
@@ -49,11 +50,14 @@ public class EvaluatorController {
 
     private final EvaluatorAssignmentService service;
     private final PortalPublishService portalPublishService;
+    private final EvaluationCompletionService completionService;
 
     public EvaluatorController(EvaluatorAssignmentService service,
-                               PortalPublishService portalPublishService) {
+                               PortalPublishService portalPublishService,
+                               EvaluationCompletionService completionService) {
         this.service = service;
         this.portalPublishService = portalPublishService;
+        this.completionService = completionService;
     }
 
     @Operation(summary = "🙋 My evaluator profile",
@@ -140,8 +144,9 @@ public class EvaluatorController {
                     once (identified by criterionId or criterionKey) and no score may exceed
                     that criterion's maxScore, so aggregation never averages a half-filled
                     form. When it was the cycle's last open assignment the cycle advances to
-                    EVALUATION_COMPLETED. Submitting past the deadline marks the assignment
-                    EXPIRED and fails with 409.""")
+                    EVALUATION_COMPLETED, the problem is published to the portal, and the five
+                    pool scorecards are aggregated and banded automatically. Submitting past
+                    the deadline marks the assignment EXPIRED and fails with 409.""")
     @PostMapping("/assignments/{assignmentId}/submit")
     public AssignmentOutcomeResponse submit(@AuthenticationPrincipal AuthUser me,
                                             @PathVariable UUID assignmentId,
@@ -159,6 +164,10 @@ public class EvaluatorController {
                 log.warn("Problem publish after submit skipped (assignment {}): {}",
                         assignmentId, e.getMessage());
             }
+            // Then fold the five scorecards into a result and band it, so a cycle whose
+            // last scorecard a human submitted ends up exactly where an all-AUTO one does.
+            // Also best-effort: the scorecard is already committed.
+            completionService.runBestEffortForAssignment(assignmentId, "submit");
         }
         return outcome;
     }

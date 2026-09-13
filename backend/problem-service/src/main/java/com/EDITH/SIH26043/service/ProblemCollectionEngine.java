@@ -1,6 +1,7 @@
 package com.EDITH.SIH26043.service;
 
 import com.EDITH.SIH26043.client.SourceAccountGateway;
+import com.EDITH.SIH26043.entity.Domain;
 import com.EDITH.SIH26043.entity.Evidence;
 import com.EDITH.SIH26043.entity.Location;
 import com.EDITH.SIH26043.entity.Problem;
@@ -68,9 +69,18 @@ public class ProblemCollectionEngine {
         this.auditService = auditService;
     }
 
+    /**
+     * @param resolvedUniversityNames the audience already resolved by
+     *        {@link AutoUniversitySelectionService} for an
+     *        {@code AUTO_SELECTED_UNIVERSITIES} submission; {@code null} for every
+     *        other rule. It is passed in rather than read from the request so a
+     *        caller cannot name its own audience for an automatic rule.
+     */
     @Transactional
-    public Problem receiveSubmission(ProblemSubmitRequest req, AuthUser submitter, String ip) {
+    public Problem receiveSubmission(ProblemSubmitRequest req, AuthUser submitter, String ip,
+                                     List<String> resolvedUniversityNames) {
         SourceAccountResponse account = requireSubmittableAccount(req.sourceAccountId(), submitter);
+        List<UUID> domainIds = requireKnownDomains(req.domainIds());
 
         Location location = mapLocation(req.location());
         locationRepository.save(location);
@@ -93,11 +103,11 @@ public class ProblemCollectionEngine {
         problem.setSubmittedByUserId(submitter.getUserId());
         problem.setSubmittedAt(Instant.now());
         problem.setUpdatedAt(Instant.now());
-        applyAccessRule(problem, req);
+        applyAccessRule(problem, req, resolvedUniversityNames);
         problemRepository.save(problem);
 
-        if (req.domainIds() != null && !req.domainIds().isEmpty()) {
-            attachDomains(problem.getProblemId(), req.domainIds());
+        if (!domainIds.isEmpty()) {
+            attachDomains(problem.getProblemId(), domainIds);
         }
 
         if (req.evidence() != null) {
@@ -110,14 +120,26 @@ public class ProblemCollectionEngine {
     }
 
     /**
-     * Normalizes and stores the participation-scope. Absent rule defaults to
-     * {@code OPEN_TO_ALL}; a {@code SELECTED_UNIVERSITIES} rule with no usable
-     * university names is a 400 — the evaluator must always be able to read a
-     * concrete list for that rule.
+     * The one place the absent-rule default is defined, so the submission
+     * orchestrator and this engine cannot disagree about which rule a request is
+     * asking for.
      */
-    private static void applyAccessRule(Problem problem, ProblemSubmitRequest req) {
-        ProblemAccessRule rule = req.accessRule() == null
-                ? ProblemAccessRule.OPEN_TO_ALL : req.accessRule();
+    public static ProblemAccessRule effectiveAccessRule(ProblemSubmitRequest req) {
+        return req.accessRule() == null ? ProblemAccessRule.OPEN_TO_ALL : req.accessRule();
+    }
+
+    /**
+     * Normalizes and stores the participation-scope. Absent rule defaults to
+     * {@code OPEN_TO_ALL}. The two named-audience rules must always carry a
+     * non-empty list — the evaluator reads that list to decide who the problem is
+     * for, and an empty one would silently mean "nobody".
+     *
+     * <p>For {@code AUTO_SELECTED_UNIVERSITIES} the names come from the resolver,
+     * not from the request body.</p>
+     */
+    private static void applyAccessRule(Problem problem, ProblemSubmitRequest req,
+                                        List<String> resolvedUniversityNames) {
+        ProblemAccessRule rule = effectiveAccessRule(req);
         problem.setAccessRule(rule);
         if (rule == ProblemAccessRule.SELECTED_UNIVERSITIES) {
             List<String> cleaned = cleanNames(req.accessUniversities());
@@ -125,6 +147,14 @@ public class ProblemCollectionEngine {
                 throw new ApiException(HttpStatus.BAD_REQUEST,
                         "accessRule=SELECTED_UNIVERSITIES requires a non-empty "
                                 + "accessUniversities list of university names");
+            }
+            problem.setAccessUniversities(cleaned);
+        } else if (rule == ProblemAccessRule.AUTO_SELECTED_UNIVERSITIES) {
+            List<String> cleaned = cleanNames(resolvedUniversityNames);
+            if (cleaned.isEmpty()) {
+                throw new ApiException(HttpStatus.BAD_REQUEST,
+                        "accessRule=AUTO_SELECTED_UNIVERSITIES requires the audience to be "
+                                + "resolved by the server; none was supplied");
             }
             problem.setAccessUniversities(cleaned);
         } else {
@@ -182,14 +212,38 @@ public class ProblemCollectionEngine {
         return loc;
     }
 
+    /**
+     * Validates every requested domain in one query and de-duplicates the list,
+     * before anything is written. Duplicates would otherwise collide on the
+     * {@code problem_domain} primary key.
+     */
+    private List<UUID> requireKnownDomains(List<UUID> domainIds) {
+        if (domainIds == null || domainIds.isEmpty()) {
+            return List.of();
+        }
+        LinkedHashSet<UUID> unique = new LinkedHashSet<>();
+        for (UUID domainId : domainIds) {
+            if (domainId == null) {
+                throw new ApiException(HttpStatus.BAD_REQUEST,
+                        "domainIds must not contain a null entry");
+            }
+            unique.add(domainId);
+        }
+        List<UUID> ordered = new ArrayList<>(unique);
+        List<UUID> known = domainRepository.findAllById(ordered).stream()
+                .map(Domain::getDomainId)
+                .toList();
+        if (known.size() != ordered.size()) {
+            List<UUID> missing = ordered.stream().filter(id -> !known.contains(id)).toList();
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Unknown domain(s): " + missing);
+        }
+        return ordered;
+    }
+
     private void attachDomains(UUID problemId, List<UUID> domainIds) {
         for (int i = 0; i < domainIds.size(); i++) {
-            UUID domainId = domainIds.get(i);
-            if (!domainRepository.existsById(domainId)) {
-                throw new ApiException(HttpStatus.BAD_REQUEST, "Unknown domain " + domainId);
-            }
             ProblemDomain pd = new ProblemDomain();
-            pd.setId(new ProblemDomainId(problemId, domainId));
+            pd.setId(new ProblemDomainId(problemId, domainIds.get(i)));
             pd.setPrimary(i == 0);
             problemDomainRepository.save(pd);
         }

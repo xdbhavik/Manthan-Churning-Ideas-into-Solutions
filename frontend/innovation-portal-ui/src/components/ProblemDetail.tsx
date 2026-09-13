@@ -7,7 +7,10 @@ import {
   SubmissionMetaRequest,
 } from '../types';
 import { getErrorMessage } from '../lib/api';
+<<<<<<< HEAD
 import { triggerTricolorConfetti } from '../lib/confetti';
+=======
+>>>>>>> d732201aa7e34898c938c4647556e99cdd33643d
 
 interface ProblemDetailProps {
   problem: PublishedProblem;
@@ -130,11 +133,17 @@ export const ProblemDetail: React.FC<ProblemDetailProps> = ({
           await onSubmitSubmission(existingSubmission.submissionId);
         }
         setNotice(submit ? 'Submission advanced to review.' : 'Changes saved to your submission.');
+<<<<<<< HEAD
         if (submit) triggerTricolorConfetti();
       } else if (!existingSubmission) {
         await doCreate(submit);
         setNotice(submit ? 'Proposal submitted for jury evaluation!' : 'Draft saved to My Submissions.');
         if (submit) triggerTricolorConfetti();
+=======
+      } else if (!existingSubmission) {
+        await doCreate(submit);
+        setNotice(submit ? 'Proposal submitted for jury evaluation!' : 'Draft saved to My Submissions.');
+>>>>>>> d732201aa7e34898c938c4647556e99cdd33643d
       } else {
         setError('This submission is not editable (only DRAFT or RETURNED can be edited).');
       }

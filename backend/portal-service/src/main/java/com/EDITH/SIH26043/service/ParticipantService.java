@@ -100,10 +100,16 @@ public class ParticipantService {
      *
      * <ul>
      *   <li>STUDENT → only {@code OPEN_TO_ALL};</li>
-     *   <li>UNIVERSITY → {@code OPEN_TO_ALL}, {@code UNIVERSITY_ONLY}, or
-     *       {@code SELECTED_UNIVERSITIES} whose snapshot names this participant's
+     *   <li>UNIVERSITY → {@code OPEN_TO_ALL}, {@code UNIVERSITY_ONLY}, or a named
+     *       snapshot ({@code SELECTED_UNIVERSITIES} /
+     *       {@code AUTO_SELECTED_UNIVERSITIES}) that names this participant's
      *       institution (case/whitespace-insensitive).</li>
      * </ul>
+     *
+     * <p>The two named-snapshot rules are deliberately one branch: the automatic
+     * rule persists the audience it resolved into the very same
+     * {@code access_universities} column, so visibility cannot drift between
+     * "the submitter picked these" and "the platform matched these".</p>
      */
     public boolean canSee(Participant participant, PublishedProblem problem) {
         ProblemAccessRule rule = problem.getAccessRule() == null
@@ -112,7 +118,7 @@ public class ParticipantService {
             case STUDENT -> rule == ProblemAccessRule.OPEN_TO_ALL;
             case UNIVERSITY -> switch (rule) {
                 case OPEN_TO_ALL, UNIVERSITY_ONLY -> true;
-                case SELECTED_UNIVERSITIES -> {
+                case SELECTED_UNIVERSITIES, AUTO_SELECTED_UNIVERSITIES -> {
                     String mine = normalize(participant.getInstitutionName());
                     yield !mine.isEmpty() && problem.getAccessUniversities().stream()
                             .map(ParticipantService::normalize)

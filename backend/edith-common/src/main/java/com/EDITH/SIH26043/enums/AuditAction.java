@@ -31,5 +31,11 @@ public enum AuditAction {
     // plus the project-review work items students' submissions create.
     PROBLEM_PUBLISHED,
     PROJECT_REVIEW_ASSIGNED,
-    PROJECT_REVIEW_DECIDED
+    PROJECT_REVIEW_DECIDED,
+    // Phase 4 auto-evaluation: a pool's scorecard was produced by the AI scorer
+    // (score_source = AI), a pool's MANUAL/AUTO switch was flipped, and an AUTO
+    // pool that could not be scored by the AI degraded to a human for that run.
+    EVALUATION_AI_SCORED,
+    EVALUATION_AI_UNAVAILABLE,
+    EVALUATION_MODE_CHANGED
 }

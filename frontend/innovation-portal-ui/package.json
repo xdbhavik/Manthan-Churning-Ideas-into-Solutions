@@ -12,11 +12,16 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.14",
+<<<<<<< HEAD
     "@types/canvas-confetti": "^1.9.0",
     "@vitejs/plugin-react": "^5.0.4",
     "axios": "^1.20.0",
     "canvas-confetti": "^1.9.4",
     "framer-motion": "^13.2.0",
+=======
+    "@vitejs/plugin-react": "^5.0.4",
+    "axios": "^1.20.0",
+>>>>>>> d732201aa7e34898c938c4647556e99cdd33643d
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
     "vite": "^6.2.3"
@@ -32,4 +37,8 @@
     "esbuild": true,
     "protobufjs": true
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> d732201aa7e34898c938c4647556e99cdd33643d

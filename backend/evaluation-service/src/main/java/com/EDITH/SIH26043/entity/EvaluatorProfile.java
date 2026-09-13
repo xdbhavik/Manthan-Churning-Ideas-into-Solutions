@@ -67,6 +67,14 @@ public class EvaluatorProfile {
     @Column(name = "is_active", nullable = false)
     private boolean active = true;
 
+    /**
+     * True for the five seeded system AI profiles (V4), which own the scorecard of
+     * an AUTO pool. Routing must never offer one to a MANUAL pool, and a project
+     * review must never be parked on one — nobody can log in as an AI.
+     */
+    @Column(name = "is_system", nullable = false)
+    private boolean system = false;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 

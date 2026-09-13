@@ -6,7 +6,6 @@ import com.EDITH.SIH26043.entity.ProblemAnalysis;
 import com.EDITH.SIH26043.enums.AuditAction;
 import com.EDITH.SIH26043.enums.EvaluationStatus;
 import com.EDITH.SIH26043.exception.ApiException;
-import com.EDITH.SIH26043.internal.ProblemContextResponse;
 import com.EDITH.SIH26043.repository.EvaluationCycleRepository;
 import com.EDITH.SIH26043.repository.ProblemAnalysisRepository;
 import com.EDITH.SIH26043.service.analysis.AnalysisResult;
@@ -65,7 +64,7 @@ public class ProblemAnalysisService {
 
         // The context is assembled upstream (problem + location + domain names +
         // evidence count) and fetched over the internal API.
-        ProblemContext context = toContext(problemGateway.fetch(cycle.getProblemId()));
+        ProblemContext context = ProblemContext.from(problemGateway.fetch(cycle.getProblemId()));
 
         long startedNanos = System.nanoTime();
         Optional<AnalysisResult> llmResult = analysisClient.analyze(context);
@@ -99,14 +98,6 @@ public class ProblemAnalysisService {
                     "Cycle " + cycle.getCycleId() + " is " + current
                             + "; analysis can only run from RECEIVED/ANALYZING/ANALYSIS_FAILED");
         }
-    }
-
-    private static ProblemContext toContext(ProblemContextResponse p) {
-        return new ProblemContext(
-                p.problemId(), p.title(), p.description(),
-                p.sourceBucket(), p.subEntityType(), p.urgency(), p.severity(),
-                p.affectedPopulation(), p.expectedOutcome(), p.existingIntervention(),
-                p.location(), p.domains(), p.evidenceCount());
     }
 
     private void map(AnalysisResult result, ProblemAnalysis row, UUID cycleId, long latencyMs) {

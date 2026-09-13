@@ -32,7 +32,8 @@ import static org.mockito.Mockito.when;
  * already exist in source-service need no second registration (an ACTIVE+VERIFIED
  * HEI account auto-binds as a UNIVERSITY participant on first contact), and the
  * access-rule predicate keeps restricted problem statements away from STUDENT
- * participants (and from universities not named on a SELECTED problem).
+ * participants (and from universities not named on a SELECTED or automatically
+ * routed problem).
  */
 class ParticipantServiceTest {
 
@@ -203,6 +204,47 @@ class ParticipantServiceTest {
         assertThat(service.canSee(university,
                 problem(ProblemAccessRule.SELECTED_UNIVERSITIES, List.of("IIT Madras")))).isFalse();
         assertThat(service.canSee(university, problem(ProblemAccessRule.UNIVERSITY_ONLY, List.of()))).isTrue();
+    }
+
+    // -------------------------------------------------- canSee: the automatic rule
+
+    @Test
+    void canSee_AStudentCannotSeeAnAutomaticProblem() {
+        Participant student = student(userId);
+
+        assertThat(service.canSee(student,
+                problem(ProblemAccessRule.AUTO_SELECTED_UNIVERSITIES, List.of("IIT Madras"))))
+                .isFalse();
+    }
+
+    @Test
+    void canSee_AUniversityNamedInTheResolvedSnapshotSeesIt() {
+        Participant university = university("IIT Madras");
+
+        assertThat(service.canSee(university,
+                problem(ProblemAccessRule.AUTO_SELECTED_UNIVERSITIES, List.of("IIT Madras"))))
+                .isTrue();
+        assertThat(service.canSee(university,
+                problem(ProblemAccessRule.AUTO_SELECTED_UNIVERSITIES, List.of("IIT Bombay"))))
+                .isFalse();
+    }
+
+    @Test
+    void canSee_TheAutomaticRuleUsesTheSameNormalizationAsSelected() {
+        Participant university = university("  IIT  Madras ");
+
+        assertThat(service.canSee(university,
+                problem(ProblemAccessRule.AUTO_SELECTED_UNIVERSITIES, List.of("iit madras"))))
+                .isTrue();
+    }
+
+    /** A resolved-but-empty snapshot must never degrade into "visible to everyone". */
+    @Test
+    void canSee_AnAutomaticProblemWithNoResolvedNamesMatchesNobody() {
+        Participant university = university("IIT Madras");
+
+        assertThat(service.canSee(university,
+                problem(ProblemAccessRule.AUTO_SELECTED_UNIVERSITIES, List.of()))).isFalse();
     }
 
     // ------------------------------------------------------------------ fixtures

@@ -34,6 +34,21 @@ app:
     access-token-ttl-minutes: 15
   evidence:
     storage-dir: ${EVIDENCE_STORAGE_DIR:./data/evidence}
+  # Domain resolution for the AUTO_SELECTED_UNIVERSITIES access rule. Empty key →
+  # the feature is unavailable and a submission using that rule is rejected with
+  # 400 (fail closed, never a silent widening of the audience).
+  # NOTE: inside docker the host is reached as host.docker.internal, so
+  # docker-compose overrides base-url accordingly.
+  llm:
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      base-url: ${OPENAI_BASE_URL:http://localhost:20128/v1}
+      model: ${OPENAI_MODEL:agentrouter/deepseek-v4-flash}
+      # Reasoning model: reasoning_content is billed against max_tokens before the
+      # answer is emitted, so a 4k budget can be spent entirely on thinking and
+      # return empty content (finish_reason=length). 8k leaves headroom.
+      max-tokens: 8192
+      timeout-seconds: 60
   # Where source-service is found. With discovery enabled this is the load-balanced
   # SERVICE ID (no port) resolved through eureka; kept as a property so a local run
   # can point a non-eureka source at a fixed URL if needed.

@@ -28,8 +28,8 @@ COPY ${JAR_FILE} /app/service.jar
 
 # The analyzer is a directory of Python sources, not a package: copy it whole and
 # point app.codejudge.analyzer-dir (CODEJUDGE_ANALYZER_DIR) at it.
-COPY agentic_legibility_score.py /opt/codejudge-analyzer/
-COPY scripts /opt/codejudge-analyzer/scripts
+COPY codejudge-service/agentic_legibility_score.py /opt/codejudge-analyzer/
+COPY codejudge-service/scripts /opt/codejudge-analyzer/scripts
 
 # Workspaces are scratch space per evaluation; a compose volume is mounted here so
 # a large clone never fills the container's writable layer.

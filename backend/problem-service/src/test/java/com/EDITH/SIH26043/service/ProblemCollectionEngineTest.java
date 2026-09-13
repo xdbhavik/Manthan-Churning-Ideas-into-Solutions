@@ -1,7 +1,9 @@
 package com.EDITH.SIH26043.service;
 
 import com.EDITH.SIH26043.client.SourceAccountGateway;
+import com.EDITH.SIH26043.entity.Domain;
 import com.EDITH.SIH26043.entity.Problem;
+import com.EDITH.SIH26043.entity.ProblemDomain;
 import com.EDITH.SIH26043.enums.KycStatus;
 import com.EDITH.SIH26043.enums.ProblemAccessRule;
 import com.EDITH.SIH26043.enums.SourceBucket;
@@ -26,7 +28,9 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -61,7 +65,7 @@ class ProblemCollectionEngineTest {
         when(sourceAccountGateway.fetch(missing)).thenThrow(new ApiException(HttpStatus.NOT_FOUND,
                 "Source account not found"));
 
-        assertThatThrownBy(() -> engine.receiveSubmission(request(missing), me, "127.0.0.1"))
+        assertThatThrownBy(() -> engine.receiveSubmission(request(missing), me, "127.0.0.1", null))
                 .isInstanceOf(ApiException.class)
                 .extracting(ex -> ((ApiException) ex).getStatus())
                 .isEqualTo(HttpStatus.NOT_FOUND);
@@ -76,7 +80,7 @@ class ProblemCollectionEngineTest {
         when(sourceAccountGateway.fetch(other.sourceAccountId())).thenReturn(other);
 
         assertThatThrownBy(() -> engine.receiveSubmission(
-                request(other.sourceAccountId()), me, "127.0.0.1"))
+                request(other.sourceAccountId()), me, "127.0.0.1", null))
                 .isInstanceOf(ApiException.class)
                 .hasMessageContaining("SOURCE_NOT_OWNED");
 
@@ -90,7 +94,7 @@ class ProblemCollectionEngineTest {
         when(sourceAccountGateway.fetch(pending.sourceAccountId())).thenReturn(pending);
 
         assertThatThrownBy(() -> engine.receiveSubmission(
-                request(pending.sourceAccountId()), me, "127.0.0.1"))
+                request(pending.sourceAccountId()), me, "127.0.0.1", null))
                 .isInstanceOf(ApiException.class)
                 .hasMessageContaining("SOURCE_NOT_VERIFIED")
                 .extracting(ex -> ((ApiException) ex).getStatus())
@@ -107,7 +111,7 @@ class ProblemCollectionEngineTest {
         when(sourceAccountGateway.fetch(suspended.sourceAccountId())).thenReturn(suspended);
 
         assertThatThrownBy(() -> engine.receiveSubmission(
-                request(suspended.sourceAccountId()), me, "127.0.0.1"))
+                request(suspended.sourceAccountId()), me, "127.0.0.1", null))
                 .isInstanceOf(ApiException.class)
                 .hasMessageContaining("SOURCE_NOT_VERIFIED");
 
@@ -120,7 +124,7 @@ class ProblemCollectionEngineTest {
         SourceAccountResponse active = account(me.getUserId(), "ACTIVE", "VERIFIED");
         when(sourceAccountGateway.fetch(active.sourceAccountId())).thenReturn(active);
 
-        engine.receiveSubmission(request(active.sourceAccountId()), me, "127.0.0.1");
+        engine.receiveSubmission(request(active.sourceAccountId()), me, "127.0.0.1", null);
 
         ArgumentCaptor<Problem> saved = ArgumentCaptor.forClass(Problem.class);
         verify(problemRepository).save(saved.capture());
@@ -139,7 +143,7 @@ class ProblemCollectionEngineTest {
         SourceAccountResponse active = account(me.getUserId(), "ACTIVE", "VERIFIED");
         when(sourceAccountGateway.fetch(active.sourceAccountId())).thenReturn(active);
 
-        engine.receiveSubmission(request(active.sourceAccountId()), me, "127.0.0.1");
+        engine.receiveSubmission(request(active.sourceAccountId()), me, "127.0.0.1", null);
 
         ArgumentCaptor<Problem> saved = ArgumentCaptor.forClass(Problem.class);
         verify(problemRepository).save(saved.capture());
@@ -155,7 +159,7 @@ class ProblemCollectionEngineTest {
         when(sourceAccountGateway.fetch(active.sourceAccountId())).thenReturn(active);
 
         engine.receiveSubmission(request(active.sourceAccountId(), ProblemAccessRule.SELECTED_UNIVERSITIES,
-                List.of("IIT Bombay", "  IIT Delhi ", "IIT Bombay")), me, "127.0.0.1");
+                List.of("IIT Bombay", "  IIT Delhi ", "IIT Bombay")), me, "127.0.0.1", null);
 
         ArgumentCaptor<Problem> saved = ArgumentCaptor.forClass(Problem.class);
         verify(problemRepository).save(saved.capture());
@@ -173,13 +177,91 @@ class ProblemCollectionEngineTest {
 
         assertThatThrownBy(() -> engine.receiveSubmission(
                 request(active.sourceAccountId(), ProblemAccessRule.SELECTED_UNIVERSITIES,
-                        java.util.Arrays.asList("  ", null)), me, "127.0.0.1"))
+                        java.util.Arrays.asList("  ", null)), me, "127.0.0.1", null))
                 .isInstanceOf(ApiException.class)
                 .hasMessageContaining("SELECTED_UNIVERSITIES requires a non-empty")
                 .extracting(ex -> ((ApiException) ex).getStatus())
                 .isEqualTo(HttpStatus.BAD_REQUEST);
 
         verifyNoInteractions(problemRepository);
+    }
+
+    /**
+     * AUTO_SELECTED_UNIVERSITIES stores the names the server resolved — the same
+     * snapshot shape SELECTED_UNIVERSITIES uses, so every downstream consumer reads
+     * the audience the same way. Whatever the client put in the body is ignored.
+     */
+    @Test
+    void autoSelectedUniversitiesPersistTheResolvedSnapshot() {
+        AuthUser me = user();
+        SourceAccountResponse active = account(me.getUserId(), "ACTIVE", "VERIFIED");
+        when(sourceAccountGateway.fetch(active.sourceAccountId())).thenReturn(active);
+
+        engine.receiveSubmission(request(active.sourceAccountId(),
+                        ProblemAccessRule.AUTO_SELECTED_UNIVERSITIES, List.of("Smuggled University")),
+                me, "127.0.0.1", List.of("IIT Delhi", "IIT Madras"));
+
+        ArgumentCaptor<Problem> saved = ArgumentCaptor.forClass(Problem.class);
+        verify(problemRepository).save(saved.capture());
+        Problem p = saved.getValue();
+        assertThat(p.getAccessRule()).isEqualTo(ProblemAccessRule.AUTO_SELECTED_UNIVERSITIES);
+        assertThat(p.getAccessUniversities()).containsExactly("IIT Delhi", "IIT Madras");
+    }
+
+    /** Defensive: the resolver must supply the audience, and an empty one is a 400. */
+    @Test
+    void autoSelectedUniversitiesWithoutResolvedNamesIsA400() {
+        AuthUser me = user();
+        SourceAccountResponse active = account(me.getUserId(), "ACTIVE", "VERIFIED");
+        when(sourceAccountGateway.fetch(active.sourceAccountId())).thenReturn(active);
+
+        assertThatThrownBy(() -> engine.receiveSubmission(
+                request(active.sourceAccountId(), ProblemAccessRule.AUTO_SELECTED_UNIVERSITIES,
+                        List.of("Smuggled University")), me, "127.0.0.1", null))
+                .isInstanceOf(ApiException.class)
+                .hasMessageContaining("AUTO_SELECTED_UNIVERSITIES requires the audience")
+                .extracting(ex -> ((ApiException) ex).getStatus())
+                .isEqualTo(HttpStatus.BAD_REQUEST);
+
+        verifyNoInteractions(problemRepository);
+    }
+
+    /** An unknown domain fails before the location is even built. */
+    @Test
+    void anUnknownDomainIsRejectedBeforeAnythingIsWritten() {
+        AuthUser me = user();
+        SourceAccountResponse active = account(me.getUserId(), "ACTIVE", "VERIFIED");
+        when(sourceAccountGateway.fetch(active.sourceAccountId())).thenReturn(active);
+        when(domainRepository.findAllById(any())).thenReturn(List.of());
+
+        assertThatThrownBy(() -> engine.receiveSubmission(
+                requestWithDomains(active.sourceAccountId(), List.of(UUID.randomUUID())),
+                me, "127.0.0.1", null))
+                .isInstanceOf(ApiException.class)
+                .hasMessageContaining("Unknown domain")
+                .extracting(ex -> ((ApiException) ex).getStatus())
+                .isEqualTo(HttpStatus.BAD_REQUEST);
+
+        verifyNoInteractions(locationRepository, problemRepository);
+    }
+
+    /** Repeats would collide on the problem_domain primary key. */
+    @Test
+    void aRepeatedDomainIsStoredOnce() {
+        AuthUser me = user();
+        SourceAccountResponse active = account(me.getUserId(), "ACTIVE", "VERIFIED");
+        when(sourceAccountGateway.fetch(active.sourceAccountId())).thenReturn(active);
+        UUID domainId = UUID.randomUUID();
+        when(domainRepository.findAllById(any())).thenReturn(List.of(domain(domainId)));
+
+        engine.receiveSubmission(
+                requestWithDomains(active.sourceAccountId(), List.of(domainId, domainId)),
+                me, "127.0.0.1", null);
+
+        ArgumentCaptor<ProblemDomain> saved = ArgumentCaptor.forClass(ProblemDomain.class);
+        verify(problemDomainRepository, times(1)).save(saved.capture());
+        assertThat(saved.getValue().getId().getDomainId()).isEqualTo(domainId);
+        assertThat(saved.getValue().isPrimary()).isTrue();
     }
 
     private AuthUser user() {
@@ -209,5 +291,23 @@ class ProblemCollectionEngineTest {
                         "302001", 26.9124, 75.7873, null, null),
                 null, null,
                 accessRule, accessUniversities);
+    }
+
+    private ProblemSubmitRequest requestWithDomains(UUID sourceAccountId, List<UUID> domainIds) {
+        return new ProblemSubmitRequest(
+                "Borewell dry for three weeks",
+                "Ward 7 has had no piped supply since the borewell failed.",
+                Urgency.IMMEDIATE, null, null, null, null,
+                sourceAccountId,
+                new ProblemSubmitRequest.LocationRequest("Rajasthan", "Jaipur", null, null,
+                        "302001", 26.9124, 75.7873, null, null),
+                domainIds, null, null, null);
+    }
+
+    private static Domain domain(UUID domainId) {
+        Domain d = new Domain();
+        d.setDomainId(domainId);
+        d.setDomainName("Seeded domain");
+        return d;
     }
 }

@@ -10,6 +10,7 @@ import com.EDITH.SIH26043.enums.AssignmentStatus;
 import com.EDITH.SIH26043.enums.AuditAction;
 import com.EDITH.SIH26043.enums.EvaluationStatus;
 import com.EDITH.SIH26043.enums.EvaluatorType;
+import com.EDITH.SIH26043.enums.ScoreSource;
 import com.EDITH.SIH26043.exception.ApiException;
 import com.EDITH.SIH26043.internal.ProblemContextResponse;
 import com.EDITH.SIH26043.repository.EvaluationAssignmentRepository;
@@ -40,6 +41,7 @@ import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -420,6 +422,98 @@ class EvaluatorAssignmentServiceTest {
     }
 
     // ------------------------------------------------------------------
+    // submitAsSystem (the AUTO-pool path)
+    // ------------------------------------------------------------------
+
+    @Test
+    void aSystemScorecardIsStoredWithAiProvenanceAndCompletesTheCycle() {
+        givenSystemProfile();
+        givenAssignment(AssignmentStatus.ASSIGNED); // the AI needs no IN_PROGRESS step
+        givenCycle(EvaluationStatus.EVALUATION_IN_PROGRESS);
+        givenCriteria(impact, feasibility);
+
+        AssignmentOutcomeResponse outcome = service.submitAsSystem(assignmentId,
+                request(score(impact, 8, "widely applicable"), score(feasibility, 4, null)),
+                "openai-compatible", "deepseek-v4-flash", userId, "internal");
+
+        assertThat(outcome.status()).isEqualTo(AssignmentStatus.SUBMITTED);
+        assertThat(outcome.criteriaScored()).isEqualTo(2);
+        assertThat(outcome.message()).contains("EVALUATION_COMPLETED");
+
+        // The rows carry machine provenance, so an AI scorecard is distinguishable at
+        // row level rather than only by the assignment's audit trail.
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<EvaluationResponse>> rows = ArgumentCaptor.forClass(List.class);
+        verify(responseRepository).saveAll(rows.capture());
+        assertThat(rows.getValue()).extracting(EvaluationResponse::getScoreSource)
+                .containsOnly(ScoreSource.AI);
+
+        // The lifecycle fact is the same one a human submit records...
+        verify(auditService).record(eq("PROBLEM"), eq(problemId),
+                eq(AuditAction.EVALUATION_SUBMITTED), eq(userId), anyMap(), anyMap(), eq("internal"));
+        // ...and the machine provenance is a second, separate fact.
+        verify(auditService).record(eq("PROBLEM"), eq(problemId),
+                eq(AuditAction.EVALUATION_AI_SCORED), eq(userId), isNull(), anyMap(), eq("internal"));
+        verify(statusService).transition(eq(cycleId), eq(EvaluationStatus.EVALUATION_COMPLETED),
+                eq(userId), anyString());
+    }
+
+    @Test
+    void aHumanScorecardRecordsHumanProvenance() {
+        givenProfile();
+        givenAssignment(AssignmentStatus.IN_PROGRESS);
+        givenCycle(EvaluationStatus.EVALUATION_IN_PROGRESS);
+        givenCriteria(impact, feasibility);
+
+        service.submit(userId, assignmentId,
+                request(score(impact, 9, null), score(feasibility, 4, null)), "127.0.0.1");
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<EvaluationResponse>> rows = ArgumentCaptor.forClass(List.class);
+        verify(responseRepository).saveAll(rows.capture());
+        assertThat(rows.getValue()).extracting(EvaluationResponse::getScoreSource)
+                .containsOnly(ScoreSource.HUMAN);
+        verify(auditService, never()).record(any(), any(), eq(AuditAction.EVALUATION_AI_SCORED),
+                any(), any(), any(), any());
+    }
+
+    @Test
+    void aHumanAssignmentCannotBeScoredThroughTheSystemDoor() {
+        givenProfile(); // a human profile
+        givenAssignment(AssignmentStatus.IN_PROGRESS);
+        givenCriteria(impact, feasibility);
+
+        assertThatThrownBy(() -> service.submitAsSystem(assignmentId,
+                request(score(impact, 9, null), score(feasibility, 4, null)),
+                "openai-compatible", "model", userId, "internal"))
+                .isInstanceOf(ApiException.class)
+                .satisfies(ex -> {
+                    assertThat(((ApiException) ex).getStatus()).isEqualTo(HttpStatus.CONFLICT);
+                    assertThat(ex.getMessage()).contains("human evaluator");
+                });
+
+        verify(responseRepository, never()).saveAll(any());
+    }
+
+    @Test
+    void theSystemPathIsHeldToTheSameAllCriteriaRule() {
+        givenSystemProfile();
+        givenAssignment(AssignmentStatus.ASSIGNED);
+        givenCriteria(impact, feasibility);
+
+        // The AI must never be able to store a half-filled form either.
+        assertThatThrownBy(() -> service.submitAsSystem(assignmentId,
+                request(score(impact, 8, null)), "openai-compatible", "model", userId, "internal"))
+                .isInstanceOf(ApiException.class)
+                .satisfies(ex -> {
+                    assertThat(((ApiException) ex).getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+                    assertThat(ex.getMessage()).contains("Missing: feasibility");
+                });
+
+        verify(responseRepository, never()).saveAll(any());
+    }
+
+    // ------------------------------------------------------------------
     // fixtures
     // ------------------------------------------------------------------
 
@@ -432,6 +526,20 @@ class EvaluatorAssignmentServiceTest {
         profile.setMaxWorkload(5);
         profile.setActive(true);
         when(profileRepository.findByUserId(userId)).thenReturn(List.of(profile));
+        when(profileRepository.findById(profileId)).thenReturn(Optional.of(profile));
+    }
+
+    /** One of the five seeded system AI profiles (V4) owns the AUTO pool's assignment. */
+    private void givenSystemProfile() {
+        EvaluatorProfile profile = new EvaluatorProfile();
+        profile.setProfileId(profileId);
+        profile.setUserId(UUID.randomUUID());
+        profile.setEvaluatorType(EvaluatorType.GOVERNMENT);
+        profile.setFullName("AI Evaluator — GOVERNMENT");
+        profile.setMaxWorkload(100000);
+        profile.setActive(true);
+        profile.setSystem(true);
+        when(profileRepository.findById(profileId)).thenReturn(Optional.of(profile));
     }
 
     private EvaluationAssignment givenAssignment(AssignmentStatus status) {

@@ -12,6 +12,27 @@
   .crit{border-left:2px solid var(--border);padding:6px 0 6px 8px;margin-bottom:8px}
   .crit .row{margin-bottom:0}
   .mono{font-family:"Cascadia Code",Consolas,monospace;font-size:11px;color:var(--muted);word-break:break-all}
+
+  /* ---- page-level surface tabs (Assignments / CodeJudge / Project Reviews) ---- */
+  .tabs{display:flex;gap:4px;flex-wrap:wrap;margin:2px 0 12px}
+  .tab{background:var(--panel);border:1px solid var(--border);color:var(--muted);
+       padding:7px 14px;font-size:13px;border-radius:6px;cursor:pointer}
+  .tab:hover{color:#fff}
+  .tab.active{background:var(--panel2);border-color:var(--accent);color:#fff}
+  .tabpanel[hidden]{display:none}
+
+  /* compact list rows used by CodeJudge + Project Reviews */
+  .crow{border:1px solid var(--border);border-radius:6px;padding:6px 8px;margin-bottom:5px;background:var(--panel2);cursor:pointer}
+  .crow:hover{border-color:var(--accent)}
+  .crow .row{margin-bottom:2px}
+  .pill{font-size:10px;padding:1px 6px;border-radius:8px;border:1px solid var(--border);color:var(--muted);white-space:nowrap}
+  table.mini{border-collapse:collapse;width:100%;font-size:12px;margin-top:6px}
+  table.mini th,table.mini td{border:1px solid var(--border);padding:4px 6px;text-align:left;vertical-align:top}
+  table.mini th{background:var(--panel2);color:var(--muted);font-weight:normal}
+  .scroll{max-height:320px;overflow:auto}
+  .filelnk{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--border);border-radius:5px;
+           padding:3px 8px;margin:2px 4px 2px 0;background:var(--panel2);font-size:12px;cursor:pointer}
+  .filelnk:hover{border-color:var(--accent)}
 </style>
 </head>
 <body data-actor="EVALUATOR">
@@ -35,13 +56,14 @@
   <a data-actor="REVIEWER" href="reviewer.html">🔍 Reviewer</a>
   <a data-actor="ADMIN" href="admin.html">🛡️ Admin</a>
   <a data-actor="EVALUATOR" href="evaluator.html">🧑‍⚖️ Evaluator</a>
+  <a data-actor="PORTAL" href="portal.html">🎓 Portal</a>
 </nav>
 
 <main>
   <div class="left">
     <div id="roleNote" class="role-note"></div>
 
-    <!-- ======= AUTH (evaluator account) ======= -->
+    <!-- ======= AUTH (evaluator account) — shared across all tabs ======= -->
     <div class="card">
       <h3>Login (evaluator OTP token)</h3>
       <div class="hint">EVALUATOR role DB me hona chahiye — ADMIN <code>POST /users/evaluators</code> se account banata hai, phir <code>POST /evaluation/evaluator-profiles</code> se profile bindta hai. Seeded test account: <code>9700000001</code>.</div>
@@ -61,75 +83,172 @@
       <div class="row"><button class="btn" onclick="refreshTok()">Refresh</button><button class="btn" onclick="logout()">Logout</button></div>
     </div>
 
-    <!-- ======= WHO AM I ======= -->
-    <div class="card">
-      <h3>My evaluator profile</h3>
-      <div class="hint">Konsa pool (GOVERNMENT / INDUSTRY / …) score karte ho aur kitna workload. 404 aaye to profile onboard nahi hui — ADMIN console se karwao.</div>
-      <div class="row">
-        <button class="btn" onclick="myProfile()">GET /me/profile</button>
-        <button class="btn" onclick="myCriteria()">GET /me/criteria</button>
+    <!-- ======= SURFACE TABS ======= -->
+    <div class="tabs">
+      <button class="tab active" data-tab="assign" onclick="tab('assign')">🧑‍⚖️ Assignments</button>
+      <button class="tab" data-tab="codejudge" onclick="tab('codejudge')">🤖 CodeJudge</button>
+      <button class="tab" data-tab="reviews" onclick="tab('reviews')">🗂️ Project Reviews</button>
+    </div>
+
+    <!-- ============================================================
+         TAB 1 · Assignments (human evaluation pipeline, existing)
+         ============================================================ -->
+    <div id="panel-assign" class="tabpanel">
+      <div class="card">
+        <h3>My evaluator profile</h3>
+        <div class="hint">Konsa pool (GOVERNMENT / INDUSTRY / …) score karte ho aur kitna workload. 404 aaye to profile onboard nahi hui — ADMIN console se karwao.</div>
+        <div class="row">
+          <button class="btn" onclick="myProfile()">GET /me/profile</button>
+          <button class="btn" onclick="myCriteria()">GET /me/criteria</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>My work queue</h3>
+        <div class="row">
+          <label>Status filter</label>
+          <select id="qStatus" style="flex:1">
+            <option value="">(sab)</option>
+            <option>ASSIGNED</option><option>IN_PROGRESS</option><option>SUBMITTED</option>
+            <option>DECLINED</option><option>EXPIRED</option><option>REVIEWED</option>
+          </select>
+          <button class="btn primary" onclick="loadQueue()">Load queue</button>
+        </div>
+        <div class="hint">Queue sirf is service ke DB se banta hai, is liye problem-service down ho to bhi list aayegi. Khaali hai? Admin console se <code>start → analyze</code> chalao — auto-route tumhare pool ko assign karega.</div>
+        <div id="queue"></div>
+      </div>
+
+      <div class="card">
+        <h3>Assignment · accept / decline</h3>
+        <div class="row"><label>assignmentId</label><input id="asgId" class="fill" placeholder="queue se 'Use this' dabao"></div>
+        <div class="row">
+          <button class="btn" onclick="loadAssignment()">Open (scoring screen)</button>
+          <button class="btn ok" onclick="acceptAsg()">Accept ✅</button>
+          <button class="btn err" onclick="declineAsg()">Decline</button>
+        </div>
+        <div class="row"><label>Decline reason</label><input id="dReason" class="fill" placeholder="e.g. conflict of interest"></div>
+        <div class="hint">Accept: ASSIGNED → IN_PROGRESS (dobara accept karna no-op hai). Decline: cycle wapas ROUTING chala jata hai, aur re-route tumhe skip karta hai. Deadline ke baad accept/submit → assignment EXPIRED (409).</div>
+      </div>
+
+      <div class="card">
+        <h3>Problem under evaluation</h3>
+        <div id="problemBox"><div class="hint">Assignment open karo.</div></div>
+        <hr>
+        <div id="aiBox"><div class="hint">AI profile yahan aayega (advisory only — score pe asar nahi daalna chahiye).</div></div>
+      </div>
+
+      <div class="card">
+        <h3>Scorecard (submit)</h3>
+        <div class="hint">All-or-nothing: pool ke <b>har active criterion</b> ka score chahiye, ek hi baar, aur criterion ke apne <code>maxScore</code> se zyada nahi. Koi score khaali chhodo to backend "incomplete — Missing: …" 400 dega.</div>
+        <div id="scorecard"><div class="hint">Assignment open karo ya "GET /me/criteria" se blank form lo.</div></div>
+        <div class="row"><label>Feedback</label><textarea id="sFeedback" spellcheck="false" placeholder="overall feedback (optional)"></textarea></div>
+        <div class="row"><label>Recommendation</label><input id="sRecommendation" class="fill" placeholder="e.g. Prioritize for pilot"></div>
+        <div class="row">
+          <button class="btn warn" onclick="autoFill()">Fill all = 7 (test)</button>
+          <button class="btn primary" onclick="submitScores()">Submit scorecard 🧮</button>
+        </div>
+        <div class="hint">Aakhri open assignment submit hone par cycle EVALUATION_COMPLETED ho jata hai — response ke <code>cycleStatus</code> me dikhega.</div>
       </div>
     </div>
 
-    <!-- ======= WORK QUEUE ======= -->
-    <div class="card">
-      <h3>My work queue</h3>
-      <div class="row">
-        <label>Status filter</label>
-        <select id="qStatus" style="flex:1">
-          <option value="">(sab)</option>
-          <option>ASSIGNED</option><option>IN_PROGRESS</option><option>SUBMITTED</option>
-          <option>DECLINED</option><option>EXPIRED</option><option>REVIEWED</option>
-        </select>
-        <button class="btn primary" onclick="loadQueue()">Load queue</button>
+    <!-- ============================================================
+         TAB 2 · CodeJudge (automated repository evaluation)
+         ============================================================ -->
+    <div id="panel-codejudge" class="tabpanel" hidden>
+      <div class="card">
+        <h3>CodeJudge · automated repo evaluation</h3>
+        <div class="hint">Repo ko ek exact <code>commitSha</code> par pin karke pipeline chalti hai:
+          <code>clone → scan → security scan → AI advisory → scoring → report</code>.
+          Sandbox OFF — student code <b>execute nahi</b> hota; AI sirf advisory hai, score deterministic engine deta hai.
+          Repo URL <code>https://…</code> remote ho sakta hai (service ko network chahiye) ya <code>file:///</code> path jo codejudge container ke andar ho.</div>
+        <div class="row"><label>repositoryUrl</label><input id="cjUrl" class="fill" placeholder="https://github.com/user/repo.git"></div>
+        <div class="row">
+          <label>branch</label><input id="cjBranch" value="main" style="flex:0 0 130px">
+          <label>commitSha</label><input id="cjSha" class="fill" placeholder="full sha (7-64) — moving head judge mat karo">
+        </div>
+        <div class="row">
+          <label>problemId</label><input id="cjProblem" class="fill" style="font-family:monospace;font-size:12px" placeholder="UUID">
+          <button class="btn sm" onclick="cjRandomProblem()">🎲 random UUID</button>
+        </div>
+        <div class="row"><label>problemTitle</label><input id="cjProblemTitle" class="fill" placeholder="optional — portal wali submission se aa jaata hai"></div>
+        <div class="row">
+          <button class="btn primary" onclick="cjCreate()">Submit evaluation 🚀</button>
+          <button class="btn" onclick="cjList()">List evaluations</button>
+          <label style="min-width:auto">filter</label>
+          <select id="cjListStatus" class="sm2" style="flex:0 0 150px">
+            <option value="">(sab)</option>
+          </select>
+        </div>
+        <div class="hint">Admin-only ops (<code>retry / reevaluate / jobs / scoring-config</code>) is evaluator console se 403 denge — woh Admin console/raw se karo.</div>
       </div>
-      <div class="hint">Queue sirf is service ke DB se banta hai, is liye problem-service down ho to bhi list aayegi. Khaali hai? Admin console se <code>start → analyze</code> chalao — auto-route tumhare pool ko assign karega.</div>
-      <div id="queue"></div>
-    </div>
 
-    <!-- ======= ONE ASSIGNMENT: CONTEXT + ACTIONS ======= -->
-    <div class="card">
-      <h3>Assignment · accept / decline</h3>
-      <div class="row"><label>assignmentId</label><input id="asgId" class="fill" placeholder="queue se 'Use this' dabao"></div>
-      <div class="row">
-        <button class="btn" onclick="loadAssignment()">Open (scoring screen)</button>
-        <button class="btn ok" onclick="acceptAsg()">Accept ✅</button>
-        <button class="btn err" onclick="declineAsg()">Decline</button>
+      <div class="card">
+        <h3>Evaluation list</h3>
+        <div class="hint">Row pe click karo → selected evaluation bhar jayega. Running status pe <b>Watch</b> se end tak poll hota hai.</div>
+        <div id="cjListBox"><div class="hint">"List evaluations" dabao.</div></div>
       </div>
-      <div class="row"><label>Decline reason</label><input id="dReason" class="fill" placeholder="e.g. conflict of interest"></div>
-      <div class="hint">Accept: ASSIGNED → IN_PROGRESS (dobara accept karna no-op hai). Decline: cycle wapas ROUTING chala jata hai, aur re-route tumhe skip karta hai. Deadline ke baad accept/submit → assignment EXPIRED (409).</div>
-    </div>
 
-    <!-- ======= PROBLEM + AI CONTEXT ======= -->
-    <div class="card">
-      <h3>Problem under evaluation</h3>
-      <div id="problemBox"><div class="hint">Assignment open karo.</div></div>
-      <hr>
-      <div id="aiBox"><div class="hint">AI profile yahan aayega (advisory only — score pe asar nahi daalna chahiye).</div></div>
-    </div>
-
-    <!-- ======= SCORECARD ======= -->
-    <div class="card">
-      <h3>Scorecard (submit)</h3>
-      <div class="hint">All-or-nothing: pool ke <b>har active criterion</b> ka score chahiye, ek hi baar, aur criterion ke apne <code>maxScore</code> se zyada nahi. Koi score khaali chhodo to backend "incomplete — Missing: …" 400 dega.</div>
-      <div id="scorecard"><div class="hint">Assignment open karo ya "GET /me/criteria" se blank form lo.</div></div>
-      <div class="row"><label>Feedback</label><textarea id="sFeedback" spellcheck="false" placeholder="overall feedback (optional)"></textarea></div>
-      <div class="row"><label>Recommendation</label><input id="sRecommendation" class="fill" placeholder="e.g. Prioritize for pilot"></div>
-      <div class="row">
-        <button class="btn warn" onclick="autoFill()">Fill all = 7 (test)</button>
-        <button class="btn primary" onclick="submitScores()">Submit scorecard 🧮</button>
+      <div class="card">
+        <h3>Selected evaluation</h3>
+        <div class="row"><label>evaluationId</label><input id="cjId" class="fill" style="font-family:monospace;font-size:12px"></div>
+        <div class="row">
+          <button class="btn" onclick="cjDetail()">Load detail</button>
+          <button class="btn" onclick="cjScore()">Score 📊</button>
+          <button class="btn" onclick="cjFindings()">Findings 🧾</button>
+          <button class="btn" onclick="cjReport()">Report (md) 📄</button>
+          <button class="btn warn" onclick="cjWatch()">Watch to end ⏱</button>
+        </div>
+        <div id="cjSummary"></div>
+        <div id="cjScores"></div>
+        <div id="cjFindingsBox"></div>
+        <div id="cjReportBox"></div>
       </div>
-      <div class="hint">Aakhri open assignment submit hone par cycle EVALUATION_COMPLETED ho jata hai — response ke <code>cycleStatus</code> me dikhega.</div>
     </div>
 
-    <!-- ======= RAW ======= -->
+    <!-- ============================================================
+         TAB 3 · Project Reviews (portal submissions ACCEPT/RETURN)
+         ============================================================ -->
+    <div id="panel-reviews" class="tabpanel" hidden>
+      <div class="card">
+        <h3>My project-review queue</h3>
+        <div class="hint">Portal pe students jo project submit karte hain, woh is problem ko score karne wale <b>usi evaluator</b> ko ASSIGNED hote hain — yahin se ACCEPT / RETURN do.
+          RETURN hone par student edit+resubmit kar sakta hai (naya round, wahi evaluator).</div>
+        <div class="row">
+          <label>Status filter</label>
+          <select id="prStatus" style="flex:1">
+            <option value="">(sab)</option>
+            <option>ASSIGNED</option><option>ACCEPTED</option><option>RETURNED</option>
+          </select>
+          <button class="btn primary" onclick="prList()">Load queue</button>
+        </div>
+        <div id="prQueue"></div>
+      </div>
+
+      <div class="card">
+        <h3>Open a review</h3>
+        <div class="row"><label>reviewId</label><input id="prId" class="fill" style="font-family:monospace;font-size:12px" placeholder="queue se pick karo"></div>
+        <div class="row"><button class="btn" onclick="prOpen()">Open review</button></div>
+        <div id="prDetail"></div>
+        <div id="prFiles"></div>
+        <div class="row" style="margin-top:8px">
+          <label>Decision</label>
+          <select id="prDecision" class="sm2" style="flex:0 0 140px">
+            <option>ACCEPTED</option><option>RETURNED</option>
+          </select>
+          <button class="btn primary" onclick="prDecide()">Submit decision ⚖️</button>
+        </div>
+        <div class="row"><label>Comment</label><textarea id="prComment" spellcheck="false" placeholder="RETURN pe wajah batao (student ise portal pe dekhega)"></textarea></div>
+      </div>
+    </div>
+
+    <!-- ======= RAW (any endpoint, this evaluator token) ======= -->
     <div class="card">
       <h3>Raw (any endpoint with this evaluator token)</h3>
       <div class="row">
         <select id="rawMethod" class="sm2">
           <option>GET</option><option>POST</option><option>PATCH</option><option>PUT</option><option>DELETE</option>
         </select>
-        <input id="rawPath" class="fill" placeholder="/evaluation/me/assignments">
+        <input id="rawPath" class="fill" placeholder="/codejudge/evaluations ya /evaluation/me/project-reviews">
       </div>
       <div class="row"><label>Body</label><textarea id="rawBody" spellcheck="false">{}</textarea></div>
       <div class="row"><button class="btn" onclick="rawSend()">Send</button></div>
@@ -146,12 +265,31 @@
 
 <script src="actor-core.js"></script>
 <script>
-/* ---------- evaluator ops (all under /evaluation/me, scoped to the JWT) ---------- */
-const ME = '/evaluation/me';
+/* ---------- shared page helpers ---------- */
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmt = d => d ? new Date(d).toLocaleString() : '—';
+function tab(name){
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.tabpanel').forEach(p => { p.hidden = p.id !== 'panel-' + name; });
+}
+const STATUS_COLOR = {
+  COMPLETED:'var(--ok)', FAILED:'var(--err)', QUEUED:'var(--warn)',
+  CLONING:'var(--accent)', SCANNING:'var(--accent)', SECURITY_SCANNING:'var(--accent)',
+  BUILDING:'var(--accent)', RUNNING:'var(--accent)', TESTING:'var(--accent)',
+  ARCHITECTURE_ANALYSIS:'var(--accent)', REQUIREMENT_MATCHING:'var(--accent)',
+  AI_ANALYSIS:'var(--accent)', SCORING:'var(--accent)', REPORT_GENERATION:'var(--accent)',
+  ASSIGNED:'var(--warn)', ACCEPTED:'var(--ok)', RETURNED:'var(--err)'
+};
+/* truly terminal CodeJudge states — pipeline stops here, report/score ready */
+const CJ_TERMINAL = ['COMPLETED','FAILED'];
+function statusPill(s){ const c = STATUS_COLOR[s] || 'var(--muted)'; return `<span class="badge" style="border-color:${c};color:${c}">${esc(s)}</span>`; }
+function verdictColor(v){ return {EXCELLENT:'var(--ok)', GOOD:'var(--ok)', NEEDS_WORK:'var(--warn)', BLOCKED:'var(--err)'}[v] || 'var(--muted)'; }
 
-/* profile + blank scorecard */
+/* ================================================================
+   TAB 1 · Assignments — /evaluation/me (unchanged behaviour)
+   ================================================================ */
+const ME = '/evaluation/me';
+
 async function myProfile(){ show('GET '+ME+'/profile', await api('GET', ME+'/profile')); }
 async function myCriteria(){
   const res = await api('GET', ME+'/criteria');
@@ -159,7 +297,6 @@ async function myCriteria(){
   if (res.ok) renderCriteria(res.data);
 }
 
-/* work queue */
 async function loadQueue(){
   const s = $('qStatus').value;
   const path = ME+'/assignments' + (s ? '?status='+s : '');
@@ -177,9 +314,8 @@ async function loadQueue(){
       <button class="btn sm" onclick="pick('${a.assignmentId}')">Use this</button>
     </div>`).join('');
 }
-function pick(id){ $('asgId').value = id; loadAssignment(); }
+function pick(id){ $('asgId').value = id; tab('assign'); loadAssignment(); }
 
-/* one assignment: full scoring screen */
 async function loadAssignment(){
   const id = $('asgId').value.trim();
   if (!id){ flash('assignmentId chahiye'); return; }
@@ -204,7 +340,6 @@ async function loadAssignment(){
   $('sRecommendation').value = d.recommendation || '';
 }
 
-/* problem access rule → readable line (who may access this problem statement) */
 function accessLine(p){
   const rule = p.accessRule || 'OPEN_TO_ALL';
   if (rule === 'SELECTED_UNIVERSITIES'){
@@ -215,7 +350,6 @@ function accessLine(p){
   return 'saari universities & students ke liye (open)';
 }
 
-/* criteria → editable rows (works for both the blank form and a saved one) */
 function renderCriteria(criteria){
   const box = $('scorecard');
   if (!Array.isArray(criteria) || !criteria.length){ box.innerHTML = '<div class="hint err">Criteria nahi mile — pool me active criterion hai?</div>'; return; }
@@ -237,7 +371,6 @@ function autoFill(){
   flash('Sab scores 7 (ya criterion ka max) par set — ab Submit karo');
 }
 
-/* accept / decline / submit */
 async function acceptAsg(){
   const id = $('asgId').value.trim();
   show('POST '+ME+'/assignments/'+id+'/accept', await api('POST', ME+'/assignments/'+id+'/accept'));
@@ -253,8 +386,6 @@ async function declineAsg(){
 async function submitScores(){
   const id = $('asgId').value.trim();
   if (!id){ flash('assignmentId chahiye'); return; }
-  // Blank scores are dropped, not sent as null — that way the backend answers with the
-  // friendly "incomplete — Missing: …" instead of a bean-validation error.
   const scores = [...document.querySelectorAll('#scorecard .crit')].flatMap(el => {
     const raw = el.querySelector('.cScore').value.trim();
     if (!raw) return [];
@@ -267,6 +398,240 @@ async function submitScores(){
   show('POST '+ME+'/assignments/'+id+'/submit',
        await api('POST', ME+'/assignments/'+id+'/submit', { body }));
   loadQueue();
+}
+
+/* ================================================================
+   TAB 2 · CodeJudge — /codejudge/evaluations (EVALUATOR/ADMIN)
+   ================================================================ */
+const CJ = '/codejudge/evaluations';
+const CJ_STATUSES = ['QUEUED','CLONING','SCANNING','BUILDING','RUNNING','TESTING',
+  'SECURITY_SCANNING','ARCHITECTURE_ANALYSIS','REQUIREMENT_MATCHING','AI_ANALYSIS',
+  'SCORING','REPORT_GENERATION','COMPLETED','FAILED'];
+
+/* seed the status filter once */
+(function(){ const sel = $('cjListStatus'); CJ_STATUSES.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; sel.appendChild(o); }); })();
+
+function cjRandomProblem(){ $('cjProblem').value = (crypto.randomUUID ? crypto.randomUUID() : '00000000-0000-4000-8000-'+Math.random().toString(16).slice(2,14)); }
+
+async function cjCreate(){
+  const url = $('cjUrl').value.trim();
+  const sha = $('cjSha').value.trim();
+  let pid = $('cjProblem').value.trim();
+  if (!pid){ pid = crypto.randomUUID ? crypto.randomUUID() : ('00000000-0000-4000-8000-'+Math.random().toString(16).slice(2,14)); $('cjProblem').value = pid; }
+  if (!url){ flash('repositoryUrl chahiye'); return; }
+  if (!/^[A-Za-z0-9._-]{7,64}$/.test(sha)){ flash('commitSha 7-64 chars [A-Za-z0-9._-] hona chahiye'); return; }
+  const body = { repositoryUrl: url, commitSha: sha, problemId: pid };
+  const br = $('cjBranch').value.trim(); if (br) body.branch = br;
+  const t = $('cjProblemTitle').value.trim(); if (t) body.problemTitle = t;
+  const res = await api('POST', CJ, { body });
+  show('POST '+CJ, res);
+  if (res.ok && res.data && res.data.evaluationId){
+    $('cjId').value = res.data.evaluationId;
+    flash('QUEUED — evaluationId set. Load detail / Watch karo.');
+  }
+  cjList();
+}
+
+async function cjList(){
+  const s = $('cjListStatus').value;
+  const path = CJ + (s ? '?status=' + s : '');
+  const res = await api('GET', path);
+  show('GET '+path, res);
+  const box = $('cjListBox');
+  if (!res.ok || !Array.isArray(res.data)){ box.innerHTML = '<div class="hint err">List load nahi hui — response pane dekho.</div>'; return; }
+  if (!res.data.length){ box.innerHTML = '<div class="hint">Koi evaluation nahi (filter sahi hai?).</div>'; return; }
+  box.innerHTML = res.data.map(e => `
+    <div class="crow" onclick="cjPick('${e.evaluationId}')">
+      <div>${statusPill(e.status)}
+        ${e.verdict ? ` <b style="color:${verdictColor(e.verdict)}">${esc(e.verdict)}</b>` : ''}
+        ${e.finalScore != null ? ` · score <b>${e.finalScore}</b>` : ''}
+        <span class="pill">${esc(e.problemTitle || 'no title')}</span></div>
+      <div class="mono" style="margin-top:2px">${esc(e.evaluationId)} · ${esc(e.repositoryUrl || '')} @ ${esc(e.commitSha || '')}</div>
+    </div>`).join('');
+}
+function cjPick(id){ $('cjId').value = id; cjDetail(); }
+
+async function cjDetail(){
+  const id = $('cjId').value.trim();
+  if (!id){ flash('evaluationId chahiye'); return; }
+  const res = await api('GET', CJ+'/'+id);
+  show('GET '+CJ+'/'+id, res);
+  if (!res.ok){ return; }
+  const e = res.data;
+  $('cjSummary').innerHTML = `
+    <div class="hint" style="margin-top:6px">
+      ${statusPill(e.status)} · scoring <code>${esc(e.scoringVersion || '—')}</code>
+      ${e.verdict ? ` · <b style="color:${verdictColor(e.verdict)}">${esc(e.verdict)}</b>` : ''}
+      ${e.finalScore != null ? ` · <b>${e.finalScore}</b>` : ''}
+    </div>
+    <div class="mono">${esc(e.repositoryUrl || '')} @ ${esc(e.commitSha || '')} (${esc(e.branch || '?')})</div>
+    <div class="hint">started ${fmt(e.startedAt)} · completed ${fmt(e.completedAt)}</div>
+    <div class="scroll">
+      <table class="mini"><tr><th>from</th><th>to</th><th>note</th><th>at</th></tr>
+      ${(e.history||[]).map(h => `<tr><td>${esc(h.fromStatus||'—')}</td><td><b>${esc(h.toStatus)}</b></td><td>${esc(h.note||'')}</td><td>${fmt(h.createdAt)}</td></tr>`).join('') || '<tr><td colspan=4>koi history nahi</td></tr>'}
+      </table>
+    </div>`;
+  if (e.status === 'COMPLETED') cjScore();
+}
+
+async function cjScore(){
+  const id = $('cjId').value.trim();
+  if (!id){ flash('evaluationId chahiye'); return; }
+  const res = await api('GET', CJ+'/'+id+'/score');
+  show('GET '+CJ+'/'+id+'/score', res);
+  if (!res.ok) return;
+  const s = res.data;
+  const box = $('cjScores');
+  box.innerHTML = `
+    <div style="margin-top:8px">
+      ${statusPill(s.status)}
+      <span style="font-size:18px;font-weight:700;margin-left:8px">${s.finalScore ?? '—'}</span>
+      <span class="hint"> · scoring ${esc(s.scoringVersion || '—')}</span>
+      ${s.verdict ? ` <span class="badge" style="border-color:${verdictColor(s.verdict)};color:${verdictColor(s.verdict)}">${esc(s.verdict)}</span>` : ''}
+    </div>
+    <div class="scroll">
+    <table class="mini">
+      <tr><th>category</th><th>score / max</th><th>weight</th><th>status</th><th>note</th></tr>
+      ${(s.categories||[]).map(c => `<tr>
+        <td><b>${esc(c.categoryKey)}</b></td>
+        <td>${c.score ?? '—'} / ${c.maxScore ?? '—'}</td>
+        <td>${c.weight ?? '—'}</td>
+        <td>${c.status === 'NOT_EVALUATED' ? '<span class="warn">NOT_EVALUATED</span>' : '<span class="ok">EVALUATED</span>'}</td>
+        <td class="hint">${esc(c.note || '')}</td>
+      </tr>`).join('') || '<tr><td colspan=5>abhi koi category score nahi</td></tr>'}
+    </table></div>`;
+}
+
+async function cjFindings(){
+  const id = $('cjId').value.trim();
+  if (!id){ flash('evaluationId chahiye'); return; }
+  const res = await api('GET', CJ+'/'+id+'/findings');
+  show('GET '+CJ+'/'+id+'/findings', res);
+  const box = $('cjFindingsBox');
+  if (!res.ok || !Array.isArray(res.data)){ box.innerHTML = '<div class="hint err">Findings load nahi hue.</div>'; return; }
+  if (!res.data.length){ box.innerHTML = '<div class="hint">Koi finding nahi.</div>'; return; }
+  box.innerHTML = '<div class="scroll">' + res.data.map(f => `
+    <div class="crit" style="border-left-color:${f.severity === 'CRITICAL' || f.severity === 'HIGH' ? 'var(--err)' : f.severity === 'MEDIUM' ? 'var(--warn)' : 'var(--border)'}">
+      <div><span class="pill">${esc(f.severity)}</span> <b>${esc(f.category)}</b></div>
+      <div>${esc(f.message)}</div>
+      ${f.evidenceRef ? `<div class="mono">evidence: ${esc(f.evidenceRef)}</div>` : ''}
+    </div>`).join('') + '</div>';
+}
+
+async function cjReport(){
+  const id = $('cjId').value.trim();
+  if (!id){ flash('evaluationId chahiye'); return; }
+  const res = await api('GET', CJ+'/'+id+'/report?format=markdown');
+  show('GET '+CJ+'/'+id+'/report?format=markdown', res);
+  const box = $('cjReportBox');
+  if (!res.ok){ box.innerHTML = `<div class="hint err">Report abhi nahi (status ${res.status}) — REPORT_GENERATION ke baad try karo.</div>`; return; }
+  box.innerHTML = '<div class="hint">Report (markdown):</div><pre class="out scroll">' + esc(typeof res.data === 'string' ? res.data : JSON.stringify(res.data, null, 2)) + '</pre>';
+}
+
+/* Watch: poll detail until terminal, then auto-load score/findings/report */
+let cjWatchTimer = null;
+function cjWatch(){
+  const id = $('cjId').value.trim();
+  if (!id){ flash('evaluationId chahiye'); return; }
+  if (cjWatchTimer){ clearInterval(cjWatchTimer); cjWatchTimer = null; flash('Watch stopped'); return; }
+  flash('Watch ON — har 2.5s poll, terminal pe rukega. Dobara dabao to stop.');
+  cjWatchTimer = setInterval(async () => {
+    const res = await api('GET', CJ+'/'+id);
+    if (res.ok){
+      const st = res.data.status;
+      const line = `${st}${res.data.finalScore != null ? ' · score '+res.data.finalScore : ''}`;
+      $('outReq').textContent = '⏱ polling '+id+' — '+line;
+      if (CJ_TERMINAL.includes(st)){
+        clearInterval(cjWatchTimer); cjWatchTimer = null;
+        $('outReq').textContent = '⏹ ' + st + ' — watch stopped';
+        cjDetail();
+      }
+    } else {
+      clearInterval(cjWatchTimer); cjWatchTimer = null;
+      flash('Watch stopped (poll error)');
+    }
+  }, 2500);
+}
+
+/* ================================================================
+   TAB 3 · Project Reviews — /evaluation/me/project-reviews (EVALUATOR)
+   ================================================================ */
+const PR = '/evaluation/me/project-reviews';
+
+async function prList(){
+  const s = $('prStatus').value;
+  const path = PR + (s ? '?status=' + s : '');
+  const res = await api('GET', path);
+  show('GET '+path, res);
+  const box = $('prQueue');
+  if (!res.ok || !Array.isArray(res.data)){ box.innerHTML = '<div class="hint err">Queue load nahi hui — response pane dekho.</div>'; return; }
+  if (!res.data.length){ box.innerHTML = '<div class="hint">Koi project review nahi (portal se submission aani chahiye).</div>'; return; }
+  box.innerHTML = res.data.map(r => `
+    <div class="crow" onclick="prPick('${r.projectReviewId}')">
+      <div>${statusPill(r.status)} <span class="pill">round ${r.round ?? 1}</span>
+           <b>${esc(r.submissionTitle || '—')}</b></div>
+      <div class="hint" style="margin:2px 0">${esc(r.problemTitle || '')}</div>
+      <div class="hint" style="margin:0">created ${fmt(r.createdAt)} · decided ${fmt(r.decidedAt)}</div>
+    </div>`).join('');
+}
+function prPick(id){ $('prId').value = id; tab('reviews'); prOpen(); }
+
+let prFilesCache = [];
+async function prOpen(){
+  const id = $('prId').value.trim();
+  if (!id){ flash('projectReviewId chahiye'); return; }
+  const res = await api('GET', PR+'/'+id);
+  show('GET '+PR+'/'+id, res);
+  const box = $('prDetail'); const fb = $('prFiles');
+  if (!res.ok){ box.innerHTML = '<div class="hint err">Review load nahi hui.</div>'; fb.innerHTML=''; return; }
+  const d = res.data;
+  box.innerHTML = `
+    <div style="margin-top:6px">${statusPill(d.status)} <span class="pill">round ${d.round ?? 1}</span></div>
+    <h3 style="font-size:14px;text-transform:none;margin:8px 0 2px">${esc(d.submissionTitle || '—')}</h3>
+    <div class="hint">${esc(d.problemTitle || '')} · cycle ${esc(d.cycleId || '')}</div>
+    <div>${esc(d.summary || 'no summary')}</div>
+    ${d.githubUrl ? `<div class="hint" style="margin-top:4px">🔗 <a href="${esc(d.githubUrl)}" target="_blank" rel="noopener">${esc(d.githubUrl)}</a></div>` : ''}
+    ${(d.links||[]).length ? `<div class="hint" style="margin-top:4px">🔗 ${d.links.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label||l.url)}</a>`).join(' · ')}</div>` : ''}
+    ${d.decisionComment ? `<div class="hint warn" style="margin-top:6px"><b>Comment:</b> ${esc(d.decisionComment)}</div>` : ''}`;
+  $('prComment').value = d.decisionComment || '';
+  const files = d.files || [];
+  prFilesCache = files;
+  fb.innerHTML = files.length
+    ? `<div class="row" style="margin-top:4px"><label style="min-width:auto">Files</label>
+        ${files.map((f,i) => `<span class="filelnk" onclick="prDownload(${i})">⬇ ${esc(f.fileName)} <span class="hint">${(f.sizeBytes/1024).toFixed(1)}KB</span></span>`).join('')}
+       </div>
+       <div class="hint">Download JWT-authorised hai — file bytes portal-service se aate hain, eval service store nahi karti.</div>`
+    : '<div class="hint">Koi file attached nahi.</div>';
+}
+
+async function prDownload(i){
+  const f = prFilesCache[i];
+  if (!f){ flash('file index out of range'); return; }
+  if (!f.contentUrl){ flash('file ka contentUrl nahi hai'); return; }
+  if (!state.token){ flash('pehle token lo'); return; }
+  const url = state.baseUrl.replace(/\/+$/,'') + f.contentUrl;
+  const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + state.token } });
+  if (!res.ok){ show('GET '+f.contentUrl, { ok:false, status:res.status, data:'download failed' }); return; }
+  const blob = await res.blob();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = f.fileName || f.contentUrl.split('/').pop() || 'file';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  flash('⬇ downloading ' + (f.fileName || f.contentUrl));
+}
+
+async function prDecide(){
+  const id = $('prId').value.trim();
+  if (!id){ flash('projectReviewId chahiye'); return; }
+  const body = { decision: $('prDecision').value };
+  const comment = $('prComment').value.trim(); if (comment) body.comment = comment;
+  const res = await api('POST', PR+'/'+id+'/decision', { body });
+  show('POST '+PR+'/'+id+'/decision', res);
+  if (res.ok){
+    flash('Decision "' + body.decision + '" save ho gaya — portal submission update hui.');
+    prOpen(); prList();
+  }
 }
 </script>
 </body>

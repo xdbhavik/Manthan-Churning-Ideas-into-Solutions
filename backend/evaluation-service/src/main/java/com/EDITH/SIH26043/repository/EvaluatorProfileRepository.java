@@ -13,5 +13,8 @@ public interface EvaluatorProfileRepository extends JpaRepository<EvaluatorProfi
 
     List<EvaluatorProfile> findByEvaluatorTypeAndActiveIsTrue(EvaluatorType evaluatorType);
 
+    /** Every active profile, all pools — the project-review human fallback searches this. */
+    List<EvaluatorProfile> findByActiveIsTrue();
+
     List<EvaluatorProfile> findByUserId(UUID userId);
 }

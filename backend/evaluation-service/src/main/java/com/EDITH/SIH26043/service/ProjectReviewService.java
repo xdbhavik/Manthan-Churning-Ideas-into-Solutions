@@ -33,7 +33,10 @@ import java.util.UUID;
 
 /**
  * Project reviews: portal project submissions, opened in the evaluator queue and
- * decided by the SAME evaluator who scored the problem's cycle.
+ * decided by the same human evaluator who scored the problem's cycle — or, when
+ * that cycle was scored entirely by the AI (every pool on AUTO), by the
+ * least-loaded human evaluator, so a submission is never parked on a system AI
+ * profile that nobody can log in as. AI-scored project reviews are out of scope.
  *
  * <p>Create is an internal intake (portal → eval). List/detail/decide are scoped
  * to the caller's {@link EvaluatorProfile}, mirroring the ownership guard of
@@ -52,6 +55,10 @@ public class ProjectReviewService {
             EvaluationStatus.SCORES_AGGREGATED,
             EvaluationStatus.PRIORITIZED,
             EvaluationStatus.PHASE_3_READY);
+
+    /** Assignment statuses that count toward an evaluator's open workload. */
+    private static final List<AssignmentStatus> OPEN_STATUSES =
+            List.of(AssignmentStatus.ASSIGNED, AssignmentStatus.IN_PROGRESS);
 
     private final ProjectReviewRepository reviewRepository;
     private final EvaluationCycleRepository cycleRepository;
@@ -77,9 +84,10 @@ public class ProjectReviewService {
     // ------------------------------------------------------------------ create
 
     /**
-     * Opens (or returns the existing) review for a portal submission. The reviewer
-     * is resolved from the problem's SUBMITTED evaluation assignment — the same
-     * evaluator who scored it. Idempotent on {@code (submissionId, round)}.
+     * Opens (or returns the existing) review for a portal submission. The reviewer is
+     * resolved from the problem's SUBMITTED evaluation assignments — the human evaluator
+     * who scored it, or the least-loaded human when the cycle was scored entirely by the
+     * AI. Idempotent on {@code (submissionId, round)}.
      *
      * @throws ApiException 409 {@code PROBLEM_NOT_EVALUATED} when the cycle is not
      *                      complete enough to have produced a reviewer.
@@ -102,17 +110,15 @@ public class ProjectReviewService {
             return toCreateResponse(existing); // duplicate push / retry
         }
 
-        EvaluationAssignment scored = assignmentRepository
+        List<EvaluationAssignment> submitted = assignmentRepository
                 .findByCycleIdAndStatusIn(cycle.getCycleId(),
-                        List.of(AssignmentStatus.SUBMITTED))
-                .stream().findFirst()
-                .orElseThrow(() -> new ApiException(HttpStatus.CONFLICT,
-                        "PROBLEM_NOT_EVALUATED — no submitted evaluation assignment for cycle "
-                                + cycle.getCycleId()));
-        EvaluatorProfile reviewer = profileRepository.findById(scored.getEvaluatorProfileId())
-                .orElseThrow(() -> new ApiException(HttpStatus.CONFLICT,
-                        "Evaluator profile " + scored.getEvaluatorProfileId()
-                                + " no longer exists; cannot assign the project review"));
+                        List.of(AssignmentStatus.SUBMITTED));
+        if (submitted.isEmpty()) {
+            throw new ApiException(HttpStatus.CONFLICT,
+                    "PROBLEM_NOT_EVALUATED — no submitted evaluation assignment for cycle "
+                            + cycle.getCycleId());
+        }
+        EvaluatorProfile reviewer = resolveReviewer(cycle, submitted);
 
         ProjectReview review = new ProjectReview();
         review.setSubmissionId(req.submissionId());
@@ -140,6 +146,62 @@ public class ProjectReviewService {
                 reviewer.getUserId(), null, after, "internal");
 
         return toCreateResponse(review);
+    }
+
+    /**
+     * Who takes the project review — always a human.
+     *
+     * <p>Preference order: (1) the first submitted assignment of the cycle whose profile is
+     * <em>not</em> a system AI profile, i.e. the evaluator who actually scored the problem;
+     * (2) when every submitted assignment is AI-owned — a fully-AUTO cycle — the
+     * least-loaded active human evaluator of any pool; (3) otherwise a 409 naming the real
+     * cause.</p>
+     *
+     * <p>Step 1 exists because AI scoring is now a first-class way for a cycle to complete:
+     * a review parked on a system profile would never be opened, since nobody can log in as
+     * the AI. Step 2 deliberately does <em>not</em> apply routing's {@code max_workload}
+     * ceiling — an evaluator carrying one project over capacity is a far better outcome than
+     * a submission sitting in {@code UNDER_REVIEW} forever, which is exactly what a capacity
+     * check would produce when every evaluator is full.</p>
+     */
+    private EvaluatorProfile resolveReviewer(EvaluationCycle cycle,
+                                             List<EvaluationAssignment> submitted) {
+        for (EvaluationAssignment assignment : submitted) {
+            EvaluatorProfile profile = profileRepository
+                    .findById(assignment.getEvaluatorProfileId()).orElse(null);
+            if (profile != null && !profile.isSystem()) {
+                return profile;
+            }
+        }
+
+        EvaluatorProfile human = leastLoadedHuman();
+        if (human != null) {
+            log.info("Every submitted assignment of cycle {} is AI-owned; project review falls back "
+                    + "to human evaluator {}", cycle.getCycleId(), human.getProfileId());
+            return human;
+        }
+        throw new ApiException(HttpStatus.CONFLICT,
+                "PROBLEM_NOT_EVALUATED — cycle " + cycle.getCycleId() + " was scored by the AI and no "
+                        + "human evaluator exists to review projects"
+                        + " (onboard one via POST /evaluation/evaluator-profiles)");
+    }
+
+    /** Lowest open-load active human across all pools; null when the deployment has none. */
+    private EvaluatorProfile leastLoadedHuman() {
+        EvaluatorProfile chosen = null;
+        long chosenLoad = 0;
+        for (EvaluatorProfile candidate : profileRepository.findByActiveIsTrue()) {
+            if (candidate.isSystem()) {
+                continue;
+            }
+            long openLoad = assignmentRepository.countByEvaluatorProfileIdAndStatusIn(
+                    candidate.getProfileId(), OPEN_STATUSES);
+            if (chosen == null || openLoad < chosenLoad) {
+                chosen = candidate;
+                chosenLoad = openLoad;
+            }
+        }
+        return chosen;
     }
 
     // ------------------------------------------------------------------- reads

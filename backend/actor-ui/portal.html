@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIH26043 · Portal Console</title>
+<link rel="stylesheet" href="actor.css">
+<style>
+  /* ---- page-level surface tabs (Me / Catalog / My submissions) ---- */
+  .tabs{display:flex;gap:4px;flex-wrap:wrap;margin:2px 0 12px}
+  .tab{background:var(--panel);border:1px solid var(--border);color:var(--muted);
+       padding:7px 14px;font-size:13px;border-radius:6px;cursor:pointer}
+  .tab:hover{color:#fff}
+  .tab.active{background:var(--panel2);border-color:var(--accent);color:#fff}
+  .tabpanel[hidden]{display:none}
+
+  .crow{border:1px solid var(--border);border-radius:6px;padding:6px 8px;margin-bottom:5px;background:var(--panel2);cursor:pointer}
+  .crow:hover{border-color:var(--accent)}
+  .crow .row{margin-bottom:2px}
+  .mono{font-family:"Cascadia Code",Consolas,monospace;font-size:11px;color:var(--muted);word-break:break-all}
+  .pill{font-size:10px;padding:1px 6px;border-radius:8px;border:1px solid var(--border);color:var(--muted);white-space:nowrap}
+  .statement{white-space:pre-wrap;font-size:13px;background:var(--panel);border:1px solid var(--border);
+             border-radius:6px;padding:8px;max-height:340px;overflow:auto;line-height:1.5}
+  .scroll{max-height:260px;overflow:auto}
+  .filelnk{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--border);border-radius:5px;
+           padding:3px 8px;margin:2px 4px 2px 0;background:var(--panel2);font-size:12px;cursor:pointer}
+  .filelnk:hover{border-color:var(--accent)}
+  .frozen{opacity:.55;pointer-events:none}
+</style>
+</head>
+<body data-actor="PORTAL">
+
+<header>
+  <h1>🧪 SIH26043 Test Console <span class="who">· Portal</span></h1>
+  <label>Base URL</label>
+  <input id="baseUrl" style="width:200px">
+  <button class="btn" onclick="saveBase()">Save</button>
+  <span id="roleBadge" class="badge"></span>
+  <div style="flex:1 1 100%;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <label>JWT</label>
+    <input id="token" style="flex:1;min-width:200px;font-family:monospace;font-size:11px" placeholder="portal participant access token">
+    <button class="btn sm" onclick="saveToken()">Save</button>
+    <button class="btn sm err" onclick="clearTokens()">Clear</button>
+  </div>
+</header>
+
+<nav class="personas">
+  <a data-actor="SUBMITTER" href="submitter.html">🙋 Submitter</a>
+  <a data-actor="REVIEWER" href="reviewer.html">🔍 Reviewer</a>
+  <a data-actor="ADMIN" href="admin.html">🛡️ Admin</a>
+  <a data-actor="EVALUATOR" href="evaluator.html">🧑‍⚖️ Evaluator</a>
+  <a data-actor="PORTAL" href="portal.html">🎓 Portal</a>
+</nav>
+
+<main>
+  <div class="left">
+    <div id="roleNote" class="role-note"></div>
+
+    <!-- ======= AUTH (source account → shared JWT; participant kind portal resolve karta hai) ======= -->
+    <div class="card">
+      <h3>Login (source auth — same OTP token har service me)</h3>
+      <div class="hint">Portal ka koi apna auth nahi hai — <code>/auth/*</code> source-service se login lo, yahi token <code>/portal/*</code> pe bhi chalta hai.
+        <b>University</b> (HEI source-account owner): apne source phone se login karo → <code>GET /portal/me</code> pe auto-bind hoga.
+        <b>Student</b>: koi bhi 10-digit phone register/login karke <code>POST /portal/participants</code> se STUDENT bano.</div>
+      <div class="row"><label>Phone</label><input id="aPhone" placeholder="10 digit phone"></div>
+      <div class="row"><label>Email</label><input id="aEmail" placeholder="optional"></div>
+      <div class="row">
+        <button class="btn primary" onclick="auth('login')">Login</button>
+        <button class="btn" onclick="auth('register')">Register</button>
+      </div>
+      <div class="row"><label>challengeId</label><input id="aChallenge"></div>
+      <div class="row"><label>Code</label><input id="aCode"></div>
+      <div class="row">
+        <button class="btn primary" onclick="verifyOtp()">Verify OTP</button>
+        <button class="btn warn" onclick="useDevOtp()">Use devOtp</button>
+      </div>
+      <div class="row"><label>refreshToken</label><input id="aRefresh" class="fill"></div>
+      <div class="row"><button class="btn" onclick="refreshTok()">Refresh</button><button class="btn" onclick="logout()">Logout</button></div>
+    </div>
+
+    <!-- ======= SURFACE TABS ======= -->
+    <div class="tabs">
+      <button class="tab active" data-tab="me" onclick="tab('me')">👤 Me</button>
+      <button class="tab" data-tab="catalog" onclick="tab('catalog')">📋 Problems</button>
+      <button class="tab" data-tab="subs" onclick="tab('subs')">🚀 My submissions</button>
+    </div>
+
+    <!-- ============================================================
+         TAB 1 · Me — participant profile + STUDENT registration
+         ============================================================ -->
+    <div id="panel-me" class="tabpanel">
+      <div class="card">
+        <h3>My portal participant profile</h3>
+        <div class="hint">Yahi endpoint participant banata/detá hai. University owner (HEI account) pe pehli baar <b>auto-bind</b> hota hai —
+           alag registration nahi. Student ko pehle register karna padta hai, warna <code>404 STUDENT_NOT_REGISTERED</code>.</div>
+        <div class="row">
+          <button class="btn primary" onclick="pMe()">GET /portal/me</button>
+        </div>
+        <div id="pBox"><div class="hint">Profile yahan aayega.</div></div>
+      </div>
+
+      <div class="card">
+        <h3>Register as a STUDENT participant</h3>
+        <div class="hint">Sirf tab jab <code>/portal/me</code> ne 404 diya ho. University-account owner yahan 409 <code>HEI_ACCOUNT_REGISTERED_AS_UNIVERSITY</code> paayega (wo auto-bind hota hai, STUDENT nahi ban sakta).</div>
+        <div class="row"><label>fullName</label><input id="pName" class="fill" placeholder="e.g. Priya Sharma"></div>
+        <div class="row"><label>email</label><input id="pEmail" class="fill" placeholder="optional"></div>
+        <div class="row"><label>phone</label><input id="pPhone" class="fill" placeholder="optional (default = JWT phone)"></div>
+        <div class="row">
+          <button class="btn ok" onclick="pRegister()">POST /portal/participants</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         TAB 2 · Catalog — published problems + full problem statement
+         ============================================================ -->
+    <div id="panel-catalog" class="tabpanel" hidden>
+      <div class="card">
+        <h3>Published problems (catalog)</h3>
+        <div class="hint">Sirf wahi problems dikhti hain jo evaluation <b>complete</b> hone ke baad auto-publish hui hain, aur sirf wahi jo aapki
+           participant kind <b>dekh sakti hai</b> — STUDENT ko sirf <code>OPEN_TO_ALL</code>; UNIVERSITY ko restricted bhi. Invisible problems yahan leak nahi hoti.</div>
+        <div class="row">
+          <button class="btn primary" onclick="pbLoad()">Load problems</button>
+          <span class="hint" style="align-self:center">row pe click = statement</span>
+        </div>
+        <div id="pbList"><div class="hint">"Load problems" dabao (participant pehle bana lo).</div></div>
+      </div>
+
+      <div class="card">
+        <h3>Problem statement (full)</h3>
+        <div class="hint">Yehi wo statement hai jo portal dikhata hai — <code>description</code> + <code>expectedOutcome</code> +
+           source/urgency/severity/location/domains/evidence + access rule. Statement evaluation complete hone ke baad hi milta hai.</div>
+        <div id="pbDetail"><div class="hint">Catalog me se koi problem kholo.</div></div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         TAB 3 · Submissions — create draft, workbench, my submissions
+         ============================================================ -->
+    <div id="panel-subs" class="tabpanel" hidden>
+      <div class="card">
+        <h3>New submission (draft)</h3>
+        <div class="hint">Problem pick karo → team (optional) + title/summary/github/links bharo → <b>Create DRAFT</b>. Draft bante hi neeche
+           <i>workbench</i> me khul jayega jahan file upload karke <b>Submit for review</b> karoge. Har submit ek naya <b>review round</b> hai —
+           RETURN hone par edit karke dubara submit kar sakte ho.</div>
+        <div class="row">
+          <label>problemId</label>
+          <input id="pProblem" class="fill mono" list="pbDl" placeholder="catalog se choose karo ya UUID paste karo">
+          <datalist id="pbDl"></datalist>
+          <button class="btn sm" onclick="tab('catalog');pbLoad()">📋 catalog</button>
+        </div>
+        <div class="row">
+          <label>Team</label>
+          <input type="checkbox" id="pTeam" style="width:auto" onchange="toggleTeam()">
+          <span class="hint" style="min-width:auto">team submission</span>
+        </div>
+        <div id="teamFields" class="frozen" style="display:none">
+          <div class="row"><label>teamName</label><input id="pTeamName" class="fill" placeholder="optional — default 'Team for &lt;problem&gt;'"></div>
+          <div class="row"><label>members</label><textarea id="pMembers" spellcheck="false" class="fill" rows="2"
+            placeholder="sirf registered participants ke participantId (space/comma/newline se alag) — sabko problem dikhni chahiye"></textarea></div>
+        </div>
+        <div class="row"><label>title</label><input id="pTitle" class="fill" placeholder="solution title"></div>
+        <div class="row"><label>summary</label><textarea id="pSummary" spellcheck="false" class="fill" rows="3" placeholder="kya banaya, kaise kaam karta hai"></textarea></div>
+        <div class="row"><label>githubUrl</label><input id="pGit" class="fill" placeholder="https://github.com/user/repo (optional)"></div>
+        <div class="row"><label>links</label><textarea id="pLinks" spellcheck="false" class="fill" rows="2"
+          placeholder="har line: label|url  (ya sirf url)&#10;e.g. Demo video|https://youtu.be/abc&#10;Pitch deck|https://drive.google.com/..."></textarea></div>
+        <div class="row">
+          <button class="btn primary" onclick="subCreate()">Create DRAFT 🆕</button>
+          <button class="btn" onclick="mySubs()">Refresh my submissions</button>
+        </div>
+        <div class="hint">Draft bana to active submission ban jati hai — ek individual ek problem pe ek hi active (DRAFT/SUBMITTED/UNDER_REVIEW) rakh sakta hai.</div>
+      </div>
+
+      <div class="card">
+        <h3>My submissions</h3>
+        <div class="hint">Row pe click karo → workbench me khulega. DRAFT/RETURNED pe edit + file + submit milta hai; ACCEPTED/RETURNED pe decision comment dikhta hai.</div>
+        <div class="row"><button class="btn" onclick="mySubs()">GET /portal/submissions</button></div>
+        <div id="subList"><div class="hint">"Refresh" karke list lo.</div></div>
+      </div>
+
+      <div class="card">
+        <h3>Workbench · open submission</h3>
+        <div id="wb"><div class="hint">Naya draft banao ya "My submissions" me se koi row kholo.</div></div>
+      </div>
+    </div>
+
+    <!-- ======= RAW (any endpoint, this participant token) ======= -->
+    <div class="card">
+      <h3>Raw (any endpoint with this participant token)</h3>
+      <div class="row">
+        <select id="rawMethod" class="sm2">
+          <option>GET</option><option>POST</option><option>PATCH</option><option>PUT</option><option>DELETE</option>
+        </select>
+        <input id="rawPath" class="fill" placeholder="/portal/problems ya /portal/submissions">
+      </div>
+      <div class="row"><label>Body</label><textarea id="rawBody" spellcheck="false">{}</textarea></div>
+      <div class="row"><button class="btn" onclick="rawSend()">Send</button></div>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="card" style="position:sticky;top:0">
+      <div class="statusbar"><span id="outReq">—</span><span id="outStatus" class="badge">no request yet</span></div>
+      <pre id="out" class="out">Response yahan aayega…</pre>
+    </div>
+  </div>
+</main>
+
+<script src="actor-core.js"></script>
+<script>
+'use strict';
+/* ---------- shared page helpers ---------- */
+const esc  = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt  = d => d ? new Date(d).toLocaleString() : '—';
+const errDetail = r => (r.data && typeof r.data === 'object' && r.data.detail) ? r.data.detail : (typeof r.data === 'string' ? r.data : 'HTTP ' + r.status);
+
+function tab(name){
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.tabpanel').forEach(p => { p.hidden = p.id !== 'panel-' + name; });
+}
+function toggleTeam(){
+  const on = $('pTeam').checked;
+  $('teamFields').style.display = on ? '' : 'none';
+  $('teamFields').classList.toggle('frozen', !on);
+}
+
+const STATUS_COLOR = {
+  DRAFT:'var(--warn)', SUBMITTED:'var(--accent)', UNDER_REVIEW:'var(--accent)',
+  ACCEPTED:'var(--ok)', RETURNED:'var(--err)'
+};
+const ACCESS_COLOR = {
+  OPEN_TO_ALL:'var(--ok)', UNIVERSITY_ONLY:'var(--warn)', SELECTED_UNIVERSITIES:'var(--accent)'
+};
+const KIND_COLOR = { STUDENT:'var(--accent)', UNIVERSITY:'var(--ok)' };
+function statusPill(s){ const c = STATUS_COLOR[s] || 'var(--muted)'; return `<span class="badge" style="border-color:${c};color:${c}">${esc(s)}</span>`; }
+function accessPill(a){ const c = ACCESS_COLOR[a] || 'var(--muted)'; return `<span class="badge" style="border-color:${c};color:${c}">${esc(a||'OPEN_TO_ALL')}</span>`; }
+function kindPill(t){ const c = KIND_COLOR[t] || 'var(--muted)'; return `<span class="badge" style="border-color:${c};color:${c}">${esc(t)}</span>`; }
+function fmtBytes(n){
+  if (n == null) return '—';
+  if (n < 1024) return n + ' B';
+  if (n < 1048576) return (n/1024).toFixed(1) + ' KB';
+  return (n/1048576).toFixed(1) + ' MB';
+}
+const EDITABLE = ['DRAFT', 'RETURNED'];
+
+/* ================================================================
+   TAB 1 · Me / register
+   ================================================================ */
+async function pMe(){
+  const res = await api('GET', '/portal/me');
+  show('GET /portal/me', res);
+  const box = $('pBox');
+  if (res.ok) renderMe(res.data);
+  else box.innerHTML = `<div class="hint err">${esc(errDetail(res))}</div>` +
+    `<div class="hint">STUDENT_NOT_REGISTERED mila to upar "Register as a STUDENT" card bharo. University HEI account ho to /portal/me khud auto-bind kar deta hai.</div>`;
+}
+function renderMe(p){
+  $('pBox').innerHTML =
+    `<div>${kindPill(p.participantType)} <b>${esc(p.fullName)}</b></div>
+     <div class="row" style="margin-top:4px"><label>email</label><span>${esc(p.email||'—')}</span></div>
+     <div class="row"><label>phone</label><span>${esc(p.phone||'—')}</span></div>
+     ${p.institutionName ? `<div class="row"><label>institution</label><span>${esc(p.institutionName)}</span></div>` : ''}
+     ${p.sourceAccountId ? `<div class="row"><label>sourceAccount</label><span class="mono">${esc(p.sourceAccountId)}</span></div>` : ''}
+     <div class="mono" style="margin-top:4px">participantId ${esc(p.participantId)}</div>`;
+}
+async function pRegister(){
+  const fullName = $('pName').value.trim();
+  if (!fullName){ flash('fullName required'); return; }
+  const body = { fullName };
+  if ($('pEmail').value.trim()) body.email = $('pEmail').value.trim();
+  if ($('pPhone').value.trim()) body.phone = $('pPhone').value.trim();
+  const res = await api('POST', '/portal/participants', { body });
+  show('POST /portal/participants', res);
+  if (res.ok){ flash('STUDENT participant ban gaya — /portal/me me dikh raha hai'); await pMe(); }
+}
+
+/* ================================================================
+   TAB 2 · Catalog (published problems + statement)
+   ================================================================ */
+let pbCache = [];        // PublishedProblemSummary[]
+const pbById = {};       // problemId -> summary (for titles)
+
+function seedProblemOptions(){
+  const dl = $('pbDl'); if (!dl) return;
+  dl.innerHTML = '';
+  pbCache.forEach(p => {
+    const o = document.createElement('option');
+    o.value = p.problemId;
+    o.label = p.title;
+    dl.appendChild(o);
+  });
+}
+function pbTitle(problemId){ return (pbById[problemId] && pbById[problemId].title) || problemId; }
+
+async function pbLoad(){
+  const res = await api('GET', '/portal/problems');
+  show('GET /portal/problems', res);
+  const box = $('pbList');
+  if (!res.ok || !Array.isArray(res.data)){
+    box.innerHTML = `<div class="hint err">${esc(errDetail(res))}</div>`;
+    return;
+  }
+  pbCache = res.data;
+  Object.keys(pbById).forEach(k => delete pbById[k]);
+  pbCache.forEach(p => { pbById[p.problemId] = p; });
+  seedProblemOptions();
+  if (!pbCache.length){
+    box.innerHTML = '<div class="hint">Koi published problem nahi. Evaluation complete karke auto-publish hone do (evaluator console).</div>';
+    return;
+  }
+  box.innerHTML = pbCache.map((p, i) => `
+    <div class="crow" onclick="pbShow(${i})">
+      <div><b>${esc(p.title)}</b> ${accessPill(p.accessRule)} · ${p.evidenceCount} evidence</div>
+      <div class="hint" style="margin:2px 0">${esc(p.sourceBucket||'—')} · urgency ${esc(p.urgency||'—')} · severity ${esc(p.severity||'—')}
+        ${(p.domains||[]).length ? ' · domains ' + p.domains.map(esc).join(', ') : ''}</div>
+      <div class="mono">${esc(p.problemId)} · published ${fmt(p.publishedAt)}</div>
+      <button class="btn sm" onclick="event.stopPropagation();pbShow(${i})">📖 Statement</button>
+      <button class="btn sm primary" onclick="event.stopPropagation();solve(${i})">✍️ Solve</button>
+    </div>`).join('');
+}
+
+async function pbShow(i){
+  const p = pbCache[i]; if (!p){ flash('pehle catalog load karo'); return; }
+  const res = await api('GET', '/portal/problems/' + p.problemId);
+  show('GET /portal/problems/' + p.problemId, res);
+  const box = $('pbDetail');
+  if (!res.ok){ box.innerHTML = `<div class="hint err">${esc(errDetail(res))}</div>`; return; }
+  const d = res.data;
+  const meta = [
+    ['sourceBucket', d.sourceBucket], ['subEntityType', d.subEntityType],
+    ['urgency', d.urgency], ['severity', d.severity], ['location', d.location],
+    ['evidenceCount', d.evidenceCount], ['publishedAt', fmt(d.publishedAt)]
+  ].filter(([,v]) => v != null && v !== '').map(([k,v]) => `<b>${k}</b> ${esc(String(v))}`).join(' · ');
+  box.innerHTML = `
+    <div><b>${esc(d.title)}</b> ${accessPill(d.accessRule)} ${d.accessUniversities && d.accessUniversities.length ? '→ ' + d.accessUniversities.map(esc).join(', ') : ''}</div>
+    <div class="hint" style="margin:3px 0">${meta}</div>
+    ${(d.domains||[]).length ? `<div class="hint">domains: ${d.domains.map(esc).join(', ')}</div>` : ''}
+    <div class="statement">${esc(d.description || '(no description)')}</div>
+    <div style="margin-top:6px"><b>Expected outcome</b></div>
+    <div class="statement">${esc(d.expectedOutcome || '(none)')}</div>
+    <button class="btn primary" style="margin-top:6px" onclick="solveBy('${d.problemId}')">✍️ Is problem pe submit karo</button>`;
+}
+function solve(i){
+  const p = pbCache[i]; if (!p) return;
+  solveBy(p.problemId);
+}
+function solveBy(problemId){
+  $('pProblem').value = problemId;
+  const p = pbById[problemId];
+  flash(p ? `Problem selected: ${p.title}` : 'Problem selected — title catalog me nahi (restricted?)');
+  tab('subs');
+}
+
+/* ================================================================
+   TAB 3 · create draft + workbench + my submissions
+   ================================================================ */
+function readLinksText(){
+  const out = [];
+  ($('pLinks').value || '').split('\n').forEach(line => {
+    line = line.trim(); if (!line) return;
+    const i = line.indexOf('|');
+    out.push(i >= 0 ? { label: line.slice(0, i).trim(), url: line.slice(i + 1).trim() } : { label: line, url: line });
+  });
+  return out;
+}
+function linksToText(links){
+  return (links || []).map(l => {
+    const label = (l && l.label) || ''; const url = (l && l.url) || '';
+    return (label && url && label !== url) ? `${label}|${url}` : (url || label);
+  }).join('\n');
+}
+function parseUuids(txt){
+  const m = String(txt || '').match(/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/g);
+  return m ? [...new Set(m)] : [];
+}
+
+async function subCreate(){
+  if (!state.token){ flash('pehle login karo (Auth card)'); return; }
+  const problemId = $('pProblem').value.trim();
+  if (!problemId){ flash('problemId chahiye — catalog "Load problems" se choose karo ya UUID paste karo'); return; }
+  const team = $('pTeam').checked;
+  const body = {
+    problemId,
+    title: $('pTitle').value.trim() || null,
+    summary: $('pSummary').value.trim() || null,
+    githubUrl: $('pGit').value.trim() || null,
+    links: readLinksText()
+  };
+  if (team){
+    let name = $('pTeamName').value.trim();
+    const members = parseUuids($('pMembers').value);
+    if (!name && !members.length){ flash('Team mode: ya to teamName do ya kam se kam ek member participantId'); return; }
+    if (!name) name = 'Team';
+    body.teamName = name;
+    body.memberUserIds = members;
+  }
+  const res = await api('POST', '/portal/submissions', { body });
+  show('POST /portal/submissions', res);
+  if (!res.ok){
+    if (res.status === 409) flash('409 — is problem pe active submission already hai. "My submissions" me kholo ya RETURNED ka wait karo.');
+    return;
+  }
+  flash('Draft ban gaya → workbench me load kiya');
+  ['pTeamName','pTitle'].forEach(id => $(id).value = '');
+  $('pSummary').value = ''; $('pGit').value = ''; $('pLinks').value = '';
+  $('pMembers').value = ''; $('pTeam').checked = false; toggleTeam();
+  await openSubById(res.data.submissionId);
+  mySubs();
+}
+
+/* ---- my submissions list ---- */
+async function mySubs(){
+  const res = await api('GET', '/portal/submissions');
+  show('GET /portal/submissions', res);
+  const box = $('subList');
+  if (!res.ok || !Array.isArray(res.data)){ box.innerHTML = `<div class="hint err">${esc(errDetail(res))}</div>`; return; }
+  if (!res.data.length){ box.innerHTML = '<div class="hint">Koi submission nahi. Catalog se problem pick karke "Create DRAFT" karo.</div>'; return; }
+  box.innerHTML = res.data.map(s => `
+    <div class="crow" onclick="openSubById('${s.submissionId}')">
+      <div><b>${esc(s.title || '(untitled)')}</b> ${statusPill(s.status)} · round ${s.reviewRound}</div>
+      <div class="hint" style="margin:2px 0">problem: <b>${esc(pbTitle(s.problemId))}</b>${s.team ? ' · team ' + esc(s.team.name) : ' · individual'}</div>
+      <div class="mono">${esc(s.submissionId)}</div>
+      ${s.decisionComment ? `<div class="hint err" style="margin:2px 0">evaluator: ${esc(s.decisionComment)}</div>` : ''}
+    </div>`).join('');
+}
+
+/* ---- workbench ---- */
+let ws = null;            // current open SubmissionView
+let wbFilesCache = [];    // FileItemView[] for download/delete
+
+async function openSubById(id){
+  const res = await api('GET', '/portal/submissions/' + id);
+  show('GET /portal/submissions/' + id, res);
+  if (!res.ok){ $('wb').innerHTML = `<div class="hint err">${esc(errDetail(res))}</div>`; return; }
+  ws = res.data;
+  wbFilesCache = ws.files || [];
+  wbRender();
+}
+function wbRender(){
+  const s = ws; if (!s){ $('wb').innerHTML = '<div class="hint">Pehle draft banao ya koi submission kholo.</div>'; return; }
+  const editable = EDITABLE.includes(s.status);
+  const box = $('wb');
+
+  const header = `
+    <div><b>${esc(s.title || '(untitled)')}</b> ${statusPill(s.status)} · review round <b>${s.reviewRound}</b></div>
+    <div class="hint" style="margin:2px 0">problem: <b>${esc(pbTitle(s.problemId))}</b>
+      ${s.teamId ? ' · team <b>' + esc(s.team ? s.team.name : s.teamId) + '</b> (' + (s.team ? s.team.members.length : '?') + ' members)'
+                 : ' · individual'}</div>
+    <div class="mono">${esc(s.submissionId)}${s.reviewerUserId ? ' · reviewer ' + esc(s.reviewerUserId) : ''}</div>
+    <div class="hint" style="margin:3px 0">submitted ${fmt(s.submittedAt)} · decided ${fmt(s.decidedAt)}</div>
+    ${s.decisionComment ? `<div class="hint err" style="margin:3px 0">⚖️ evaluator decision comment: ${esc(s.decisionComment)}</div>` : ''}`;
+
+  const metaEditable = `
+    <div class="row"><label>title</label><input id="wTitle" class="fill" value="${esc(s.title || '')}"></div>
+    <div class="row"><label>summary</label><textarea id="wSummary" spellcheck="false" class="fill" rows="3">${esc(s.summary || '')}</textarea></div>
+    <div class="row"><label>githubUrl</label><input id="wGit" class="fill" value="${esc(s.githubUrl || '')}"></div>
+    <div class="row"><label>links</label><textarea id="wLinks" spellcheck="false" class="fill" rows="2">${esc(linksToText(s.links))}</textarea></div>`;
+
+  const files = wbFilesCache.length ? wbFilesCache.map((f, i) =>
+      `<span class="filelnk" onclick="wbDl(${i})">⬇ ${esc(f.originalName)} <span style="color:var(--muted)">(${fmtBytes(f.sizeBytes)})</span></span>` +
+      (editable ? `<span class="filelnk err" onclick="wbDel(${i})">🗑</span>` : '')).join('')
+    : '<div class="hint">Koi file nahi.</div>';
+
+  box.innerHTML = `
+    ${header}
+    <hr>
+    <div class="${editable ? '' : 'frozen'}">
+      <div style="margin-bottom:4px"><b>Meta</b> ${editable ? '(editable)' : '(frozen — DRAFT/RETURNED pe hi edit hota hai)'}</div>
+      ${metaEditable}
+      <div class="row"><button class="btn" onclick="wbSaveMeta()">Save meta</button></div>
+    </div>
+    <hr>
+    <div style="margin-bottom:4px"><b>Files</b> (${wbFilesCache.length})</div>
+    <div class="scroll" id="wbFilesBox">${files}</div>
+    ${editable ? `<div class="row" style="margin-top:6px">
+      <input type="file" id="wbFile" style="flex:1">
+      <button class="btn" onclick="wbUpload()">Upload ⬆</button>
+    </div>` : ''}
+    <div class="hint">50 MB cap · sha-256 store. Files sirf DRAFT/RETURNED pe add/delete hote hain; download hamesha chalta hai (submitter/team/reviewer).</div>
+    ${editable
+      ? `<div class="row" style="margin-top:8px">
+           <button class="btn primary" onclick="wbSubmit()">${s.status === 'RETURNED' ? 'Resubmit for review 🔁' : 'Submit for review 🚀'}</button>
+           <button class="btn" onclick="mySubs()">Refresh list</button>
+         </div>
+         <div class="hint">Submit karte hi round badhega aur evaluator (jo is problem ko score karta hai) ko ek project-review ASSIGNED hoga. Eval down ho to 502 + rollback.</div>`
+      : s.status === 'ACCEPTED'
+        ? `<div class="hint ok" style="margin-top:6px">🎉 Accepted — solution pass. (Decision portal par store ho chuka hai.)</div>`
+        : `<div class="hint" style="margin-top:6px">⏳ ${s.status} — abhi edit lock hai. RETURNED hua to yahin edit + resubmit karoge.</div>`}`;
+  // keep DOM input state bound for further edits even after re-render — inputs already value-filled above.
+}
+async function wbSaveMeta(){
+  if (!ws){ flash('pehle submission kholo'); return; }
+  const body = {
+    title: $('wTitle').value.trim() || null,
+    summary: $('wSummary').value.trim() || null,
+    githubUrl: $('wGit').value.trim() || null,
+    links: linksFromTextArea($('wLinks').value)
+  };
+  const res = await api('PATCH', '/portal/submissions/' + ws.submissionId, { body });
+  show('PATCH /portal/submissions/' + ws.submissionId, res);
+  if (res.ok){ flash('Meta save ho gaya'); await openSubById(ws.submissionId); }
+}
+function linksFromTextArea(text){
+  const out = [];
+  (text || '').split('\n').forEach(line => {
+    line = line.trim(); if (!line) return;
+    const i = line.indexOf('|');
+    out.push(i >= 0 ? { label: line.slice(0, i).trim(), url: line.slice(i + 1).trim() } : { label: line, url: line });
+  });
+  return out;
+}
+async function wbUpload(){
+  if (!ws){ flash('pehle submission kholo'); return; }
+  const inp = $('wbFile'); const f = inp.files && inp.files[0];
+  if (!f){ flash('pehle file select karo'); return; }
+  const fd = new FormData();
+  fd.append('file', f);
+  const res = await api('POST', '/portal/submissions/' + ws.submissionId + '/files', { formData: fd });
+  show('POST /portal/submissions/' + ws.submissionId + '/files', res);
+  if (res.ok){ inp.value = ''; flash('File stored'); await openSubById(ws.submissionId); }
+}
+async function wbDel(i){
+  const f = wbFilesCache[i]; if (!f){ flash('file index out of range'); return; }
+  const res = await api('DELETE', '/portal/submissions/' + ws.submissionId + '/files/' + f.fileId);
+  show('DELETE .../files/' + f.fileId, res);
+  if (res.ok){ flash('File delete'); await openSubById(ws.submissionId); }
+}
+async function wbDl(i){
+  const f = wbFilesCache[i]; if (!f){ flash('file index out of range'); return; }
+  const path = '/portal/files/' + f.fileId + '/download';
+  const url = state.baseUrl.replace(/\/+$/, '') + path;
+  const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + state.token } });
+  if (!res.ok){ show('GET ' + path, { ok: false, status: res.status, data: 'download failed' }); return; }
+  const blob = await res.blob();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = f.originalName || 'download';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  show('GET ' + path + ' (download)', { ok: true, status: 200, data: f.originalName + ' — ' + fmtBytes(f.sizeBytes) });
+}
+async function wbSubmit(){
+  if (!ws){ flash('pehle submission kholo'); return; }
+  const res = await api('POST', '/portal/submissions/' + ws.submissionId + '/submit');
+  show('POST /portal/submissions/' + ws.submissionId + '/submit', res);
+  if (res.ok){ flash('Review ke liye submit — round ' + res.data.reviewRound + ', status ' + res.data.status); await openSubById(ws.submissionId); mySubs(); }
+  else if (res.status === 400) flash('400 — kam se kam ek artifact (title/summary/file/github/link) do');
+}
+
+/* ---------- init ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+  tab('me');
+  toggleTeam();
+  if (state.token){ pMe(); pbLoad(); }
+});
+</script>
+</body>
+</html>
