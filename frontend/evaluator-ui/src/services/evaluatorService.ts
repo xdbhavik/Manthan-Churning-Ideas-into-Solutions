@@ -17,8 +17,17 @@ export async function getMyProfile(): Promise<EvaluatorProfileResponse> {
 }
 
 export async function getMyCriteria(): Promise<EvaluationCriteria[]> {
-  const { data } = await api.get<EvaluationCriteria[]>('/evaluation/me/criteria');
-  return data;
+  const { data } = await api.get<any[]>('/evaluation/me/criteria');
+  return (data || []).map((c: any) => ({
+    id: c.criterionId || c.id,
+    key: c.criterionKey || c.key,
+    label: c.criterionLabel || c.label,
+    description: c.description,
+    maxScore: c.maxScore,
+    sortOrder: c.sortOrder,
+    existingScore: c.myScore ?? c.existingScore ?? null,
+    existingComment: c.myComment ?? c.existingComment ?? null,
+  }));
 }
 
 export async function getMyAssignments(status?: AssignmentStatus): Promise<AssignmentResponse[]> {

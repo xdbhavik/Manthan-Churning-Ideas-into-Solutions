@@ -51,7 +51,7 @@ export interface CreateEvaluatorProfileRequest {
 
 // Criteria
 export interface EvaluationCriteria {
-  id: string;
+  id?: string;
   key: string;
   sortOrder: number;
   label: string;
@@ -69,16 +69,21 @@ export interface AssignmentResponse {
   problemId: string;
   evaluatorProfileId: string;
   status: AssignmentStatus;
-  cycleStatus: string;
+  cycleStatus?: string;
   assignedAt: string;
-  deadline: string;
-  submittedAt: string | null;
-  declinedAt: string | null;
-  declineReason: string | null;
+  deadline?: string;
+  deadlineAt?: string;
+  submittedAt?: string | null;
+  declinedAt?: string | null;
+  declineReason?: string | null;
   overdue: boolean;
-  scoredCriteriaCount: number;
-  totalCriteriaCount: number;
-  finalScore: number | null;
+  scoredCriteriaCount?: number;
+  totalCriteriaCount?: number;
+  finalScore?: number | null;
+  problemTitle?: string;
+  urgency?: string;
+  criteriaCompleted?: number;
+  criteriaTotal?: number;
 }
 export interface CriterionScoreInput {
   criterionKey: string;

@@ -50,7 +50,8 @@ export function getPhone(): string | null {
   return decodeJwtPayload(token)?.phone ?? null;
 }
 export function isEvaluator(): boolean {
-  return getRole() === 'EVALUATOR';
+  const role = getRole();
+  return role === 'EVALUATOR' || role === 'SUBMITTER' || role === 'ADMIN' || role === 'REVIEWER';
 }
 export function isAdmin(): boolean {
   const role = getRole();

@@ -1,15 +1,139 @@
 @import "tailwindcss";
 
+@theme {
+  --color-ashoka-blue: #0A2540;
+  --color-institutional-navy: #1E3A8A;
+  --color-gov-emerald: #059669;
+  --color-saffron-accent: #E05A10;
+  --color-surface: #f8f9ff;
+  --color-surface-crisp: #FFFFFF;
+  --color-surface-subtle: #F8FAFC;
+  --color-surface-muted: #F1F5F9;
+  --color-surface-container: #e5eeff;
+  --color-surface-container-low: #eff4ff;
+  --color-surface-container-high: #dce9ff;
+  --color-surface-container-highest: #d3e4fe;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-variant: #d3e4fe;
+  --color-primary: #000f22;
+  --color-primary-container: #0a2540;
+  --color-on-primary: #ffffff;
+  --color-secondary: #4059aa;
+  --color-on-surface: #0b1c30;
+  --color-border-hairline: #E2E8F0;
+  --color-border-strong: #CBD5E1;
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748B;
+  --color-status-approved-bg: #ECFDF5;
+  --color-status-approved-text: #065F46;
+  --color-status-approved-border: #A7F3D0;
+  --color-status-action-bg: #FFF7ED;
+  --color-status-action-text: #9A3412;
+  --color-status-action-border: #FED7AA;
+  --color-status-review-bg: #F5F3FF;
+  --color-status-review-text: #5B21B6;
+  --color-status-review-border: #DDD6FE;
+  --color-status-submitted-bg: #EFF6FF;
+  --color-status-submitted-text: #1E40AF;
+  --color-status-submitted-border: #BFDBFE;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  
+  --spacing-space-2xs: 0.125rem;
+  --spacing-space-xs: 0.25rem;
+  --spacing-space-sm: 0.5rem;
+  --spacing-space-md: 0.75rem;
+  --spacing-space-base: 1rem;
+  --spacing-space-lg: 1.5rem;
+  --spacing-space-xl: 2rem;
+  --spacing-space-2xl: 3rem;
+  --spacing-space-3xl: 4rem;
+}
+
 @layer base {
   body {
     font-family: "Noto Sans", system-ui, -apple-system, sans-serif;
     background-color: #f8f9ff;
     color: #0b1c30;
+    margin: 0;
+    padding: 0;
   }
+}
+
+.tricolor-stripe {
+  background: linear-gradient(90deg, #FF9933 0%, #FFFFFF 50%, #138808 100%);
 }
 
 .font-mono-code {
   font-family: "JetBrains Mono", monospace;
+}
+
+.font-headline-xl {
+  font-size: 32px;
+  line-height: 40px;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+.font-headline-lg {
+  font-size: 24px;
+  line-height: 32px;
+  letter-spacing: -0.015em;
+  font-weight: 700;
+}
+
+.font-headline-md {
+  font-size: 20px;
+  line-height: 28px;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+
+.font-headline-sm {
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0em;
+  font-weight: 600;
+}
+
+.font-body-lg {
+  font-size: 16px;
+  line-height: 26px;
+  font-weight: 400;
+}
+
+.font-body-md {
+  font-size: 14px;
+  line-height: 22px;
+  font-weight: 400;
+}
+
+.font-body-sm {
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 400;
+}
+
+.font-label-lg {
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.01em;
+  font-weight: 600;
+}
+
+.font-label-md {
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.02em;
+  font-weight: 600;
+}
+
+.font-label-sm {
+  font-size: 11px;
+  line-height: 14px;
+  letter-spacing: 0.04em;
+  font-weight: 700;
 }
 
 .material-symbols-outlined {
@@ -26,21 +150,4 @@
   direction: ltr;
   -webkit-font-feature-settings: "liga";
   -webkit-font-smoothing: antialiased;
-}
-
-:root {
-  --ashoka-blue: #0A2540;
-  --institutional-navy: #1E3A8A;
-  --gov-emerald: #059669;
-  --saffron-accent: #E05A10;
-  --surface-crisp: #FFFFFF;
-  --surface-subtle: #F8FAFC;
-  --surface-muted: #F1F5F9;
-  --surface-container: #e5eeff;
-  --surface-container-low: #eff4ff;
-  --surface-container-high: #dce9ff;
-  --surface-container-highest: #d3e4fe;
-  --border-default: #E2E8F0;
-  --text-muted: #64748B;
-  --text-secondary: #475569;
 }
