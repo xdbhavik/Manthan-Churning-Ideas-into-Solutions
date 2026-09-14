@@ -54,6 +54,18 @@ public class Submission {
     @Column(name = "github_url", length = 500)
     private String githubUrl;
 
+    /**
+     * The exact commit judged for this round. Required at submit time when a
+     * {@code githubUrl} is present — pinning is what stops a later push from
+     * silently changing what was evaluated.
+     */
+    @Column(name = "commit_sha", length = 64)
+    private String commitSha;
+
+    /** Optional branch the pinned commit came from (context for the report). */
+    @Column(name = "branch", length = 120)
+    private String branch;
+
     /** Extra reference links as {@code [{label, url}]}. */
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "links", nullable = false)

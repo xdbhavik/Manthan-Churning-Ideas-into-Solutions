@@ -1,11 +1,13 @@
 package com.EDITH.SIH26043.service;
 
+import com.EDITH.SIH26043.client.ProblemContextGateway;
 import com.EDITH.SIH26043.entity.Evaluation;
 import com.EDITH.SIH26043.entity.EvaluationReport;
 import com.EDITH.SIH26043.entity.ProjectSubmission;
 import com.EDITH.SIH26043.enums.EvaluationStatus;
 import com.EDITH.SIH26043.enums.UserRole;
 import com.EDITH.SIH26043.exception.ApiException;
+import com.EDITH.SIH26043.internal.ProblemContextResponse;
 import com.EDITH.SIH26043.repository.EvaluationCategoryScoreRepository;
 import com.EDITH.SIH26043.repository.EvaluationFindingRepository;
 import com.EDITH.SIH26043.repository.EvaluationReportRepository;
@@ -25,8 +27,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -52,6 +56,7 @@ public class EvaluationService {
     private final EvaluationFindingRepository findingRepository;
     private final EvaluationReportRepository reportRepository;
     private final JobQueueService jobQueueService;
+    private final ProblemContextGateway problemContextGateway;
 
     public EvaluationService(ProjectSubmissionRepository submissionRepository,
                             EvaluationRepository evaluationRepository,
@@ -59,7 +64,8 @@ public class EvaluationService {
                             EvaluationCategoryScoreRepository categoryScoreRepository,
                             EvaluationFindingRepository findingRepository,
                             EvaluationReportRepository reportRepository,
-                            JobQueueService jobQueueService) {
+                            JobQueueService jobQueueService,
+                            ProblemContextGateway problemContextGateway) {
         this.submissionRepository = submissionRepository;
         this.evaluationRepository = evaluationRepository;
         this.historyRepository = historyRepository;
@@ -67,6 +73,7 @@ public class EvaluationService {
         this.findingRepository = findingRepository;
         this.reportRepository = reportRepository;
         this.jobQueueService = jobQueueService;
+        this.problemContextGateway = problemContextGateway;
     }
 
     /**
@@ -79,6 +86,18 @@ public class EvaluationService {
     public Evaluation create(EvaluationCreateRequest request, UUID ownerUserId) {
         validateRepositoryUrl(request.repositoryUrl());
 
+        // Idempotency for the portal hand-off: a retried push (double click, gateway
+        // retry) for the same submission at the same commit IS the same evaluation
+        // request, so hand back the run already queued for it instead of judging the
+        // same commit twice. A FAILED run is not handed back — it is worth a retry.
+        if (request.portalSubmissionId() != null) {
+            Optional<Evaluation> existing =
+                    findLiveEvaluation(request.portalSubmissionId(), request.commitSha().trim());
+            if (existing.isPresent()) {
+                return existing.get();
+            }
+        }
+
         ProjectSubmission submission = new ProjectSubmission();
         submission.setPortalSubmissionId(request.portalSubmissionId());
         submission.setProblemId(request.problemId());
@@ -90,6 +109,7 @@ public class EvaluationService {
         submission.setCommitSha(request.commitSha().trim());
         submission.setDemoUrl(request.demoUrl());
         submission.setDocumentationUrl(request.documentationUrl());
+        snapshotProblemContext(submission, request.problemId());
         // Reassign: save() on a new entity whose @Version is pre-set (1) goes through
         // merge(), which returns a managed copy — the original stays transient with a
         // null submissionId until flush. The returned copy has its @PrePersist id.
@@ -102,6 +122,46 @@ public class EvaluationService {
 
         jobQueueService.enqueue(evaluation.getEvaluationId(), DEFAULT_PRIORITY);
         return evaluation;
+    }
+
+    /**
+     * The evaluation already queued for this exact portal hand-off, if any. Skipped
+     * when the newest run for the submission is FAILED, so a broken run can be
+     * retried rather than being returned forever.
+     */
+    private Optional<Evaluation> findLiveEvaluation(UUID portalSubmissionId, String commitSha) {
+        return submissionRepository
+                .findFirstByPortalSubmissionIdAndCommitSha(portalSubmissionId, commitSha)
+                .flatMap(existing -> evaluationRepository
+                        .findBySubmissionIdOrderByCreatedAtDesc(existing.getSubmissionId())
+                        .stream()
+                        .filter(e -> e.getStatus() != EvaluationStatus.FAILED)
+                        .findFirst());
+    }
+
+    /**
+     * Attach the problem-statement snapshot from problem-service, best-effort.
+     *
+     * <p>The gateway never throws: when problem-service is unreachable the snapshot
+     * is simply absent and the evaluation still runs, reporting whatever statement
+     * detail the caller supplied. The statement is context for the report, never a
+     * scoring input — see {@code ScoringEngine}.</p>
+     */
+    private void snapshotProblemContext(ProjectSubmission submission, UUID problemId) {
+        ProblemContextResponse context = problemContextGateway.fetch(problemId);
+        if (context == null) {
+            return;
+        }
+        // The caller's title stays authoritative: the portal knows the title the
+        // student actually saw, while this snapshot is the durable fallback.
+        if (submission.getProblemTitle() == null || submission.getProblemTitle().isBlank()) {
+            submission.setProblemTitle(context.title());
+        }
+        submission.setProblemDescription(context.description());
+        submission.setProblemExpectedOutcome(context.expectedOutcome());
+        submission.setProblemDomains(context.domains() == null
+                ? new ArrayList<>() : new ArrayList<>(context.domains()));
+        submission.setProblemStatus(context.status());
     }
 
     /**

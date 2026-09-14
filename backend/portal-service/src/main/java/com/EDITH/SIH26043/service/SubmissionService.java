@@ -1,5 +1,7 @@
 package com.EDITH.SIH26043.service;
 
+import com.EDITH.SIH26043.client.CodeJudgeEvaluationRequest;
+import com.EDITH.SIH26043.client.CodeJudgeGateway;
 import com.EDITH.SIH26043.client.EvaluationGateway;
 import com.EDITH.SIH26043.client.ProjectReviewCreateRequest;
 import com.EDITH.SIH26043.client.ProjectReviewCreateResponse;
@@ -26,6 +28,8 @@ import com.EDITH.SIH26043.web.dto.SubmissionCreateRequest;
 import com.EDITH.SIH26043.web.dto.SubmissionMetaRequest;
 import com.EDITH.SIH26043.web.dto.SubmissionView;
 import com.EDITH.SIH26043.web.dto.TeamView;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,6 +55,8 @@ import java.util.UUID;
 @Service
 public class SubmissionService {
 
+    private static final Logger log = LoggerFactory.getLogger(SubmissionService.class);
+
     private static final Set<SubmissionStatus> ACTIVE_STATUSES = Set.of(
             SubmissionStatus.DRAFT, SubmissionStatus.SUBMITTED, SubmissionStatus.UNDER_REVIEW);
 
@@ -62,6 +68,7 @@ public class SubmissionService {
     private final SubmissionFileRepository fileRepository;
     private final ParticipantService participantService;
     private final EvaluationGateway evaluationGateway;
+    private final CodeJudgeGateway codeJudgeGateway;
 
     public SubmissionService(SubmissionRepository submissionRepository,
                              PublishedProblemRepository problemRepository,
@@ -70,7 +77,8 @@ public class SubmissionService {
                              TeamMemberRepository teamMemberRepository,
                              SubmissionFileRepository fileRepository,
                              ParticipantService participantService,
-                             EvaluationGateway evaluationGateway) {
+                             EvaluationGateway evaluationGateway,
+                             CodeJudgeGateway codeJudgeGateway) {
         this.submissionRepository = submissionRepository;
         this.problemRepository = problemRepository;
         this.participantRepository = participantRepository;
@@ -79,6 +87,7 @@ public class SubmissionService {
         this.fileRepository = fileRepository;
         this.participantService = participantService;
         this.evaluationGateway = evaluationGateway;
+        this.codeJudgeGateway = codeJudgeGateway;
     }
 
     // ------------------------------------------------------------------ create
@@ -108,7 +117,7 @@ public class SubmissionService {
         submission.setTeamId(teamId);
         submission.setSubmitterParticipantId(me.getParticipantId());
         applyMeta(submission, request.title(), request.summary(), request.githubUrl(),
-                request.links(), true);
+                request.commitSha(), request.branch(), request.links(), true);
         submissionRepository.save(submission);
         return toView(submission);
     }
@@ -159,7 +168,7 @@ public class SubmissionService {
         requireActor(submission, me);
         requireEditable(submission);
         applyMeta(submission, request.title(), request.summary(), request.githubUrl(),
-                request.links(), false);
+                request.commitSha(), request.branch(), request.links(), false);
         submissionRepository.save(submission);
         return toView(submission);
     }
@@ -169,6 +178,11 @@ public class SubmissionService {
      * asks evaluation-service to open a project review, then lands on
      * UNDER_REVIEW. A failed eval push rolls back the whole method so no
      * SUBMITTED-without-review row persists.
+     *
+     * <p>Once the round is persisted, a repo-backed submission is handed to
+     * codejudge-service for an automated evaluation. That hand-off is <em>best
+     * effort</em> — see {@link #triggerCodeJudge} — so it can never roll back a
+     * student's submit.</p>
      */
     @Transactional
     public SubmissionView submit(UUID submissionId, Participant me) {
@@ -183,6 +197,7 @@ public class SubmissionService {
         List<SubmissionFile> files = fileRepository
                 .findBySubmissionIdOrderByUploadedAtAsc(submissionId);
         requireArtifact(submission, files);
+        requirePinnedCommit(submission);
 
         PublishedProblem problem = problemRepository.findById(submission.getProblemId())
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND,
@@ -207,7 +222,50 @@ public class SubmissionService {
         submission.setStatus(SubmissionStatus.UNDER_REVIEW);
         submission.setSubmittedAt(Instant.now());
         submissionRepository.save(submission);
+
+        // Only after the round is persisted: an automated evaluation informs the
+        // human reviewer, it is never a precondition of the submission.
+        triggerCodeJudge(submission, problem.getTitle(), me.getUserId());
+
         return toView(submission);
+    }
+
+    /**
+     * Queue the automated repository evaluation for a pinned, repo-backed round.
+     *
+     * <p>Best effort by design. The human project review opened above is the gate on
+     * this submission, and CodeJudge's verdict is advisory to that reviewer — it
+     * never accepts or returns a project. So an unreachable codejudge-service, a
+     * rejected payload or a discovery miss is logged and dropped: the student still
+     * gets their UNDER_REVIEW round, and the evaluation can be re-triggered later.</p>
+     *
+     * <p>File-only submissions are skipped outright: there is no repository to clone,
+     * so they go to the human reviewer exactly as before.</p>
+     *
+     * @param ownerUserId the submitter (for a team round, the leader) — CodeJudge
+     *                    scopes the run to them, since the portal hands off as a
+     *                    service and cannot be identified by the student's own JWT
+     */
+    private void triggerCodeJudge(Submission submission, String problemTitle, UUID ownerUserId) {
+        if (isBlank(submission.getGithubUrl())) {
+            return;
+        }
+        try {
+            codeJudgeGateway.queueEvaluation(new CodeJudgeEvaluationRequest(
+                    submission.getSubmissionId(),
+                    submission.getProblemId(),
+                    problemTitle,
+                    submission.getTeamId(),
+                    submission.getGithubUrl(),
+                    submission.getBranch(),
+                    submission.getCommitSha()), ownerUserId);
+        } catch (RuntimeException e) {
+            // CodeJudgeGateway already swallows upstream failures; this guards the
+            // caller's transaction against anything unforeseen, because nothing about
+            // an optional automated evaluation may fail a submit.
+            log.warn("CodeJudge hand-off unexpectedly failed for submission {} ({})",
+                    submission.getSubmissionId(), e.toString());
+        }
     }
 
     // ------------------------------------------------------- review-result push
@@ -334,9 +392,32 @@ public class SubmissionService {
         }
     }
 
+    /**
+     * A repo-backed submission must pin the commit it wants judged. CodeJudge refuses
+     * to evaluate a moving branch HEAD — a later push must not silently change what
+     * was scored — so the portal rejects the same payloads up front, with a message
+     * the student can act on, instead of letting the hand-off fail later.
+     *
+     * <p>A file-only submission has nothing to clone, so no commit is required.</p>
+     */
+    private void requirePinnedCommit(Submission submission) {
+        if (isBlank(submission.getGithubUrl())) {
+            return;
+        }
+        String sha = submission.getCommitSha();
+        if (isBlank(sha)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "Pin the commit you want judged (commitSha is required for a GitHub submission)");
+        }
+        if (sha.length() < 7 || !sha.matches("[A-Za-z0-9._-]+")) {
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "commitSha must be 7-64 characters of [A-Za-z0-9._-]");
+        }
+    }
+
     private void applyMeta(Submission submission, String title, String summary,
-                           String githubUrl, List<java.util.Map<String, String>> links,
-                           boolean replaceAll) {
+                           String githubUrl, String commitSha, String branch,
+                           List<java.util.Map<String, String>> links, boolean replaceAll) {
         if (replaceAll || title != null) {
             submission.setTitle(title);
         }
@@ -345,6 +426,14 @@ public class SubmissionService {
         }
         if (replaceAll || githubUrl != null) {
             submission.setGithubUrl(githubUrl);
+        }
+        if (replaceAll || commitSha != null) {
+            // Normalise blank -> null so "no commit pinned" has one representation,
+            // whatever the client happened to send.
+            submission.setCommitSha(trimToNull(commitSha));
+        }
+        if (replaceAll || branch != null) {
+            submission.setBranch(trimToNull(branch));
         }
         if (replaceAll || links != null) {
             submission.setLinks(links == null ? List.of() : links);
@@ -367,6 +456,8 @@ public class SubmissionService {
                 submission.getTitle(),
                 submission.getSummary(),
                 submission.getGithubUrl(),
+                submission.getCommitSha(),
+                submission.getBranch(),
                 submission.getLinks() == null ? List.of() : submission.getLinks(),
                 submission.getStatus() == null ? null : submission.getStatus().name(),
                 submission.getReviewRound(),
@@ -400,6 +491,18 @@ public class SubmissionService {
                 .map(p -> new ParticipantBrief(p.getParticipantId(), p.getFullName()))
                 .toList();
         return new TeamView(team.getTeamId(), team.getName(), members);
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    private static String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     private static boolean isNotBlank(String value) {

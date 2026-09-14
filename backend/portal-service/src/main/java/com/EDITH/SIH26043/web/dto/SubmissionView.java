@@ -16,6 +16,8 @@ public record SubmissionView(
         String title,
         String summary,
         String githubUrl,
+        String commitSha,
+        String branch,
         List<Map<String, String>> links,
         String status,
         int reviewRound,

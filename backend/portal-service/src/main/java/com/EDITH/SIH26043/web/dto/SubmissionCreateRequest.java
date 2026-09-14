@@ -1,6 +1,7 @@
 package com.EDITH.SIH26043.web.dto;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.util.List;
@@ -25,6 +26,18 @@ public record SubmissionCreateRequest(
 
         @Size(max = 500)
         String githubUrl,
+
+        /**
+         * The exact commit to judge. Optional while drafting — a repo-backed
+         * submission must pin one (7-64 chars) by the time it is submitted, since
+         * codejudge-service refuses to evaluate a moving branch HEAD.
+         */
+        @Size(max = 64, message = "commitSha must be at most 64 characters")
+        @Pattern(regexp = "[A-Za-z0-9._-]*", message = "commitSha contains invalid characters")
+        String commitSha,
+
+        @Size(max = 120)
+        String branch,
 
         List<Map<String, String>> links,
 

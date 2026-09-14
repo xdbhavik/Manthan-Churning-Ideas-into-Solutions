@@ -1,5 +1,7 @@
 package com.EDITH.SIH26043.service;
 
+import com.EDITH.SIH26043.client.CodeJudgeEvaluationRequest;
+import com.EDITH.SIH26043.client.CodeJudgeGateway;
 import com.EDITH.SIH26043.client.EvaluationGateway;
 import com.EDITH.SIH26043.client.ProjectReviewCreateRequest;
 import com.EDITH.SIH26043.client.ProjectReviewCreateResponse;
@@ -33,6 +35,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -44,6 +47,11 @@ import static org.mockito.Mockito.when;
  * its access rule, and submitting is atomic with opening the evaluation-service
  * review — if the push fails the transaction rolls back rather than persist a
  * SUBMITTED-without-review row.
+ *
+ * <p>The CodeJudge hand-off is the deliberate exception: it is best effort. A
+ * repo-backed round must pin its commit (the gate is enforced here, up front), but
+ * once the round is persisted an unreachable codejudge-service costs the student
+ * nothing — the automated run is advisory to the human reviewer.</p>
  */
 class SubmissionServiceTest {
 
@@ -55,20 +63,24 @@ class SubmissionServiceTest {
     private final SubmissionFileRepository fileRepository = mock(SubmissionFileRepository.class);
     private final ParticipantService participantService = mock(ParticipantService.class);
     private final EvaluationGateway evaluationGateway = mock(EvaluationGateway.class);
+    private final CodeJudgeGateway codeJudgeGateway = mock(CodeJudgeGateway.class);
 
     private final SubmissionService service = new SubmissionService(
             submissionRepository, problemRepository, participantRepository, teamRepository,
-            teamMemberRepository, fileRepository, participantService, evaluationGateway);
+            teamMemberRepository, fileRepository, participantService, evaluationGateway,
+            codeJudgeGateway);
 
     private final UUID problemId = UUID.randomUUID();
     private final UUID cycleId = UUID.randomUUID();
     private final UUID leaderId = UUID.randomUUID();
+    private final UUID leaderUserId = UUID.randomUUID();
     private final UUID memberId = UUID.randomUUID();
+    private final UUID memberUserId = UUID.randomUUID();
     private final UUID submissionId = UUID.randomUUID();
     private final UUID reviewerUserId = UUID.randomUUID();
 
-    private final Participant leader = participant(leaderId, "Aarav");
-    private final Participant member = participant(memberId, "Diya");
+    private final Participant leader = participant(leaderId, leaderUserId, "Aarav");
+    private final Participant member = participant(memberId, memberUserId, "Diya");
     private final PublishedProblem problem = openProblem();
 
     // ------------------------------------------------------------------ create
@@ -81,7 +93,7 @@ class SubmissionServiceTest {
 
         SubmissionView view = service.create(leader,
                 new SubmissionCreateRequest(problemId, "Solar water pump", "A solar solution", null,
-                        null, null, List.of()));
+                        null, null, null, null, List.of()));
 
         assertThat(view.problemId()).isEqualTo(problemId);
         assertThat(view.teamId()).isNull();
@@ -99,7 +111,8 @@ class SubmissionServiceTest {
         givenCanSee(leader, false);
 
         assertThatThrownBy(() -> service.create(leader,
-                new SubmissionCreateRequest(problemId, "t", null, null, null, null, List.of())))
+                new SubmissionCreateRequest(problemId, "t", null, null, null, null, null, null,
+                        List.of())))
                 .isInstanceOf(ApiException.class)
                 .extracting(ex -> ((ApiException) ex).getStatus())
                 .isEqualTo(HttpStatus.FORBIDDEN);
@@ -117,7 +130,7 @@ class SubmissionServiceTest {
 
         SubmissionView view = service.create(leader,
                 new SubmissionCreateRequest(problemId, "Solar water pump", "A solar solution", null,
-                        null, "Solar Squad", List.of(memberId)));
+                        null, null, null, "Solar Squad", List.of(memberId)));
 
         assertThat(view.teamId()).isNotNull();
         verify(teamRepository).save(any(Team.class));
@@ -132,8 +145,8 @@ class SubmissionServiceTest {
         givenTeamSaveAssignsId();
 
         assertThatThrownBy(() -> service.create(leader,
-                new SubmissionCreateRequest(problemId, "t", "s", null, null, "Solar Squad",
-                        List.of(memberId))))
+                new SubmissionCreateRequest(problemId, "t", "s", null, null, null, null,
+                        "Solar Squad", List.of(memberId))))
                 .isInstanceOf(ApiException.class)
                 .extracting(ex -> ((ApiException) ex).getStatus())
                 .isEqualTo(HttpStatus.FORBIDDEN);
@@ -234,6 +247,73 @@ class SubmissionServiceTest {
         verify(submissionRepository, never()).save(any());
     }
 
+    // ------------------------------------------------- codejudge hand-off (W1)
+
+    @Test
+    void submit_RefusesAGithubSubmissionWithNoPinnedCommit() {
+        Submission submission = githubSubmission(SubmissionStatus.DRAFT, 0);
+        submission.setCommitSha(null);
+        givenSubmission(submission);
+        givenFile(submission);
+        givenProblem();
+
+        assertThatThrownBy(() -> service.submit(submissionId, leader))
+                .isInstanceOf(ApiException.class)
+                .extracting(ex -> ((ApiException) ex).getStatus())
+                .isEqualTo(HttpStatus.BAD_REQUEST);
+        verify(evaluationGateway, never()).createProjectReview(any());
+        verify(submissionRepository, never()).save(any());
+    }
+
+    @Test
+    void submit_QueuesTheAutomatedRunForAPinnedRepoSubmission() {
+        Submission submission = githubSubmission(SubmissionStatus.DRAFT, 0);
+        givenSubmission(submission);
+        givenProblem();
+        givenReviewAssigned();
+
+        service.submit(submissionId, leader);
+
+        ArgumentCaptor<CodeJudgeEvaluationRequest> queued =
+                ArgumentCaptor.forClass(CodeJudgeEvaluationRequest.class);
+        verify(codeJudgeGateway).queueEvaluation(queued.capture(), eq(leader.getUserId()));
+        assertThat(queued.getValue().portalSubmissionId()).isEqualTo(submissionId);
+        assertThat(queued.getValue().problemId()).isEqualTo(problemId);
+        assertThat(queued.getValue().repositoryUrl()).isEqualTo("https://github.com/aarav/pump");
+        assertThat(queued.getValue().commitSha()).isEqualTo("a1b2c3d");
+        assertThat(queued.getValue().branch()).isEqualTo("main");
+    }
+
+    @Test
+    void submit_SurvivesACodeJudgeOutage() {
+        Submission submission = githubSubmission(SubmissionStatus.DRAFT, 0);
+        givenSubmission(submission);
+        givenProblem();
+        givenReviewAssigned();
+        when(codeJudgeGateway.queueEvaluation(any(CodeJudgeEvaluationRequest.class), any()))
+                .thenThrow(new RuntimeException("codejudge unreachable"));
+
+        SubmissionView view = service.submit(submissionId, leader);
+
+        // The human review is the gate; a dead automated run never costs the submit.
+        assertThat(view.status()).isEqualTo(SubmissionStatus.UNDER_REVIEW.name());
+        verify(submissionRepository).save(submission);
+    }
+
+    @Test
+    void submit_SkipsTheAutomatedRunForAFileOnlySubmission() {
+        Submission submission = submission(SubmissionStatus.DRAFT, 0);
+        givenSubmission(submission);
+        givenFile(submission);
+        givenProblem();
+        givenReviewAssigned();
+
+        service.submit(submissionId, leader);
+
+        // Nothing to clone — the round goes to the human reviewer exactly as before.
+        verify(codeJudgeGateway, never()).queueEvaluation(any(), any());
+    }
+
     // ------------------------------------------------------- review-result push
 
     @Test
@@ -312,6 +392,12 @@ class SubmissionServiceTest {
         when(participantService.canSee(participant, problem)).thenReturn(allowed);
     }
 
+    private void givenReviewAssigned() {
+        when(evaluationGateway.createProjectReview(any(ProjectReviewCreateRequest.class)))
+                .thenReturn(new ProjectReviewCreateResponse(
+                        UUID.randomUUID(), reviewerUserId, UUID.randomUUID(), "ASSIGNED"));
+    }
+
     private void givenSubmissionSaveAssignsId() {
         when(submissionRepository.save(any(Submission.class))).thenAnswer(inv -> {
             Submission submission = inv.getArgument(0);
@@ -354,9 +440,19 @@ class SubmissionServiceTest {
         return submission;
     }
 
-    private Participant participant(UUID id, String name) {
+    /** The same draft, but repo-backed with the commit the student wants judged. */
+    private Submission githubSubmission(SubmissionStatus status, int round) {
+        Submission submission = submission(status, round);
+        submission.setGithubUrl("https://github.com/aarav/pump");
+        submission.setCommitSha("a1b2c3d");
+        submission.setBranch("main");
+        return submission;
+    }
+
+    private Participant participant(UUID id, UUID userId, String name) {
         Participant participant = new Participant();
         participant.setParticipantId(id);
+        participant.setUserId(userId);
         participant.setParticipantType(ParticipantType.STUDENT);
         participant.setFullName(name);
         return participant;

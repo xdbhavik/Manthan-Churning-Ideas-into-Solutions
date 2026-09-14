@@ -41,6 +41,8 @@ app:
     base-url: ${SOURCE_SERVICE_URL:http://source-service}
   evaluation-service:
     base-url: ${EVALUATION_SERVICE_URL:http://evaluation-service}
+  codejudge-service:
+    base-url: ${CODEJUDGE_SERVICE_URL:http://codejudge-service}
 
 eureka:
   client:
