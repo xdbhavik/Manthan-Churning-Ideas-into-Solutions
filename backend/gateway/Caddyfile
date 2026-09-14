@@ -20,7 +20,7 @@
 # /internal/** endpoints are NOT routed here — services call each other directly
 # on their own ports.
 
-:8080 {
+:8080, :8090 {
 	encode gzip
 
 	# --- source-service route set (auth, users, source registration & accounts).
