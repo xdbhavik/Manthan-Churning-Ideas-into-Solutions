@@ -27,8 +27,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import com.EDITH.SIH26043.entity.University;
+import com.EDITH.SIH26043.repository.EvidenceRepository;
+import com.EDITH.SIH26043.repository.UniversityRepository;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -39,15 +44,44 @@ public class ProblemController {
     private final ProblemStatusService statusService;
     private final ProblemRepository problemRepository;
     private final EvidenceUploadService evidenceUploadService;
+    private final EvidenceRepository evidenceRepository;
+    private final UniversityRepository universityRepository;
 
     public ProblemController(ProblemSubmissionService submissionService,
                              ProblemStatusService statusService,
                              ProblemRepository problemRepository,
-                             EvidenceUploadService evidenceUploadService) {
+                             EvidenceUploadService evidenceUploadService,
+                             EvidenceRepository evidenceRepository,
+                             UniversityRepository universityRepository) {
         this.submissionService = submissionService;
         this.statusService = statusService;
         this.problemRepository = problemRepository;
         this.evidenceUploadService = evidenceUploadService;
+        this.evidenceRepository = evidenceRepository;
+        this.universityRepository = universityRepository;
+    }
+
+    @GetMapping
+    public List<ProblemResponse> list(@AuthenticationPrincipal AuthUser me) {
+        List<Problem> list;
+        if (me != null && me.getRole() == UserRole.SUBMITTER) {
+            list = problemRepository.findBySubmittedByUserId(me.getUserId());
+        } else {
+            list = problemRepository.findAll();
+        }
+        return list.stream()
+                .sorted(Comparator.comparing(Problem::getSubmittedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                .map(ProblemResponse::from)
+                .toList();
+    }
+
+    @GetMapping("/universities")
+    public List<String> listUniversities() {
+        return universityRepository.findAll().stream()
+                .filter(University::isActive)
+                .map(University::getName)
+                .sorted()
+                .toList();
     }
 
     @PostMapping
@@ -95,6 +129,17 @@ public class ProblemController {
             throw new ApiException(HttpStatus.FORBIDDEN, "Not your submission");
         }
         return evidenceUploadService.upload(id, file, evidenceType, me, clientIp(http));
+    }
+
+    @GetMapping("/{id}/evidence")
+    public List<Evidence> getEvidence(@PathVariable UUID id, @AuthenticationPrincipal AuthUser me) {
+        Problem p = problemRepository.findById(id)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Problem not found"));
+        if (me != null && me.getRole() == UserRole.SUBMITTER
+                && !p.getSubmittedByUserId().equals(me.getUserId())) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Not your submission");
+        }
+        return evidenceRepository.findByProblemId(id);
     }
 
     private String clientIp(jakarta.servlet.http.HttpServletRequest http) {

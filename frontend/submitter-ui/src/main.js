@@ -264,7 +264,13 @@ const state = {
   activeRegistration: null,
   activeSourceAccount: null,
   history: [],
-  pollingTimer: null
+  pollingTimer: null,
+  availableUniversities: [],
+  selectedUniversities: [],
+  selectedDomainIds: [],
+  activeAccessRule: 'OPEN_TO_ALL',
+  myProblems: [],
+  activeModalProblemId: null
 };
 
 /* ---------------- API Helper ---------------- */
@@ -273,8 +279,12 @@ async function api(method, path, { body, auth = true } = {}) {
   const headers = {};
   let payload;
   if (body !== undefined) {
-    headers['Content-Type'] = 'application/json';
-    payload = JSON.stringify(body);
+    if (typeof FormData !== 'undefined' && body instanceof FormData) {
+      payload = body;
+    } else {
+      headers['Content-Type'] = 'application/json';
+      payload = JSON.stringify(body);
+    }
   }
   if (auth && state.token) {
     headers['Authorization'] = 'Bearer ' + state.token;
@@ -352,20 +362,114 @@ function clearSession() {
 let previousViewBeforeProfile = 'view-tracking';
 
 function showView(viewId) {
+  // Fix 1: Guard against re-entry into view-wizard when registration is already submitted or locked
+  if (viewId === 'view-wizard') {
+    const regStatus = state.activeRegistration?.status;
+    const isSubmittedOrLocked = regStatus && ['SUBMITTED', 'UNDER_REVIEW', 'APPROVED', 'REJECTED'].includes(regStatus);
+    const hasVerifiedAccount = Boolean(state.activeSourceAccount);
+
+    if (isSubmittedOrLocked || hasVerifiedAccount) {
+      toast("Your application has already been submitted and is under review — here's its current status.", 'info');
+      if (state.activeRegistration) {
+        renderTrackingScreen(state.activeRegistration);
+      }
+      return showView('view-tracking');
+    }
+  }
+
   if (state.activeView && state.activeView !== 'view-profile') {
     previousViewBeforeProfile = state.activeView;
   }
   state.activeView = viewId;
   closeProfileDropdown();
-  const views = ['view-auth', 'view-otp', 'view-wizard', 'view-tracking', 'view-deficiency', 'view-completed', 'view-profile'];
+
+  // Push browser history state for seamless back-navigation
+  if (window.history && window.history.pushState && window.history.state?.viewId !== viewId) {
+    try {
+      window.history.pushState({ viewId }, '', '#' + viewId);
+    } catch (e) {
+      // Ignore security origin restrictions in some environments
+    }
+  }
+
+  const views = [
+    'view-auth', 'view-otp', 'view-wizard', 'view-tracking',
+    'view-deficiency', 'view-completed', 'view-profile',
+    'view-problem-form', 'view-my-problems'
+  ];
   views.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.toggle('hidden', id !== viewId);
   });
+
+  updateNavTabs(viewId);
+
   if (viewId === 'view-profile') renderProfilePage();
   if (viewId === 'view-tracking' && state.activeRegistration) renderTrackingScreen(state.activeRegistration);
   if (viewId === 'view-wizard') bootWizardTimeline();
+  if (viewId === 'view-problem-form') renderProblemFilingScreen();
+  if (viewId === 'view-my-problems') loadMyProblems();
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateNavTabs(viewId) {
+  const kycBtn = document.getElementById('nav-btn-kyc');
+  const fileBtn = document.getElementById('nav-btn-file-problem');
+  const myProbBtn = document.getElementById('nav-btn-my-problems');
+
+  const activeClass = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-surface-container text-ashoka-blue shadow-sm flex items-center gap-1.5 cursor-pointer transition-colors';
+  const inactiveClass = 'px-3 py-1.5 rounded-lg text-xs font-bold text-text-secondary hover:text-ashoka-blue hover:bg-surface-muted flex items-center gap-1.5 cursor-pointer transition-colors';
+
+  const isKyc = ['view-wizard', 'view-tracking', 'view-deficiency', 'view-completed'].includes(viewId);
+  const isFile = viewId === 'view-problem-form';
+  const isMyProb = viewId === 'view-my-problems';
+
+  if (kycBtn) kycBtn.className = isKyc ? activeClass : inactiveClass;
+  if (fileBtn) fileBtn.className = isFile ? activeClass : inactiveClass;
+  if (myProbBtn) myProbBtn.className = isMyProb ? activeClass : inactiveClass;
+}
+
+function goToKycAction() {
+  if (!state.token) {
+    return showView('view-auth');
+  }
+  if (state.activeSourceAccount) {
+    renderCompletedScreen(state.activeSourceAccount);
+    return showView('view-completed');
+  }
+  if (state.activeRegistration) {
+    const status = state.activeRegistration.status;
+    if (status === 'DRAFT') {
+      state.wizard.step = 4;
+      populateWizardFromDraft(state.activeRegistration);
+      renderWizardStep();
+      return showView('view-wizard');
+    }
+    if (status === 'ACTION_REQUIRED') {
+      renderDeficiencyScreen(state.activeRegistration);
+      return showView('view-deficiency');
+    }
+    renderTrackingScreen(state.activeRegistration);
+    return showView('view-tracking');
+  }
+  state.wizard.step = 1;
+  renderWizardStep();
+  showView('view-wizard');
+}
+
+function goToFileProblem() {
+  if (!state.token) {
+    return showView('view-auth');
+  }
+  showView('view-problem-form');
+}
+
+function goToMyProblems() {
+  if (!state.token) {
+    return showView('view-auth');
+  }
+  showView('view-my-problems');
 }
 
 function goBackFromProfile() {
@@ -647,6 +751,14 @@ function paintWizardTimeline(step, dir, isFirstPaint) {
 }
 
 function renderWizardStep() {
+  // Fix 1: Guard against re-entry into wizard when registration is already submitted/locked
+  const regStatus = state.activeRegistration?.status;
+  if ((regStatus && ['SUBMITTED', 'UNDER_REVIEW', 'APPROVED', 'REJECTED'].includes(regStatus)) || state.activeSourceAccount) {
+    toast("Your application has already been submitted and is under review — here's its current status.", 'info');
+    if (state.activeRegistration) renderTrackingScreen(state.activeRegistration);
+    return showView('view-tracking');
+  }
+
   const step = clampWizardStep(state.wizard.step);
   const isFirstPaint = wizardPrevStep === 0;
   const dir = step < wizardPrevStep ? 'back' : 'fwd';
@@ -1081,6 +1193,13 @@ function renderStep5Submit() {
 }
 
 async function handleSubmitRegistration() {
+  const regStatus = state.activeRegistration?.status;
+  if ((regStatus && ['SUBMITTED', 'UNDER_REVIEW', 'APPROVED', 'REJECTED'].includes(regStatus)) || state.activeSourceAccount) {
+    toast("Your application has already been submitted and is under review — here's its current status.", 'info');
+    if (state.activeRegistration) renderTrackingScreen(state.activeRegistration);
+    return showView('view-tracking');
+  }
+
   const regId = state.wizard.draftId || state.activeRegistration?.registrationId;
   if (!regId) {
     toast('Please save your details first before submitting.', 'error');
@@ -1540,74 +1659,782 @@ function renderCompletedScreen(acc) {
   loadProblemDomains();
 }
 
-async function loadProblemDomains() {
-  const res = await api('GET', '/domains');
-  if (res.ok && Array.isArray(res.data)) {
-    state.domains = res.data;
-    const sel = document.getElementById('prob-domain-select');
-    if (sel) {
-      sel.innerHTML = res.data.map(d => `<option value="${d.domainId}">${d.domainName}</option>`).join('');
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+/* ---------------- Problem Filing Screen (Fix 2) ---------------- */
+async function renderProblemFilingScreen() {
+  const isVerified = Boolean(state.activeSourceAccount) || state.user?.kycStatus === 'VERIFIED';
+  const lockedEl = document.getElementById('problem-form-locked');
+  const containerEl = document.getElementById('problem-form-container');
+
+  if (!isVerified) {
+    if (lockedEl) lockedEl.classList.remove('hidden');
+    if (containerEl) containerEl.classList.add('hidden');
+    const statusTxt = document.getElementById('locked-kyc-status-text');
+    if (statusTxt) {
+      const st = state.activeRegistration?.status || state.user?.kycStatus || 'UNVERIFIED';
+      statusTxt.textContent = `KYC Status: ${st.replace(/_/g, ' ')}`;
     }
+    return;
+  }
+
+  if (lockedEl) lockedEl.classList.add('hidden');
+  if (containerEl) containerEl.classList.remove('hidden');
+
+  // Display verified organisation name
+  const orgNameEl = document.getElementById('form-verified-org-name');
+  if (orgNameEl) {
+    orgNameEl.textContent = state.activeSourceAccount?.displayName || state.activeSourceAccount?.sourceName || state.activeRegistration?.source?.organizationName || 'Verified Source';
+  }
+
+  // Load Domains taxonomy
+  await loadProblemDomainsForFiling();
+
+  // Load Universities list for Access Rule
+  await loadUniversitiesForFiling();
+
+  // Ensure default access rule card is marked
+  if (!state.activeAccessRule) {
+    handleAccessRuleChange('OPEN_TO_ALL');
+  }
+}
+
+async function loadProblemDomainsForFiling() {
+  if (!state.domains || state.domains.length === 0) {
+    const res = await api('GET', '/domains');
+    if (res.ok && Array.isArray(res.data)) {
+      state.domains = res.data;
+    }
+  }
+
+  const container = document.getElementById('pf-domains-container');
+  if (!container) return;
+
+  if (!state.domains || state.domains.length === 0) {
+    container.innerHTML = '<span class="text-xs text-text-muted">No domains available.</span>';
+    return;
+  }
+
+  container.innerHTML = state.domains.map(d => {
+    const isSelected = state.selectedDomainIds && state.selectedDomainIds.includes(d.domainId);
+    const activeStyle = 'bg-ashoka-blue text-surface-crisp border-ashoka-blue shadow-sm';
+    const inactiveStyle = 'bg-surface-subtle text-text-secondary border-border-hairline hover:border-ashoka-blue hover:text-ashoka-blue';
+    return `
+      <button type="button" onclick="toggleDomainSelection('${d.domainId}')"
+              class="domain-tag-btn px-3 py-1.5 rounded-lg border text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${isSelected ? activeStyle : inactiveStyle}">
+        <span class="material-symbols-outlined text-[14px]">${isSelected ? 'check' : 'add'}</span>
+        <span>${escapeHtml(d.domainName)}</span>
+      </button>
+    `;
+  }).join('');
+
+  const countEl = document.getElementById('pf-domains-selected-count');
+  if (countEl) countEl.textContent = `${state.selectedDomainIds ? state.selectedDomainIds.length : 0} selected`;
+}
+
+function toggleDomainSelection(domainId) {
+  if (!state.selectedDomainIds) state.selectedDomainIds = [];
+  const idx = state.selectedDomainIds.indexOf(domainId);
+  if (idx >= 0) {
+    state.selectedDomainIds.splice(idx, 1);
+  } else {
+    state.selectedDomainIds.push(domainId);
+  }
+  loadProblemDomainsForFiling();
+}
+
+async function loadUniversitiesForFiling() {
+  if (!state.availableUniversities || state.availableUniversities.length === 0) {
+    const res = await api('GET', '/problems/universities');
+    if (res.ok && Array.isArray(res.data)) {
+      state.availableUniversities = res.data;
+    }
+  }
+  renderUniversityListBox('');
+}
+
+function filterUniversitiesList(query) {
+  renderUniversityListBox(query);
+}
+
+function renderUniversityListBox(query = '') {
+  const box = document.getElementById('pf-univ-list-box');
+  if (!box) return;
+
+  const universities = state.availableUniversities || [];
+  const filtered = query.trim()
+    ? universities.filter(u => u.toLowerCase().includes(query.trim().toLowerCase()))
+    : universities;
+
+  if (filtered.length === 0) {
+    box.innerHTML = '<span class="p-3 text-xs text-text-muted block text-center">No matching universities found</span>';
+    return;
+  }
+
+  box.innerHTML = filtered.map(u => {
+    const isSelected = state.selectedUniversities && state.selectedUniversities.includes(u);
+    return `
+      <div onclick="selectUniversity('${escapeHtml(u)}')" class="px-3.5 py-2 text-xs flex items-center justify-between hover:bg-surface-muted cursor-pointer transition-colors ${isSelected ? 'bg-surface-container font-bold text-ashoka-blue' : 'text-text-primary'}">
+        <span>${escapeHtml(u)}</span>
+        <span class="material-symbols-outlined text-[16px] text-ashoka-blue">${isSelected ? 'check' : 'add'}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function selectUniversity(univName) {
+  if (!state.selectedUniversities) state.selectedUniversities = [];
+  if (!state.selectedUniversities.includes(univName)) {
+    state.selectedUniversities.push(univName);
+    renderSelectedUniversityChips();
+    renderUniversityListBox(document.getElementById('pf-univ-search')?.value || '');
+    const errEl = document.getElementById('pf-univ-error-msg');
+    if (errEl) errEl.classList.add('hidden');
+  }
+}
+
+function removeSelectedUniversity(univName) {
+  if (!state.selectedUniversities) return;
+  state.selectedUniversities = state.selectedUniversities.filter(u => u !== univName);
+  renderSelectedUniversityChips();
+  renderUniversityListBox(document.getElementById('pf-univ-search')?.value || '');
+}
+
+function renderSelectedUniversityChips() {
+  const chipsContainer = document.getElementById('pf-selected-univ-chips');
+  const countBadge = document.getElementById('selected-univ-count-badge');
+  const count = state.selectedUniversities ? state.selectedUniversities.length : 0;
+  if (countBadge) countBadge.textContent = `${count} selected`;
+
+  if (!chipsContainer) return;
+
+  if (!state.selectedUniversities || state.selectedUniversities.length === 0) {
+    chipsContainer.innerHTML = '<span class="text-xs text-text-muted italic" id="pf-no-univ-selected-msg">No universities selected yet. Click from the list below to add.</span>';
+    return;
+  }
+
+  chipsContainer.innerHTML = state.selectedUniversities.map(u => `
+    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container text-ashoka-blue font-bold text-xs border border-ashoka-blue/30">
+      <span>${escapeHtml(u)}</span>
+      <button type="button" onclick="removeSelectedUniversity('${escapeHtml(u)}')" class="hover:text-error cursor-pointer">
+        <span class="material-symbols-outlined text-[14px]">close</span>
+      </button>
+    </span>
+  `).join('');
+}
+
+function handleAccessRuleChange(rule) {
+  state.activeAccessRule = rule;
+
+  // Update card styles
+  document.querySelectorAll('.access-rule-card').forEach(card => {
+    const cardRule = card.dataset.rule;
+    const isSelected = cardRule === rule;
+    const radio = card.querySelector('input[type="radio"]');
+    if (radio) radio.checked = isSelected;
+
+    if (isSelected) {
+      card.className = 'access-rule-card relative flex flex-col p-4 rounded-xl border-2 border-ashoka-blue bg-surface-container-low cursor-pointer transition-all shadow-sm';
+    } else {
+      card.className = 'access-rule-card relative flex flex-col p-4 rounded-xl border border-border-hairline bg-surface-crisp hover:bg-surface-subtle cursor-pointer transition-all';
+    }
+  });
+
+  const selectedContainer = document.getElementById('pf-selected-universities-container');
+  const autoWarning = document.getElementById('pf-auto-universities-warning');
+
+  if (selectedContainer) {
+    selectedContainer.classList.toggle('hidden', rule !== 'SELECTED_UNIVERSITIES');
+    if (rule === 'SELECTED_UNIVERSITIES') {
+      renderSelectedUniversityChips();
+      renderUniversityListBox('');
+    }
+  }
+
+  if (autoWarning) {
+    autoWarning.classList.toggle('hidden', rule !== 'AUTO_SELECTED_UNIVERSITIES');
+  }
+}
+
+function fillDefaultLocation() {
+  const stateInput = document.getElementById('pf-state');
+  const distInput = document.getElementById('pf-district');
+  const latInput = document.getElementById('pf-latitude');
+  const lngInput = document.getElementById('pf-longitude');
+  const blockInput = document.getElementById('pf-block');
+  const villageInput = document.getElementById('pf-village');
+  const pincodeInput = document.getElementById('pf-pincode');
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        if (latInput) latInput.value = pos.coords.latitude.toFixed(6);
+        if (lngInput) lngInput.value = pos.coords.longitude.toFixed(6);
+        toast('Detected device GPS coordinates!', 'success');
+      },
+      () => {
+        if (stateInput) stateInput.value = 'Bihar';
+        if (distInput) distInput.value = 'Patna';
+        if (blockInput) blockInput.value = 'Patna Sadar';
+        if (villageInput) villageInput.value = 'Ward 12';
+        if (pincodeInput) pincodeInput.value = '800001';
+        if (latInput) latInput.value = '25.594100';
+        if (lngInput) lngInput.value = '85.137600';
+        toast('Populated standard Bihar-Patna civic coordinates.', 'info');
+      }
+    );
+  } else {
+    if (stateInput) stateInput.value = 'Bihar';
+    if (distInput) distInput.value = 'Patna';
+    if (blockInput) blockInput.value = 'Patna Sadar';
+    if (villageInput) villageInput.value = 'Ward 12';
+    if (pincodeInput) pincodeInput.value = '800001';
+    if (latInput) latInput.value = '25.594100';
+    if (lngInput) lngInput.value = '85.137600';
+    toast('Populated standard Bihar-Patna civic coordinates.', 'info');
   }
 }
 
 async function handlePostProblem() {
-  const sourceAccId = state.activeSourceAccount?.sourceAccountId;
-  if (!sourceAccId) {
-    toast('No verified source account found to file problem under.', 'error');
+  const isVerified = Boolean(state.activeSourceAccount) || state.user?.kycStatus === 'VERIFIED';
+  if (!isVerified || !state.activeSourceAccount?.sourceAccountId) {
+    toast('Only verified submitters with an active source account can file problems.', 'error');
     return;
   }
 
-  const title = document.getElementById('prob-title')?.value.trim();
-  const desc = document.getElementById('prob-desc')?.value.trim();
-  const severity = document.getElementById('prob-severity')?.value;
-  const urgency = document.getElementById('prob-urgency')?.value;
-  const domainId = document.getElementById('prob-domain-select')?.value;
-  const stateVal = document.getElementById('prob-state')?.value.trim() || 'Bihar';
-  const districtVal = document.getElementById('prob-district')?.value.trim() || 'Patna';
+  const title = document.getElementById('pf-title')?.value.trim();
+  const desc = document.getElementById('pf-description')?.value.trim();
+  const urgency = document.getElementById('pf-urgency')?.value;
+  const severity = document.getElementById('pf-severity')?.value;
+  const affectedPop = document.getElementById('pf-affected-population')?.value;
+  const expectedOutcome = document.getElementById('pf-expected-outcome')?.value.trim();
+  const existingIntervention = document.getElementById('pf-existing-intervention')?.value.trim();
 
-  if (!title || !desc) {
-    toast('Please fill in Problem Title and Description', 'error');
+  // Location inputs
+  const stateVal = document.getElementById('pf-state')?.value.trim();
+  const districtVal = document.getElementById('pf-district')?.value.trim();
+  const blockVal = document.getElementById('pf-block')?.value.trim();
+  const villageVal = document.getElementById('pf-village')?.value.trim();
+  const pincodeVal = document.getElementById('pf-pincode')?.value.trim();
+  const latVal = document.getElementById('pf-latitude')?.value;
+  const lngVal = document.getElementById('pf-longitude')?.value;
+  const landmarkVal = document.getElementById('pf-landmark')?.value.trim();
+  const lgdVal = document.getElementById('pf-lgd-code')?.value.trim();
+
+  if (!title || !desc || !urgency || !severity || !affectedPop || !expectedOutcome || !stateVal || !districtVal || !latVal || !lngVal) {
+    toast('Please fill in all mandatory problem details (*).', 'error');
     return;
   }
+
+  const accessRule = state.activeAccessRule || 'OPEN_TO_ALL';
+
+  // Fix 2: Client-side block if SELECTED_UNIVERSITIES has 0 universities selected
+  if (accessRule === 'SELECTED_UNIVERSITIES') {
+    if (!state.selectedUniversities || state.selectedUniversities.length === 0) {
+      const errEl = document.getElementById('pf-univ-error-msg');
+      if (errEl) errEl.classList.remove('hidden');
+      toast('Please select at least one university for SELECTED_UNIVERSITIES access rule.', 'error');
+      document.getElementById('pf-univ-search')?.focus();
+      return;
+    }
+  }
+
+  const submitBtn = document.getElementById('pf-submit-btn');
+  const btnText = document.getElementById('pf-submit-btn-text');
+  if (submitBtn) submitBtn.disabled = true;
+  if (btnText) btnText.textContent = 'Lodging Problem...';
 
   const payload = {
-    sourceAccountId: sourceAccId,
     title,
     description: desc,
-    severity,
     urgency,
-    domainIds: domainId ? [domainId] : [],
+    severity,
+    affectedPopulation: parseInt(affectedPop, 10),
+    expectedOutcome,
+    existingIntervention: existingIntervention || null,
+    sourceAccountId: state.activeSourceAccount.sourceAccountId,
     location: {
       state: stateVal,
       district: districtVal,
-      latitude: 25.5941,
-      longitude: 85.1376
-    }
+      blockTehsil: blockVal || null,
+      villageWard: villageVal || null,
+      pincode: pincodeVal || null,
+      latitude: parseFloat(latVal),
+      longitude: parseFloat(lngVal),
+      landmark: landmarkVal || null,
+      lgdCode: lgdVal || null
+    },
+    domainIds: state.selectedDomainIds && state.selectedDomainIds.length > 0 ? state.selectedDomainIds : null,
+    accessRule: accessRule,
+    accessUniversities: accessRule === 'SELECTED_UNIVERSITIES' ? state.selectedUniversities : null
   };
 
   const res = await api('POST', '/problems', { body: payload });
-  if (res.ok && res.data) {
-    toast(`Problem statement submitted! Problem ID: ${res.data.problemId.slice(0, 8)}...`, 'success');
-    document.getElementById('problem-form')?.reset();
-    document.getElementById('problem-modal')?.classList.add('hidden');
-    // Show problem card
-    const list = document.getElementById('submitted-problems-list');
-    if (list) {
-      const card = document.createElement('div');
-      card.className = 'p-4 rounded-xl border border-gov-emerald bg-surface-crisp shadow-sm flex flex-col gap-2';
-      card.innerHTML = `
-        <div class="flex items-center justify-between">
-          <span class="px-2.5 py-0.5 rounded-full bg-gov-emerald/10 text-gov-emerald font-bold font-label-sm text-[11px] uppercase">${res.data.status}</span>
-          <span class="font-mono-code text-[11px] text-text-muted">ID: ${res.data.problemId.slice(0, 8)}</span>
+
+  if (submitBtn) submitBtn.disabled = false;
+  if (btnText) btnText.textContent = 'Submit Problem Statement to National Repository';
+
+  if (!res.ok || !res.data) {
+    const errorMsg = (res.data && (res.data.detail || res.data.message)) || 'Submission failed. Please verify all inputs.';
+    toast(errorMsg, 'error');
+    return;
+  }
+
+  const createdProblem = res.data;
+  toast('Problem statement lodged successfully!', 'success');
+
+  // Handle optional initial evidence file upload
+  const fileInput = document.getElementById('pf-evidence-file');
+  const evidenceType = document.getElementById('pf-evidence-type')?.value || 'DOCUMENT';
+  if (fileInput && fileInput.files && fileInput.files[0]) {
+    const fd = new FormData();
+    fd.append('file', fileInput.files[0]);
+    fd.append('evidenceType', evidenceType);
+    await api('POST', `/problems/${createdProblem.problemId}/evidence`, { body: fd });
+  }
+
+  // Reset form
+  document.getElementById('problem-filing-form')?.reset();
+  state.selectedDomainIds = [];
+  state.selectedUniversities = [];
+  loadProblemDomainsForFiling();
+  renderSelectedUniversityChips();
+
+  // Show celebratory success modal
+  const successModal = document.getElementById('problem-success-modal');
+  const idEl = document.getElementById('success-problem-id');
+  const ruleEl = document.getElementById('success-access-rule');
+  if (idEl) idEl.textContent = createdProblem.problemId;
+  if (ruleEl) ruleEl.textContent = createdProblem.accessRule || accessRule;
+  if (successModal) successModal.classList.remove('hidden');
+
+  // Update problems list in background
+  loadMyProblems();
+}
+
+/* ---------------- My Problems Screen (Fix 3) ---------------- */
+async function loadMyProblems() {
+  const container = document.getElementById('my-problems-list-container');
+  if (!container) return;
+
+  const res = await api('GET', '/problems');
+  if (!res.ok || !Array.isArray(res.data)) {
+    container.innerHTML = `
+      <div class="p-8 text-center text-xs text-error border border-error/20 bg-rose-50 rounded-xl">
+        Failed to load filed problems. Please check your network connection.
+      </div>
+    `;
+    return;
+  }
+
+  state.myProblems = res.data;
+
+  // Update nav badge count
+  const navBadge = document.getElementById('nav-my-problems-count');
+  if (navBadge) {
+    navBadge.textContent = state.myProblems.length;
+    navBadge.classList.toggle('hidden', state.myProblems.length === 0);
+  }
+
+  // Compute KPI counts
+  let verifying = 0;
+  let registered = 0;
+  let rejected = 0;
+
+  state.myProblems.forEach(p => {
+    if (['SUBMITTED', 'SOURCE_VERIFYING'].includes(p.status)) verifying++;
+    else if (['SOURCE_VERIFIED', 'REGISTERED'].includes(p.status)) registered++;
+    else if (['REJECTED', 'ARCHIVED'].includes(p.status)) rejected++;
+  });
+
+  const totalEl = document.getElementById('stat-problems-total');
+  const verifyingEl = document.getElementById('stat-problems-verifying');
+  const registeredEl = document.getElementById('stat-problems-registered');
+  const rejectedEl = document.getElementById('stat-problems-rejected');
+
+  if (totalEl) totalEl.textContent = state.myProblems.length;
+  if (verifyingEl) verifyingEl.textContent = verifying;
+  if (registeredEl) registeredEl.textContent = registered;
+  if (rejectedEl) rejectedEl.textContent = rejected;
+
+  renderProblemsList(state.myProblems);
+}
+
+function handleFilterProblemsList() {
+  if (!state.myProblems) return;
+  const search = document.getElementById('my-problems-search-input')?.value.trim().toLowerCase() || '';
+  const statusFilter = document.getElementById('my-problems-status-filter')?.value || 'ALL';
+
+  const filtered = state.myProblems.filter(p => {
+    const matchesSearch = !search || p.title?.toLowerCase().includes(search) || p.description?.toLowerCase().includes(search);
+    const matchesStatus = statusFilter === 'ALL' || p.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  renderProblemsList(filtered);
+}
+
+function getProblemStatusBadge(status) {
+  switch (status) {
+    case 'SUBMITTED':
+      return {
+        bg: 'bg-amber-50 text-amber-800 border border-amber-300',
+        icon: 'check_circle',
+        label: 'SUBMITTED'
+      };
+    case 'SOURCE_VERIFYING':
+      return {
+        bg: 'bg-blue-50 text-blue-800 border border-blue-300',
+        icon: 'hourglass_empty',
+        label: 'SOURCE_VERIFYING'
+      };
+    case 'SOURCE_VERIFIED':
+      return {
+        bg: 'bg-emerald-50 text-emerald-800 border border-emerald-300',
+        icon: 'verified',
+        label: 'SOURCE_VERIFIED'
+      };
+    case 'REGISTERED':
+      return {
+        bg: 'bg-indigo-50 text-indigo-800 border border-indigo-300',
+        icon: 'menu_book',
+        label: 'REGISTERED'
+      };
+    case 'REJECTED':
+      return {
+        bg: 'bg-rose-50 text-rose-800 border border-rose-300',
+        icon: 'cancel',
+        label: 'REJECTED'
+      };
+    case 'ARCHIVED':
+      return {
+        bg: 'bg-slate-100 text-slate-700 border border-slate-300',
+        icon: 'archive',
+        label: 'ARCHIVED'
+      };
+    default:
+      return {
+        bg: 'bg-surface-muted text-text-secondary border border-border-hairline',
+        icon: 'help',
+        label: status || 'UNKNOWN'
+      };
+  }
+}
+
+function renderProblemsList(problems) {
+  const container = document.getElementById('my-problems-list-container');
+  if (!container) return;
+
+  if (!problems || problems.length === 0) {
+    container.innerHTML = `
+      <div class="p-12 text-center text-text-muted border border-dashed border-border-strong rounded-xl bg-surface-crisp flex flex-col items-center">
+        <span class="material-symbols-outlined text-4xl text-text-muted mb-2">inbox</span>
+        <h3 class="font-bold text-base text-ashoka-blue mb-1">No Problem Statements Found</h3>
+        <p class="text-xs text-text-secondary max-w-sm mb-4">No problems match your filter or you have not yet filed any problem statements.</p>
+        <button type="button" onclick="goToFileProblem()" class="px-5 py-2.5 rounded-lg bg-ashoka-blue text-surface-crisp font-bold text-xs flex items-center gap-1.5 cursor-pointer">
+          <span class="material-symbols-outlined text-[16px]">add_circle</span>
+          <span>File a Problem Now</span>
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = problems.map(p => {
+    const badge = getProblemStatusBadge(p.status);
+    const dateStr = p.submittedAt ? new Date(p.submittedAt).toLocaleDateString('en-IN', {
+      day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    }) : '—';
+
+    const accessScopeLabel = p.accessRule === 'SELECTED_UNIVERSITIES'
+      ? `${(p.accessUniversities && p.accessUniversities.length) || 0} Universities Whitelisted`
+      : p.accessRule === 'AUTO_SELECTED_UNIVERSITIES'
+      ? 'AI Matched Universities'
+      : p.accessRule === 'UNIVERSITY_ONLY'
+      ? 'Universities Only'
+      : 'Open to All';
+
+    return `
+      <div class="p-5 sm:p-6 bg-surface-crisp rounded-xl border border-border-hairline shadow-sm hover:shadow-md transition-all flex flex-col gap-4">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <span class="text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 ${badge.bg}">
+              <span class="material-symbols-outlined text-[15px]">${badge.icon}</span>
+              <span>${badge.label}</span>
+            </span>
+            <span class="text-xs text-text-muted font-mono-code">ID: ${p.problemId.slice(0, 8)}...</span>
+            <span class="text-xs text-text-muted">·</span>
+            <span class="text-xs text-text-muted">Filed: ${dateStr}</span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="openProblemDetailModal('${p.problemId}')"
+                    class="px-4 py-2 rounded-lg bg-surface-subtle hover:bg-surface-container text-ashoka-blue font-bold text-xs border border-border-hairline flex items-center gap-1.5 transition-colors cursor-pointer">
+              <span class="material-symbols-outlined text-[16px]">visibility</span>
+              <span>View Details &amp; Evidence</span>
+            </button>
+          </div>
         </div>
-        <h4 class="font-headline-sm text-ashoka-blue font-bold">${res.data.title}</h4>
-        <p class="font-body-sm text-text-secondary">${res.data.description}</p>
-      `;
-      list.prepend(card);
+
+        <div>
+          <h3 class="font-bold text-base text-ashoka-blue mb-1">${escapeHtml(p.title)}</h3>
+          <p class="text-xs text-text-secondary line-clamp-2 leading-relaxed">${escapeHtml(p.description || '')}</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-border-hairline text-xs">
+          <span class="px-2.5 py-1 rounded bg-surface-muted text-text-secondary font-medium flex items-center gap-1">
+            <span class="material-symbols-outlined text-[14px]">speed</span>
+            <span>Urgency: <strong>${p.urgency || '—'}</strong></span>
+          </span>
+          <span class="px-2.5 py-1 rounded bg-surface-muted text-text-secondary font-medium flex items-center gap-1">
+            <span class="material-symbols-outlined text-[14px]">report</span>
+            <span>Severity: <strong>${p.severity || '—'}</strong></span>
+          </span>
+          <span class="px-2.5 py-1 rounded bg-surface-muted text-text-secondary font-medium flex items-center gap-1">
+            <span class="material-symbols-outlined text-[14px]">groups</span>
+            <span>Impact: <strong>${p.affectedPopulation ? p.affectedPopulation.toLocaleString('en-IN') : '—'} citizens</strong></span>
+          </span>
+          <span class="px-2.5 py-1 rounded bg-surface-container text-ashoka-blue font-medium flex items-center gap-1 ml-auto">
+            <span class="material-symbols-outlined text-[14px]">shield</span>
+            <span>${accessScopeLabel}</span>
+          </span>
+        </div>
+
+      </div>
+    `;
+  }).join('');
+}
+
+async function openProblemDetailModal(problemId) {
+  let problem = state.myProblems?.find(p => p.problemId === problemId);
+  if (!problem) {
+    const res = await api('GET', `/problems/${problemId}`);
+    if (res.ok && res.data) {
+      problem = res.data;
+    }
+  }
+
+  if (!problem) {
+    toast('Could not find problem details.', 'error');
+    return;
+  }
+
+  state.activeModalProblemId = problemId;
+
+  // Header info
+  const titleEl = document.getElementById('detail-modal-title');
+  const badgeEl = document.getElementById('detail-modal-status-badge');
+  const idEl = document.getElementById('detail-modal-problem-id');
+  const dateEl = document.getElementById('detail-modal-submitted-at');
+
+  if (titleEl) titleEl.textContent = problem.title;
+  if (idEl) idEl.textContent = `ID: ${problem.problemId}`;
+  if (dateEl) {
+    dateEl.textContent = problem.submittedAt ? `Filed: ${new Date(problem.submittedAt).toLocaleDateString('en-IN', {
+      day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    })}` : 'Filed: —';
+  }
+
+  const badge = getProblemStatusBadge(problem.status);
+  if (badgeEl) {
+    badgeEl.className = `text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${badge.bg}`;
+    badgeEl.textContent = badge.label;
+  }
+
+  // Lifecycle Steps: SUBMITTED -> SOURCE_VERIFYING -> SOURCE_VERIFIED -> REGISTERED
+  const stepSubmitted = document.getElementById('step-submitted');
+  const stepVerifying = document.getElementById('step-verifying');
+  const stepVerified = document.getElementById('step-verified');
+  const stepRegistered = document.getElementById('step-registered');
+  const terminalAlert = document.getElementById('detail-modal-terminal-alert');
+
+  const activeBox = 'step-box p-2 rounded-lg bg-surface-container border border-ashoka-blue flex flex-col items-center shadow-xs';
+  const doneBox = 'step-box p-2 rounded-lg bg-status-approved-bg border border-status-approved-border flex flex-col items-center';
+  const pendingBox = 'step-box p-2 rounded-lg bg-surface-crisp border border-border-hairline flex flex-col items-center opacity-60';
+
+  if (stepSubmitted) stepSubmitted.className = doneBox;
+  if (stepVerifying) stepVerifying.className = pendingBox;
+  if (stepVerified) stepVerified.className = pendingBox;
+  if (stepRegistered) stepRegistered.className = pendingBox;
+  if (terminalAlert) terminalAlert.classList.add('hidden');
+
+  if (problem.status === 'SOURCE_VERIFYING') {
+    if (stepVerifying) stepVerifying.className = activeBox;
+  } else if (problem.status === 'SOURCE_VERIFIED') {
+    if (stepVerifying) stepVerifying.className = doneBox;
+    if (stepVerified) stepVerified.className = activeBox;
+  } else if (problem.status === 'REGISTERED') {
+    if (stepVerifying) stepVerifying.className = doneBox;
+    if (stepVerified) stepVerified.className = doneBox;
+    if (stepRegistered) stepRegistered.className = doneBox;
+  } else if (problem.status === 'REJECTED' || problem.status === 'ARCHIVED') {
+    if (terminalAlert) {
+      terminalAlert.textContent = `Current Problem Lifecycle Status: ${problem.status}. Official review is complete.`;
+      terminalAlert.classList.remove('hidden');
+    }
+  }
+
+  // Detail content
+  const descEl = document.getElementById('detail-modal-description');
+  const outcomeEl = document.getElementById('detail-modal-outcome');
+  const interventionEl = document.getElementById('detail-modal-intervention');
+  const urgencyEl = document.getElementById('detail-modal-urgency');
+  const severityEl = document.getElementById('detail-modal-severity');
+  const popEl = document.getElementById('detail-modal-population');
+  const bucketEl = document.getElementById('detail-modal-bucket');
+  const accessRuleEl = document.getElementById('detail-modal-access-rule');
+
+  if (descEl) descEl.textContent = problem.description || '—';
+  if (outcomeEl) outcomeEl.textContent = problem.expectedOutcome || '—';
+  if (interventionEl) interventionEl.textContent = problem.existingIntervention || 'None specified';
+  if (urgencyEl) urgencyEl.textContent = problem.urgency || '—';
+  if (severityEl) severityEl.textContent = problem.severity || '—';
+  if (popEl) popEl.textContent = problem.affectedPopulation ? problem.affectedPopulation.toLocaleString('en-IN') : '—';
+  if (bucketEl) bucketEl.textContent = problem.sourceBucket || '—';
+  if (accessRuleEl) accessRuleEl.textContent = problem.accessRule || 'OPEN_TO_ALL';
+
+  const univWrap = document.getElementById('detail-modal-universities-wrap');
+  const univList = document.getElementById('detail-modal-universities-list');
+  if (problem.accessRule === 'SELECTED_UNIVERSITIES' && Array.isArray(problem.accessUniversities) && problem.accessUniversities.length > 0) {
+    if (univWrap) univWrap.classList.remove('hidden');
+    if (univList) {
+      univList.innerHTML = problem.accessUniversities.map(u => `
+        <span class="px-2 py-0.5 rounded bg-surface-container text-ashoka-blue text-[11px] font-bold border border-ashoka-blue/20">
+          ${escapeHtml(u)}
+        </span>
+      `).join('');
     }
   } else {
-    toast((res.data && res.data.detail) || 'Failed to submit problem statement', 'error');
+    if (univWrap) univWrap.classList.add('hidden');
+  }
+
+  // Load Evidence list
+  await loadProblemModalEvidence(problemId);
+
+  // Show modal
+  const modal = document.getElementById('problem-detail-modal');
+  if (modal) modal.classList.remove('hidden');
+}
+
+async function loadProblemModalEvidence(problemId) {
+  const evidenceListEl = document.getElementById('detail-modal-evidence-list');
+  const countEl = document.getElementById('detail-modal-evidence-count');
+  if (!evidenceListEl) return;
+
+  const res = await api('GET', `/problems/${problemId}/evidence`);
+  const evidenceItems = (res.ok && Array.isArray(res.data)) ? res.data : [];
+
+  if (countEl) countEl.textContent = `${evidenceItems.length} files`;
+
+  if (evidenceItems.length === 0) {
+    evidenceListEl.innerHTML = `
+      <div class="p-4 text-center text-xs text-text-muted bg-surface-subtle rounded-lg border border-dashed border-border-hairline">
+        No evidence files attached to this problem yet.
+      </div>
+    `;
+    return;
+  }
+
+  evidenceListEl.innerHTML = evidenceItems.map(ev => {
+    const type = ev.evidenceType || 'DOCUMENT';
+    const uploadTime = ev.uploadedAt ? new Date(ev.uploadedAt).toLocaleDateString('en-IN', {
+      day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    }) : '—';
+    const fileName = ev.fileUrl ? ev.fileUrl.split('/').pop() : 'Evidence File';
+
+    return `
+      <div class="p-3 bg-surface-subtle rounded-lg border border-border-hairline flex items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-2.5 overflow-hidden">
+          <span class="material-symbols-outlined text-ashoka-blue text-lg shrink-0">attach_file</span>
+          <div class="flex flex-col truncate">
+            <span class="font-bold text-ashoka-blue truncate">${escapeHtml(fileName)}</span>
+            <span class="text-[10px] text-text-muted font-mono-code">${uploadTime}</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <span class="px-2 py-0.5 rounded bg-surface-muted text-text-secondary font-mono-code text-[10px] font-bold uppercase">
+            ${type}
+          </span>
+          ${ev.fileUrl ? `
+            <a href="${ev.fileUrl}" target="_blank" rel="noopener noreferrer" class="p-1 rounded hover:bg-surface-container text-ashoka-blue cursor-pointer">
+              <span class="material-symbols-outlined text-base">download</span>
+            </a>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function handleAddProblemEvidence() {
+  const problemId = state.activeModalProblemId;
+  if (!problemId) {
+    toast('No active problem selected to attach evidence.', 'error');
+    return;
+  }
+
+  const fileInput = document.getElementById('detail-evidence-file');
+  const typeSelect = document.getElementById('detail-evidence-type');
+  const uploadBtn = document.getElementById('detail-evidence-upload-btn');
+
+  if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+    toast('Please select a file to upload.', 'error');
+    return;
+  }
+
+  const file = fileInput.files[0];
+  const evidenceType = typeSelect?.value || 'DOCUMENT';
+
+  if (uploadBtn) uploadBtn.disabled = true;
+
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('evidenceType', evidenceType);
+
+  const res = await api('POST', `/problems/${problemId}/evidence`, { body: fd });
+
+  if (uploadBtn) uploadBtn.disabled = false;
+
+  if (res.ok) {
+    toast('Evidence attached successfully!', 'success');
+    fileInput.value = '';
+    await loadProblemModalEvidence(problemId);
+  } else {
+    toast((res.data && res.data.detail) || 'Failed to upload evidence file.', 'error');
+  }
+}
+
+function closeProblemDetailModal() {
+  const modal = document.getElementById('problem-detail-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function closeProblemSuccessModal() {
+  const modal = document.getElementById('problem-success-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function copyModalProblemId() {
+  if (state.activeModalProblemId) {
+    navigator.clipboard?.writeText(state.activeModalProblemId);
+    toast('Problem ID copied to clipboard!', 'info');
+  }
+}
+
+function copySuccessProblemId() {
+  const id = document.getElementById('success-problem-id')?.textContent;
+  if (id && id !== '—') {
+    navigator.clipboard?.writeText(id);
+    toast('Problem ID copied to clipboard!', 'info');
   }
 }
 
@@ -1952,6 +2779,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // Check existing session
   syncPortalState();
 
+  // Popstate listener for back/forward browser navigation
+  window.addEventListener('popstate', (e) => {
+    const targetView = e.state?.viewId || (window.location.hash ? window.location.hash.slice(1) : null);
+    if (targetView) {
+      showView(targetView);
+    } else {
+      syncPortalState();
+    }
+  });
+
 });
 
 // Expose functions to window for HTML inline handlers
@@ -1979,5 +2816,21 @@ window.handleSubmitRegistration = handleSubmitRegistration;
 window.handlePatchDeficiency = handlePatchDeficiency;
 window.handleResubmit = handleResubmit;
 window.handlePostProblem = handlePostProblem;
+window.goToKycAction = goToKycAction;
+window.goToFileProblem = goToFileProblem;
+window.goToMyProblems = goToMyProblems;
+window.handleAccessRuleChange = handleAccessRuleChange;
+window.filterUniversitiesList = filterUniversitiesList;
+window.selectUniversity = selectUniversity;
+window.removeSelectedUniversity = removeSelectedUniversity;
+window.toggleDomainSelection = toggleDomainSelection;
+window.fillDefaultLocation = fillDefaultLocation;
+window.handleFilterProblemsList = handleFilterProblemsList;
+window.openProblemDetailModal = openProblemDetailModal;
+window.closeProblemDetailModal = closeProblemDetailModal;
+window.closeProblemSuccessModal = closeProblemSuccessModal;
+window.handleAddProblemEvidence = handleAddProblemEvidence;
+window.copyModalProblemId = copyModalProblemId;
+window.copySuccessProblemId = copySuccessProblemId;
 window.toast = toast;
 window.state = state;
