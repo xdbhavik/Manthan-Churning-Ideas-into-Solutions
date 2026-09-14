@@ -145,7 +145,9 @@ public class PortalController {
                     "teamName + memberUserIds to create a team and draft the team " +
                     "submission; every member must individually be able to see the problem. " +
                     "An individual may have only one active (DRAFT/SUBMITTED/UNDER_REVIEW) " +
-                    "submission per problem.")
+                    "submission per problem. For a repo-backed submission pass " +
+                    "githubUrl + commitSha; the commit may be pinned later, but it is " +
+                    "required by the time the submission is submitted.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Draft created"),
             @ApiResponse(responseCode = "403", description = "Problem (or a member) not visible"),
@@ -169,8 +171,8 @@ public class PortalController {
     }
 
     @Operation(summary = "✏️ Edit submission meta",
-            description = "Updates title/summary/GitHub/links while the submission is " +
-                    "DRAFT or RETURNED (null fields are left unchanged).")
+            description = "Updates title/summary/GitHub/commit/branch/links while the " +
+                    "submission is DRAFT or RETURNED (null fields are left unchanged).")
     @PatchMapping("/submissions/{submissionId}")
     @Tag(name = OpenApiConfig.TAG_SUBMISSION)
     public SubmissionView updateMeta(@AuthenticationPrincipal AuthUser me,
@@ -184,10 +186,13 @@ public class PortalController {
                     "files, asks evaluation-service to open a project review assigned to the " +
                     "evaluator who scored the problem, then lands on UNDER_REVIEW with that " +
                     "reviewer stored. A failed evaluation push rolls back — no SUBMITTED row " +
-                    "without a review persists.")
+                    "without a review persists. A GitHub-backed submission must pin a " +
+                    "commitSha (7-64 chars): CodeJudge will not judge a moving branch HEAD. " +
+                    "The automated CodeJudge run is then queued best-effort — its outcome " +
+                    "informs the reviewer and never blocks or rolls back the submit.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Under review"),
-            @ApiResponse(responseCode = "400", description = "No artifact (title/summary/file/link) yet"),
+            @ApiResponse(responseCode = "400", description = "No artifact (title/summary/file/link) yet, or a GitHub submission with no commitSha"),
             @ApiResponse(responseCode = "502", description = "Evaluation service unreachable / rejected"),
             @ApiResponse(responseCode = "409", description = "Problem not yet evaluated to completion")
     })

@@ -52,6 +52,13 @@ app:
     # Build/run/test execution of untrusted code is NOT enabled in this
     # deployment. Turn on only inside a real sandbox (see codejudgeservice.md §23).
     sandbox-enabled: ${CODEJUDGE_SANDBOX_ENABLED:false}
+  # Where problem-service is found. With discovery enabled this is the
+  # load-balanced SERVICE ID (no port) resolved through eureka; kept as a
+  # property so a local run can point a non-eureka peer at a fixed URL.
+  # The context snapshot is an enrichment, not a precondition: when this is
+  # unreachable the intake simply proceeds without it (see ProblemContextGateway).
+  problem-service:
+    base-url: ${PROBLEM_SERVICE_URL:http://problem-service}
   llm:
     # OpenAI-compatible local model, shared convention with evaluation-service.
     # CodeJudge uses it for an ADVISORY assessment only — it never contributes to

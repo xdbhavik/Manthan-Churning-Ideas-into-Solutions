@@ -1,5 +1,6 @@
 package com.EDITH.SIH26043.service;
 
+import com.EDITH.SIH26043.client.ProblemContextGateway;
 import com.EDITH.SIH26043.entity.Evaluation;
 import com.EDITH.SIH26043.entity.EvaluationCategoryScore;
 import com.EDITH.SIH26043.entity.EvaluationReport;
@@ -9,6 +10,7 @@ import com.EDITH.SIH26043.enums.KycStatus;
 import com.EDITH.SIH26043.enums.UserRole;
 import com.EDITH.SIH26043.enums.Verdict;
 import com.EDITH.SIH26043.exception.ApiException;
+import com.EDITH.SIH26043.internal.ProblemContextResponse;
 import com.EDITH.SIH26043.repository.EvaluationCategoryScoreRepository;
 import com.EDITH.SIH26043.repository.EvaluationFindingRepository;
 import com.EDITH.SIH26043.repository.EvaluationReportRepository;
@@ -54,10 +56,12 @@ class EvaluationServiceTest {
     private final EvaluationFindingRepository findingRepository = mock(EvaluationFindingRepository.class);
     private final EvaluationReportRepository reportRepository = mock(EvaluationReportRepository.class);
     private final JobQueueService jobQueueService = mock(JobQueueService.class);
+    private final ProblemContextGateway problemContextGateway = mock(ProblemContextGateway.class);
 
     private final EvaluationService service = new EvaluationService(
             submissionRepository, evaluationRepository, historyRepository,
-            categoryScoreRepository, findingRepository, reportRepository, jobQueueService);
+            categoryScoreRepository, findingRepository, reportRepository, jobQueueService,
+            problemContextGateway);
 
     private final UUID ownerUserId = UUID.randomUUID();
     private final UUID problemId = UUID.randomUUID();
@@ -108,6 +112,88 @@ class EvaluationServiceTest {
                 request("file:///srv/checkouts/project", "abc1234"), ownerUserId);
 
         assertThat(evaluation.getStatus()).isEqualTo(EvaluationStatus.QUEUED);
+    }
+
+    // ----------------------------------------- problem snapshot + portal hand-off
+
+    @Test
+    void createSnapshotsTheProblemStatementForTheReport() {
+        stubSaves();
+        when(problemContextGateway.fetch(problemId)).thenReturn(problemContext());
+
+        service.create(request("https://github.com/team/project", "abc1234"), ownerUserId);
+
+        ProjectSubmission saved = captureSubmission();
+        // The caller's title stays authoritative: the portal knows the title the
+        // student actually saw, the snapshot is only the durable fallback.
+        assertThat(saved.getProblemTitle()).isEqualTo("Water logging in ward 4");
+        assertThat(saved.getProblemDescription())
+                .isEqualTo("Storm drains overflow every monsoon.");
+        assertThat(saved.getProblemExpectedOutcome()).isEqualTo("Dry wards through the monsoon.");
+        assertThat(saved.getProblemDomains()).containsExactly("CIVIC_INFRASTRUCTURE", "WATER");
+        assertThat(saved.getProblemStatus()).isEqualTo("PUBLISHED");
+    }
+
+    @Test
+    void createFallsBackToTheSnapshotTitleWhenTheCallerSuppliesNone() {
+        stubSaves();
+        when(problemContextGateway.fetch(problemId)).thenReturn(problemContext());
+        EvaluationCreateRequest anonymous = new EvaluationCreateRequest(null, problemId, null,
+                null, "https://github.com/team/project", "main", "abc1234", null, null);
+
+        service.create(anonymous, ownerUserId);
+
+        assertThat(captureSubmission().getProblemTitle())
+                .isEqualTo("Ward 4 storm-water logging");
+    }
+
+    @Test
+    void createStillQueuesWhenTheProblemContextIsUnavailable() {
+        stubSaves();
+        when(problemContextGateway.fetch(problemId)).thenReturn(null);
+
+        Evaluation evaluation = service.create(
+                request("https://github.com/team/project", "abc1234"), ownerUserId);
+
+        assertThat(evaluation.getStatus()).isEqualTo(EvaluationStatus.QUEUED);
+        ProjectSubmission saved = captureSubmission();
+        assertThat(saved.getProblemDescription()).isNull();
+        assertThat(saved.getProblemDomains()).isEmpty();
+    }
+
+    @Test
+    void createHandsBackTheRunAlreadyQueuedForTheSamePortalSubmission() {
+        Evaluation existing = evaluation(EvaluationStatus.QUEUED);
+        UUID portalSubmissionId = UUID.randomUUID();
+        when(submissionRepository.findFirstByPortalSubmissionIdAndCommitSha(portalSubmissionId, "abc1234"))
+                .thenReturn(Optional.of(submission(ownerUserId, existing)));
+        when(evaluationRepository.findBySubmissionIdOrderByCreatedAtDesc(existing.getSubmissionId()))
+                .thenReturn(List.of(existing));
+
+        Evaluation result = service.create(portalRequest(portalSubmissionId, "abc1234"), ownerUserId);
+
+        // A retried push is the same request — not a second run over the same commit.
+        assertThat(result).isSameAs(existing);
+        verify(submissionRepository, never()).save(any());
+        verify(jobQueueService, never()).enqueue(any(), anyInt());
+    }
+
+    @Test
+    void createRetriesWhenTheOnlyRunForThatCommitFailed() {
+        Evaluation failed = evaluation(EvaluationStatus.FAILED);
+        UUID portalSubmissionId = UUID.randomUUID();
+        when(submissionRepository.findFirstByPortalSubmissionIdAndCommitSha(portalSubmissionId, "abc1234"))
+                .thenReturn(Optional.of(submission(ownerUserId, failed)));
+        when(evaluationRepository.findBySubmissionIdOrderByCreatedAtDesc(failed.getSubmissionId()))
+                .thenReturn(List.of(failed));
+        stubSaves();
+
+        Evaluation result = service.create(portalRequest(portalSubmissionId, "abc1234"), ownerUserId);
+
+        // A FAILED run is worth a retry rather than being handed back forever.
+        assertThat(result).isNotSameAs(failed);
+        assertThat(result.getStatus()).isEqualTo(EvaluationStatus.QUEUED);
+        verify(jobQueueService).enqueue(eq(result.getEvaluationId()), anyInt());
     }
 
     @Test
@@ -322,6 +408,20 @@ class EvaluationServiceTest {
     private EvaluationCreateRequest request(String repositoryUrl, String commitSha) {
         return new EvaluationCreateRequest(null, problemId, "Water logging in ward 4",
                 null, repositoryUrl, "main", commitSha, null, null);
+    }
+
+    /** The same payload as the portal's hand-off: a portal submission id is present. */
+    private EvaluationCreateRequest portalRequest(UUID portalSubmissionId, String commitSha) {
+        return new EvaluationCreateRequest(portalSubmissionId, problemId, "Water logging in ward 4",
+                null, "https://github.com/team/project", "main", commitSha, null, null);
+    }
+
+    private ProblemContextResponse problemContext() {
+        return new ProblemContextResponse(problemId, "PUBLISHED", "Ward 4 storm-water logging",
+                "Storm drains overflow every monsoon.", "CIVIC_INFRASTRUCTURE", "WARD",
+                "HIGH", "SEVERE", 12000, "Dry wards through the monsoon.",
+                "Existing pumping station", "Ward 4, Pune",
+                List.of("CIVIC_INFRASTRUCTURE", "WATER"), 3, "OPEN_TO_ALL", List.of());
     }
 
     private Evaluation evaluation(EvaluationStatus status) {

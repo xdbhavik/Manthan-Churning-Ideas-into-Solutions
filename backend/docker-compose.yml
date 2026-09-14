@@ -21,8 +21,11 @@
 #                        (auto-publish at EVALUATION_COMPLETED; best effort)
 #   evaluation-service → POST portal-service:8084/internal/submissions/{id}/review-result
 #                        (land an ACCEPT/RETURN decision back on the submission)
-#   (available, not yet wired) → codejudge-service:8085/internal/codejudge/evaluations
-#                        (queue an automated repo evaluation for a submitted project)
+#   portal-service     → POST codejudge-service:8085/internal/codejudge/evaluations
+#                        (queue an automated repo evaluation for a pinned submission;
+#                         best effort — a codejudge outage never rolls back a submit)
+#   codejudge-service  → GET  problem-service:8082/internal/problems/{id}
+#                        (problem-statement snapshot at intake; tolerant, optional)
 #
 # Service images are THIN wrappers over the pre-built fat jars, so you must
 # (re)package before building:

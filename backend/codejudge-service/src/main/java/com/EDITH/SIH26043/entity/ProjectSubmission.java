@@ -9,8 +9,12 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -40,6 +44,29 @@ public class ProjectSubmission {
     /** Problem-title snapshot for the report (fallback when problem-service is unreachable). */
     @Column(name = "problem_title", length = 255)
     private String problemTitle;
+
+    /*
+     * Problem-statement snapshot taken from problem-service at intake (V3). Nullable
+     * across the board: the snapshot enriches the report, it is never a precondition,
+     * so intake succeeds even when problem-service is unreachable.
+     */
+
+    /** Full problem description at snapshot time. */
+    @Column(name = "problem_description", columnDefinition = "text")
+    private String problemDescription;
+
+    /** What the problem owner expects a successful solution to achieve. */
+    @Column(name = "problem_expected_outcome", columnDefinition = "text")
+    private String problemExpectedOutcome;
+
+    /** Problem domain names at snapshot time. */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "problem_domains", nullable = false)
+    private List<String> problemDomains = new ArrayList<>();
+
+    /** Problem lifecycle status at snapshot time, e.g. {@code REGISTERED}. */
+    @Column(name = "problem_status", length = 40)
+    private String problemStatus;
 
     @Column(name = "team_id")
     private UUID teamId;
