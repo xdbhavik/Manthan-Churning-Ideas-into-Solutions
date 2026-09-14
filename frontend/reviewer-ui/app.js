@@ -85,10 +85,21 @@ const ApiClient = {
       if (!response.ok) {
         let msg = `HTTP ${response.status}`;
         if (data) {
-          if (typeof data === 'string') msg = data;
-          else if (data.message) msg = data.message;
-          else if (data.error) msg = data.error;
-          else if (data.detail) msg = data.detail;
+          if (typeof data === 'string') {
+            try {
+              const parsed = JSON.parse(data);
+              msg = parsed.detail || parsed.message || parsed.error || data;
+              data = parsed;
+            } catch (e) {
+              msg = data;
+            }
+          } else if (data.detail) {
+            msg = data.detail;
+          } else if (data.message) {
+            msg = data.message;
+          } else if (data.error) {
+            msg = data.error;
+          }
         }
         const error = new Error(msg);
         error.status = response.status;
@@ -156,6 +167,63 @@ const ApiClient = {
 };
 
 // =============================================================================
+// 1.1 SHARED REVIEWER ERROR HANDLING LAYER (RFC 7807 SANITIZER & CONFLICT HANDLER)
+// =============================================================================
+function extractBackendErrorMessage(err) {
+  if (!err) return 'An unexpected error occurred.';
+  let raw = err.data || err.message || err;
+  
+  if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    if (trimmed.startsWith('{') && (trimmed.includes('"detail"') || trimmed.includes('"message"') || trimmed.includes('"error"'))) {
+      try {
+        raw = JSON.parse(trimmed);
+      } catch (e) {}
+    }
+  }
+  
+  if (raw && typeof raw === 'object') {
+    if (raw.detail && typeof raw.detail === 'string') return raw.detail;
+    if (raw.message && typeof raw.message === 'string') return raw.message;
+    if (raw.error && typeof raw.error === 'string') return raw.error;
+    if (raw.title && typeof raw.title === 'string' && !raw.instance) return raw.title;
+  }
+  
+  if (typeof raw === 'string') {
+    return raw;
+  }
+  
+  return err.message || 'Operation failed. Please check network connectivity.';
+}
+
+async function handleReviewerActionError(err, actionContext = {}) {
+  console.warn('Reviewer action error intercepted:', err, actionContext);
+  const status = err.status || (err.data && err.data.status);
+  const isConflict = status === 409;
+  
+  if (isConflict && actionContext.regId) {
+    const conflictMsg = "This registration's status has changed and this action is no longer valid — refreshing its latest status.";
+    showToast(conflictMsg, 'warning');
+    if (typeof loadRegistrationDetail === 'function') {
+      try {
+        await loadRegistrationDetail(actionContext.regId);
+      } catch (e) {
+        console.warn('Auto-refresh detail error:', e);
+      }
+    }
+    if (typeof fetchRegistrationsQueue === 'function') {
+      try {
+        await fetchRegistrationsQueue();
+      } catch (e) {}
+    }
+    return;
+  }
+  
+  const cleanMsg = extractBackendErrorMessage(err);
+  showToast(cleanMsg, 'error');
+}
+
+// =============================================================================
 // 2. APPLICATION STATE STORE
 // =============================================================================
 const AppState = {
@@ -173,6 +241,8 @@ const AppState = {
   currentProblemVerdict: 'REGISTERED',
   currentRegistrationId: null,
   currentProblemId: null,
+  currentSourceId: null,
+  currentSourceTab: 'all',
   challengeId: null,
   timerSeconds: 45,
   timerInterval: null,
@@ -183,11 +253,14 @@ const AppState = {
   registrationHistory: [],
   problems: [],
   evaluationCycles: [],
+  sources: [],
+  verificationHistory: {},
 
   // Loading States
   isLoadingRegistrations: false,
   isLoadingDetail: false,
-  isLoadingProblems: false
+  isLoadingProblems: false,
+  isLoadingSources: false
 };
 
 // =============================================================================
@@ -319,10 +392,10 @@ function updateGatewayStatus(isOnline) {
   if (pill) {
     if (isOnline) {
       pill.className = 'font-mono text-[11px] font-semibold text-gov-emerald flex items-center gap-1.5';
-      pill.innerHTML = `<span class="w-2 h-2 rounded-full bg-gov-emerald animate-pulse"></span><span>Gateway Online (8090)</span>`;
+      pill.innerHTML = `<span class="w-2 h-2 rounded-full bg-gov-emerald animate-pulse"></span><span>Systems Online</span>`;
     } else {
       pill.className = 'font-mono text-[11px] font-semibold text-saffron-accent flex items-center gap-1.5';
-      pill.innerHTML = `<span class="w-2 h-2 rounded-full bg-saffron-accent"></span><span>Gateway Offline (8090)</span>`;
+      pill.innerHTML = `<span class="w-2 h-2 rounded-full bg-saffron-accent"></span><span>Systems Offline</span>`;
     }
   }
 }
@@ -410,9 +483,9 @@ function handleRoute() {
       switchQueueTab('inbox');
     }
     fetchRegistrationsQueue();
-  } else if (routePath === '#/problem-queue') {
+  } else if (routePath === '#/problem-queue' || routePath === '#/source-verification') {
     document.getElementById('screen-problem-queue').classList.add('active');
-    document.title = "SIH26043 — Problem Statement Review Queue";
+    document.title = "SIH26043 — Source Identity Verification Console";
     const pqLink = document.getElementById('nav-link-problem-queue');
     if (pqLink) pqLink.className = "nav-link px-3 py-1.5 transition-colors flex items-center bg-primary-container text-on-primary font-medium text-xs sm:text-sm rounded-lg";
     fetchProblemQueue();
@@ -454,15 +527,14 @@ window.addEventListener('load', () => {
 
 function updateGlobalBadges() {
   const activeRegs = AppState.registrations.filter(r => r.status === 'SUBMITTED' || r.status === 'ACTION_REQUIRED').length;
-  const activePrbs = AppState.problems.filter(p => p.status === 'SUBMITTED' || p.status === 'SOURCE_VERIFYING' || p.status === 'RECEIVED' || p.status === 'ANALYZING').length;
-  const myCount = AppState.registrations.filter(r => r.status === 'UNDER_REVIEW').length +
-                  AppState.problems.filter(p => p.status === 'SOURCE_VERIFYING' || (p.cycle && p.cycle.status === 'EVALUATION_IN_PROGRESS')).length;
+  const pendingSources = (AppState.sources || []).filter(s => !s.isVerifiedSource && s.latestResult !== 'PASS').length;
+  const myCount = AppState.registrations.filter(r => r.status === 'UNDER_REVIEW').length + pendingSources;
 
   const navReg = document.getElementById('nav-reg-count');
   const navPrb = document.getElementById('nav-prb-count');
   const navMy = document.getElementById('nav-my-count');
   if (navReg) navReg.textContent = activeRegs;
-  if (navPrb) navPrb.textContent = activePrbs;
+  if (navPrb) navPrb.textContent = pendingSources;
   if (navMy) navMy.textContent = myCount;
 }
 
@@ -623,8 +695,8 @@ async function handleLoginRequestOtp() {
 
     window.location.hash = '#/otp';
   } catch (err) {
-    showToast(`Login failed: ${err.message}`);
-    alert(`Authentication Error: ${err.message}\nMake sure Gateway (8090) and source-service (8081) are running.`);
+    const cleanMsg = extractBackendErrorMessage(err);
+    showToast(`Login failed: ${cleanMsg}`, 'error');
   } finally {
     btn.disabled = false;
     btnText.innerText = "Send Verification Code (OTP)";
@@ -791,8 +863,8 @@ async function handleVerification() {
       window.location.hash = '#/access-denied';
     }
   } catch (err) {
-    showToast(`Verification failed: ${err.message}`);
-    alert(`Verification Error: ${err.message}`);
+    const cleanMsg = extractBackendErrorMessage(err);
+    showToast(`Verification failed: ${cleanMsg}`, 'error');
     submitBtn.disabled = false;
     submitBtn.innerHTML = `
       <span>Verify &amp; Continue</span>
@@ -826,7 +898,7 @@ async function fetchRegistrationsQueue() {
       <tr>
         <td colspan="5" class="py-12 text-center text-text-muted">
           <span class="material-symbols-outlined text-[32px] text-institutional-navy animate-spin mb-2 block">progress_activity</span>
-          <p class="font-body-md text-sm">Querying live registration queue from Gateway (http://localhost:8090)...</p>
+          <p class="font-body-md text-sm">Querying live statutory registration queue...</p>
         </td>
       </tr>
     `;
@@ -1102,8 +1174,7 @@ async function assignRegistration(regId, orgName) {
     showToast(`Registration "${orgName}" assigned to you.`);
     await fetchRegistrationsQueue();
   } catch (err) {
-    showToast(`Assignment failed: ${err.message}`);
-    alert(`Assignment Error: ${err.message}`);
+    await handleReviewerActionError(err, { regId, action: 'ASSIGN' });
   }
 }
 
@@ -1444,72 +1515,119 @@ async function executeStatutoryTransition() {
     await loadRegistrationDetail(regId);
     await fetchRegistrationsQueue();
   } catch (err) {
-    showToast(`Action failed: ${err.message}`);
-    alert(`Statutory Transition Error: ${err.message}`);
+    await handleReviewerActionError(err, { regId, action: AppState.currentDecision });
   } finally {
     evaluateSubmitReadiness();
   }
 }
 
 // =============================================================================
-// 11. SCREEN: PROBLEM QUEUE (REAL LIVE DATA)
+// 11. SCREEN: SOURCE IDENTITY VERIFICATION CONSOLE (POST /sources/{id}/verify)
 // =============================================================================
 async function fetchProblemQueue() {
   AppState.isLoadingProblems = true;
   const tbody = document.getElementById('problem-table-body');
 
-  if (tbody && AppState.problems.length === 0) {
+  if (tbody && (!AppState.sources || AppState.sources.length === 0)) {
     tbody.innerHTML = `
       <tr>
         <td colspan="6" class="py-12 text-center text-text-muted">
           <span class="material-symbols-outlined text-[32px] text-institutional-navy animate-spin mb-2 block">progress_activity</span>
-          <p class="font-body-md text-sm">Loading problem intake &amp; evaluation cycles from Gateway...</p>
+          <p class="font-body-md text-sm">Loading approved entity sources from Gateway registry...</p>
         </td>
       </tr>
     `;
   }
 
   try {
-    // 1. Fetch evaluation cycles from evaluation-service
-    const queueResp = await ApiClient.get('/evaluation/queue', { size: 50 }).catch(() => ({ content: [] }));
-    const cycles = queueResp.content || [];
-    AppState.evaluationCycles = cycles;
+    // 1. Fetch approved registrations from backend (approved organizations)
+    let approvedList = [];
+    try {
+      const regResp = await ApiClient.get('/reviewer/registrations', { status: 'APPROVED' });
+      approvedList = Array.isArray(regResp) ? regResp : (regResp.content || []);
+    } catch (e) {
+      console.warn('Direct approved query error, falling back to local registrations:', e);
+      approvedList = AppState.registrations.filter(r => r.status === 'APPROVED').map(r => r.raw || r);
+    }
 
-    const problemMap = {};
-    for (const c of cycles) {
-      if (c.problemId && !problemMap[c.problemId]) {
-        try {
-          const p = await ApiClient.get(`/problems/${c.problemId}`);
-          problemMap[c.problemId] = normalizeProblem({ ...p, cycle: c });
-        } catch (e) {
-          problemMap[c.problemId] = normalizeProblem({ id: c.problemId, title: `Problem ${c.problemId.substring(0, 8)}`, cycle: c });
-        }
+    // Also include any approved registrations already in AppState that might not have been returned
+    const existingApproved = AppState.registrations.filter(r => r.status === 'APPROVED');
+    for (const ea of existingApproved) {
+      const eaRaw = ea.raw || ea;
+      const eaId = ea.id || eaRaw.registrationId;
+      if (!approvedList.some(item => (item.registrationId || item.id) === eaId)) {
+        approvedList.push(eaRaw);
       }
     }
 
-    // 2. Also check portal published problems
-    try {
-      const portalResp = await ApiClient.get('/portal/problems', { size: 50 });
-      const portalList = Array.isArray(portalResp) ? portalResp : (portalResp.content || []);
-      for (const p of portalList) {
-        const pid = p.problemId || p.id;
-        if (!problemMap[pid]) {
-          problemMap[pid] = normalizeProblem(p);
-        }
-      }
-    } catch (e) {}
+    // 2. Normalize into source entities
+    const sources = approvedList.map(reg => {
+      const normReg = normalizeRegistration(reg);
+      const rawReg = reg.raw || reg;
+      const sourceId = rawReg.sourceId || normReg.sourceId || normReg.id;
+      const historyKey = `verification_history_${sourceId}`;
+      let localHistory = [];
+      try {
+        localHistory = JSON.parse(localStorage.getItem(historyKey) || '[]');
+      } catch (err) {}
 
-    AppState.problems = Object.values(problemMap);
+      const latestCheck = localHistory.length > 0 ? localHistory[localHistory.length - 1] : null;
+
+      let verificationStatus = 'PENDING';
+      let isVerifiedSource = false;
+      if (latestCheck) {
+        if (latestCheck.result === 'PASS') {
+          verificationStatus = 'VERIFIED';
+          isVerifiedSource = true;
+        } else if (latestCheck.result === 'NEEDS_REVIEW') {
+          verificationStatus = 'NEEDS_REVIEW';
+        } else if (latestCheck.result === 'FAIL') {
+          verificationStatus = 'FLAGGED';
+        }
+      } else if (rawReg.isVerifiedSource) {
+        verificationStatus = 'VERIFIED';
+        isVerifiedSource = true;
+      }
+
+      return {
+        id: sourceId,
+        sourceId: sourceId,
+        registrationId: normReg.id,
+        rawRegistration: rawReg,
+        name: normReg.name,
+        dossierId: normReg.dossierId,
+        sourceBucket: rawReg.sourceBucket || 'GOVT',
+        sourceType: rawReg.sourceType || 'PRI',
+        entityType: normReg.entityType,
+        subType: normReg.subType,
+        pan: normReg.pan,
+        identifier: normReg.pan !== 'NOT_RECORDED' ? normReg.pan : (normReg.subType || normReg.dossierId),
+        state: normReg.state,
+        district: normReg.district,
+        location: normReg.district ? `${normReg.district}, ${normReg.state}` : normReg.state,
+        contactPersonName: normReg.vdoName,
+        contactEmail: normReg.vdoEmail,
+        contactPhone: normReg.contactPhone,
+        status: normReg.status,
+        verificationStatus: verificationStatus,
+        isVerifiedSource: isVerifiedSource,
+        history: localHistory,
+        latestCheck: latestCheck,
+        date: normReg.date
+      };
+    });
+
+    AppState.sources = sources;
     renderProblemTable();
     updateGlobalBadges();
   } catch (err) {
-    console.error('Failed to load problem queue:', err);
+    console.error('Failed to load source verification queue:', err);
     if (tbody) {
       tbody.innerHTML = `
         <tr>
           <td colspan="6" class="py-12 text-center text-text-muted">
             <span class="material-symbols-outlined text-[36px] text-border-strong mb-2 block">report_off</span>
-            <p class="font-body-md text-sm">No problem evaluation records currently in gateway pipeline.</p>
+            <p class="font-body-md text-sm">Unable to load approved sources from statutory registry.</p>
             <p class="text-xs text-text-muted mt-1">${err.message}</p>
           </td>
         </tr>
@@ -1522,6 +1640,7 @@ async function fetchProblemQueue() {
 
 function switchProblemTab(tabKey) {
   AppState.currentProblemTab = tabKey;
+  AppState.currentSourceTab = tabKey;
   const tabAll = document.getElementById('tab-prb-all');
   const tabMy = document.getElementById('tab-prb-my');
   const tabReg = document.getElementById('tab-prb-registered');
@@ -1553,7 +1672,7 @@ function resetProblemFilters() {
   if (bucket) bucket.value = 'ALL';
   if (severity) severity.value = 'ALL';
   switchProblemTab('all');
-  showToast("Problem filters reset.");
+  showToast("Source filters reset.");
 }
 
 function renderProblemTable() {
@@ -1562,55 +1681,59 @@ function renderProblemTable() {
 
   const searchInput = (document.getElementById('problem-search')?.value || '').toLowerCase().trim();
   const bucketFilter = document.getElementById('problem-bucket-filter')?.value || 'ALL';
-  const severityFilter = document.getElementById('problem-severity-filter')?.value || 'ALL';
+  const statusFilter = document.getElementById('problem-severity-filter')?.value || 'ALL';
 
-  const totalCount = AppState.problems.length;
-  const myCount = AppState.problems.filter(p => p.status === 'SOURCE_VERIFYING' || (p.cycle && p.cycle.status === 'EVALUATION_IN_PROGRESS')).length;
-  const registeredCount = AppState.problems.filter(p => p.status === 'REGISTERED' || p.status === 'SOURCE_VERIFIED' || p.status === 'EVALUATION_COMPLETED' || p.status === 'PUBLISHED').length;
-  const criticalCount = AppState.problems.filter(p => p.severity === 'CRITICAL' || p.urgency === 'HIGH').length;
-  const rejectedCount = AppState.problems.filter(p => p.status === 'REJECTED' || p.status === 'ACTION_REQUIRED').length;
-  const allActiveCount = AppState.problems.filter(p => p.status === 'SUBMITTED' || p.status === 'SOURCE_VERIFYING' || p.status === 'RECEIVED' || p.status === 'ANALYZING').length;
+  const totalCount = AppState.sources.length;
+  const pendingCount = AppState.sources.filter(s => s.verificationStatus === 'PENDING').length;
+  const verifiedCount = AppState.sources.filter(s => s.verificationStatus === 'VERIFIED').length;
+  const flaggedCount = AppState.sources.filter(s => s.verificationStatus === 'NEEDS_REVIEW' || s.verificationStatus === 'FLAGGED').length;
 
   const mTotal = document.getElementById('prb-metric-total');
   const mMy = document.getElementById('prb-metric-my');
   const mReg = document.getElementById('prb-metric-registered');
   const mCrit = document.getElementById('prb-metric-critical');
   if (mTotal) mTotal.textContent = totalCount;
-  if (mMy) mMy.textContent = myCount;
-  if (mReg) mReg.textContent = registeredCount;
-  if (mCrit) mCrit.textContent = criticalCount;
+  if (mMy) mMy.textContent = pendingCount;
+  if (mReg) mReg.textContent = verifiedCount;
+  if (mCrit) mCrit.textContent = flaggedCount;
 
   const bAll = document.getElementById('tab-prb-all-badge');
   const bMy = document.getElementById('tab-prb-my-badge');
   const bReg = document.getElementById('tab-prb-registered-badge');
   const bRej = document.getElementById('tab-prb-rejected-badge');
-  if (bAll) bAll.textContent = allActiveCount;
-  if (bMy) bMy.textContent = myCount;
-  if (bReg) bReg.textContent = registeredCount;
-  if (bRej) bRej.textContent = rejectedCount;
+  if (bAll) bAll.textContent = totalCount;
+  if (bMy) bMy.textContent = pendingCount;
+  if (bReg) bReg.textContent = verifiedCount;
+  if (bRej) bRej.textContent = flaggedCount;
 
-  let filtered = AppState.problems.filter(prb => {
+  let filtered = AppState.sources.filter(src => {
     let matchesTab = true;
     if (AppState.currentProblemTab === 'all') {
-      matchesTab = (prb.status === 'SUBMITTED' || prb.status === 'SOURCE_VERIFYING' || prb.status === 'RECEIVED' || prb.status === 'ANALYZING');
+      matchesTab = true;
     } else if (AppState.currentProblemTab === 'my-reviews') {
-      matchesTab = (prb.status === 'SOURCE_VERIFYING' || (prb.cycle && prb.cycle.status === 'EVALUATION_IN_PROGRESS'));
+      matchesTab = (src.verificationStatus === 'PENDING');
     } else if (AppState.currentProblemTab === 'registered') {
-      matchesTab = (prb.status === 'REGISTERED' || prb.status === 'SOURCE_VERIFIED' || prb.status === 'EVALUATION_COMPLETED' || prb.status === 'PUBLISHED');
+      matchesTab = (src.verificationStatus === 'VERIFIED');
     } else if (AppState.currentProblemTab === 'rejected') {
-      matchesTab = (prb.status === 'REJECTED' || prb.status === 'ACTION_REQUIRED');
+      matchesTab = (src.verificationStatus === 'NEEDS_REVIEW' || src.verificationStatus === 'FLAGGED');
     }
 
-    let matchesBucket = (bucketFilter === 'ALL' || prb.sourceBucket === bucketFilter);
-    let matchesSeverity = (severityFilter === 'ALL' || prb.severity === severityFilter);
+    let matchesBucket = (bucketFilter === 'ALL' || src.sourceBucket === bucketFilter);
+    let matchesStatus = (statusFilter === 'ALL' || 
+      (statusFilter === 'PENDING' && src.verificationStatus === 'PENDING') ||
+      (statusFilter === 'VERIFIED' && src.verificationStatus === 'VERIFIED') ||
+      (statusFilter === 'NEEDS_REVIEW' && (src.verificationStatus === 'NEEDS_REVIEW' || src.verificationStatus === 'FLAGGED'))
+    );
     let matchesSearch = (!searchInput || 
-      prb.title.toLowerCase().includes(searchInput) || 
-      prb.code.toLowerCase().includes(searchInput) || 
-      prb.subEntity.toLowerCase().includes(searchInput) ||
-      String(prb.id).toLowerCase().includes(searchInput)
+      src.name.toLowerCase().includes(searchInput) || 
+      src.dossierId.toLowerCase().includes(searchInput) || 
+      src.identifier.toLowerCase().includes(searchInput) ||
+      src.contactPersonName.toLowerCase().includes(searchInput) ||
+      src.location.toLowerCase().includes(searchInput) ||
+      String(src.id).toLowerCase().includes(searchInput)
     );
 
-    return matchesTab && matchesBucket && matchesSeverity && matchesSearch;
+    return matchesTab && matchesBucket && matchesStatus && matchesSearch;
   });
 
   const countEl = document.getElementById('prb-displayed-count');
@@ -1620,8 +1743,8 @@ function renderProblemTable() {
     tbody.innerHTML = `
       <tr>
         <td colspan="6" class="py-12 text-center text-text-muted">
-          <span class="material-symbols-outlined text-[36px] text-border-strong mb-2 block">report_off</span>
-          <p class="font-body-md text-sm font-semibold text-text-primary">No problem statements in this filter category.</p>
+          <span class="material-symbols-outlined text-[36px] text-border-strong mb-2 block">domain_disabled</span>
+          <p class="font-body-md text-sm font-semibold text-text-primary">No organization sources match this filter criteria.</p>
           <button onclick="resetProblemFilters()" class="mt-2 text-xs text-institutional-navy hover:underline font-semibold cursor-pointer">Reset Filters</button>
         </td>
       </tr>
@@ -1629,68 +1752,81 @@ function renderProblemTable() {
     return;
   }
 
-  tbody.innerHTML = filtered.map(prb => {
+  tbody.innerHTML = filtered.map(src => {
     let bucketBadgeColor = 'bg-status-submitted-bg text-status-submitted-text';
-    if (prb.sourceBucket === 'COMMUNITY') bucketBadgeColor = 'bg-status-action-bg text-status-action-text';
-    else if (prb.sourceBucket === 'INDUSTRY') bucketBadgeColor = 'bg-secondary-container/30 text-institutional-navy';
-    else if (prb.sourceBucket === 'HEI') bucketBadgeColor = 'bg-tertiary-fixed/30 text-gov-emerald';
+    if (src.sourceBucket === 'COMMUNITY') bucketBadgeColor = 'bg-status-action-bg text-status-action-text';
+    else if (src.sourceBucket === 'INDUSTRY') bucketBadgeColor = 'bg-secondary-container/30 text-institutional-navy';
+    else if (src.sourceBucket === 'HEI') bucketBadgeColor = 'bg-tertiary-fixed/30 text-gov-emerald';
 
-    let severityBadge = '';
-    if (prb.severity === 'CRITICAL') {
-      severityBadge = `<span class="px-2 py-0.5 rounded-full bg-error/10 text-error font-mono text-[10px] font-bold uppercase">CRITICAL</span>`;
-    } else if (prb.severity === 'HIGH') {
-      severityBadge = `<span class="px-2 py-0.5 rounded-full bg-saffron-accent/15 text-saffron-accent font-mono text-[10px] font-bold uppercase">HIGH</span>`;
+    let statusBadge = '';
+    if (src.verificationStatus === 'VERIFIED') {
+      statusBadge = `
+        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-status-approved-bg text-status-approved-text border border-status-approved-border font-label-sm text-[11px] font-bold uppercase tracking-wider whitespace-nowrap">
+          <span class="material-symbols-outlined text-[14px]">verified</span>
+          <span>Verified Source</span>
+        </span>
+      `;
+    } else if (src.verificationStatus === 'NEEDS_REVIEW') {
+      statusBadge = `
+        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-status-review-bg text-status-review-text border border-status-review-border font-label-sm text-[11px] font-bold uppercase tracking-wider whitespace-nowrap">
+          <span class="material-symbols-outlined text-[14px]">rule</span>
+          <span>Needs Review</span>
+        </span>
+      `;
+    } else if (src.verificationStatus === 'FLAGGED') {
+      statusBadge = `
+        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-error-container text-on-error-container border border-error/30 font-label-sm text-[11px] font-bold uppercase tracking-wider whitespace-nowrap">
+          <span class="material-symbols-outlined text-[14px]">cancel</span>
+          <span>Check Failed</span>
+        </span>
+      `;
     } else {
-      severityBadge = `<span class="px-2 py-0.5 rounded-full bg-surface-muted text-text-secondary font-mono text-[10px] font-bold uppercase">MEDIUM</span>`;
+      statusBadge = `
+        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-status-action-bg text-status-action-text border border-status-action-border font-label-sm text-[11px] font-bold uppercase tracking-wider whitespace-nowrap">
+          <span class="w-1.5 h-1.5 rounded-full bg-status-action-text animate-pulse"></span>
+          <span>Awaiting Check</span>
+        </span>
+      `;
     }
 
-    let statusBadge = `
-      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-status-review-bg text-status-review-text font-label-sm text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
-        <span class="w-1.5 h-1.5 rounded-full bg-status-review-text"></span>
-        ${prb.status}
-      </span>
-    `;
-
     let actionBtn = `
-      <button class="inline-flex items-center gap-1 text-institutional-navy hover:text-primary bg-surface-subtle hover:bg-surface-container border border-border-hairline px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap" onclick="openProblemModal('${prb.id}')" type="button">
-        <span class="material-symbols-outlined text-[15px]">gavel</span>
-        <span>Verify Problem</span>
+      <button class="inline-flex items-center gap-1.5 text-institutional-navy hover:text-primary bg-surface-subtle hover:bg-surface-container border border-border-hairline px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shadow-xs" onclick="openProblemModal('${src.id}')" type="button">
+        <span class="material-symbols-outlined text-[16px] text-institutional-navy">verified_user</span>
+        <span>Verify Identity</span>
       </button>
     `;
 
     return `
       <tr class="hover:bg-surface-subtle/80 transition-colors">
         <td class="py-4 px-4 sm:px-6 align-middle">
-          <div class="flex items-start gap-3 cursor-pointer" onclick="openProblemModal('${prb.id}')">
+          <div class="flex items-start gap-3 cursor-pointer" onclick="openProblemModal('${src.id}')">
             <div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-institutional-navy shrink-0 mt-0.5">
-              <span class="material-symbols-outlined text-[20px]">engineering</span>
+              <span class="material-symbols-outlined text-[20px]">domain</span>
             </div>
             <div class="flex flex-col min-w-0 max-w-sm">
-              <span class="font-semibold text-text-primary text-xs sm:text-sm line-clamp-2 hover:text-institutional-navy transition-colors">${prb.title}</span>
+              <span class="font-semibold text-text-primary text-xs sm:text-sm line-clamp-1 hover:text-institutional-navy transition-colors">${src.name}</span>
               <div class="flex items-center gap-2 mt-0.5 font-mono-code text-[11px] text-text-muted">
-                <span class="font-bold text-institutional-navy">${prb.code}</span>
+                <span class="font-bold text-saffron-accent">${src.dossierId}</span>
                 <span>•</span>
-                <span>v${prb.version}</span>
+                <span>${src.location}</span>
               </div>
             </div>
           </div>
         </td>
         <td class="py-4 px-4 sm:px-6 align-middle">
           <div class="flex flex-col">
-            <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase w-max mb-1 ${bucketBadgeColor}">${prb.sourceBucket}</span>
-            <span class="text-xs text-text-primary font-medium line-clamp-1">${prb.subEntity}</span>
+            <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase w-max mb-1 ${bucketBadgeColor}">${src.sourceBucket}</span>
+            <span class="text-xs text-text-primary font-medium line-clamp-1">${src.entityType}</span>
           </div>
+        </td>
+        <td class="py-4 px-4 sm:px-6 align-middle font-mono text-xs">
+          <span class="text-text-primary font-semibold block">${src.identifier}</span>
+          <span class="text-text-muted text-[11px]">${src.subType}</span>
         </td>
         <td class="py-4 px-4 sm:px-6 align-middle">
           <div class="flex flex-col text-xs">
-            <span class="text-text-primary">${prb.location}</span>
-            <span class="text-text-muted font-mono text-[11px]">${prb.affectedPopulation}</span>
-          </div>
-        </td>
-        <td class="py-4 px-4 sm:px-6 align-middle">
-          <div class="flex items-center gap-1.5 flex-wrap">
-            ${severityBadge}
-            <span class="text-[11px] text-text-muted">${prb.urgency} Urgency</span>
+            <span class="text-text-primary font-medium">${src.contactPersonName}</span>
+            <span class="text-text-muted font-mono text-[11px] truncate max-w-[180px]">${src.contactEmail}</span>
           </div>
         </td>
         <td class="py-4 px-4 sm:px-6 align-middle">
@@ -1704,160 +1840,301 @@ function renderProblemTable() {
   }).join('');
 }
 
-function openProblemModal(problemId) {
-  const prb = AppState.problems.find(p => p.id === problemId);
-  if (!prb) return;
-  AppState.currentProblemId = problemId;
+function openProblemModal(sourceId) {
+  const src = AppState.sources.find(s => s.id === sourceId);
+  if (!src) return;
+  AppState.currentSourceId = sourceId;
 
-  document.getElementById('modal-prb-id').textContent = prb.code;
-  document.getElementById('modal-prb-title').textContent = prb.title;
-  document.getElementById('modal-prb-agency').textContent = prb.subEntity;
-  document.getElementById('modal-prb-nodal').textContent = prb.nodalOfficer;
-  document.getElementById('modal-prb-location').textContent = prb.location;
-  document.getElementById('modal-prb-population').textContent = prb.affectedPopulation;
-  document.getElementById('modal-prb-description').textContent = prb.description;
-  document.getElementById('modal-prb-outcome').textContent = prb.expectedOutcome;
+  const idEl = document.getElementById('modal-src-id');
+  const nameEl = document.getElementById('modal-src-name');
+  const orgEl = document.getElementById('modal-src-org');
+  const bcEl = document.getElementById('modal-src-bucket-category');
+  const identEl = document.getElementById('modal-src-identifier');
+  const locEl = document.getElementById('modal-src-location');
+  const nodalEl = document.getElementById('modal-src-nodal');
+  const emailEl = document.getElementById('modal-src-email');
+  const phoneEl = document.getElementById('modal-src-phone');
+  const dossierEl = document.getElementById('modal-src-dossier');
+  const statusPill = document.getElementById('modal-src-status-pill');
 
-  const pill = document.getElementById('modal-prb-status-pill');
-  if (pill) {
-    pill.textContent = prb.status;
-    pill.className = 'px-2 py-0.2 rounded-full text-[10px] font-bold uppercase bg-status-review-bg text-status-review-text';
-  }
+  if (idEl) idEl.textContent = src.dossierId;
+  if (nameEl) nameEl.textContent = src.name;
+  if (orgEl) orgEl.textContent = src.name;
+  if (bcEl) bcEl.textContent = `${src.sourceBucket} • ${src.entityType}`;
+  if (identEl) identEl.textContent = src.identifier;
+  if (locEl) locEl.textContent = src.location;
+  if (nodalEl) nodalEl.textContent = src.contactPersonName;
+  if (emailEl) emailEl.textContent = src.contactEmail;
+  if (phoneEl) phoneEl.textContent = src.contactPhone;
+  if (dossierEl) dossierEl.textContent = src.dossierId;
 
-  const evidenceList = document.getElementById('modal-prb-evidence-list');
-  if (evidenceList) {
-    if (!prb.evidenceList || prb.evidenceList.length === 0) {
-      evidenceList.innerHTML = `<div class="p-2 text-text-muted text-xs">No empirical evidence files attached.</div>`;
+  if (statusPill) {
+    if (src.verificationStatus === 'VERIFIED') {
+      statusPill.textContent = 'Verified Source';
+      statusPill.className = 'px-2 py-0.2 rounded-full text-[10px] font-bold uppercase bg-status-approved-bg text-status-approved-text border border-status-approved-border';
+    } else if (src.verificationStatus === 'NEEDS_REVIEW') {
+      statusPill.textContent = 'Needs Review';
+      statusPill.className = 'px-2 py-0.2 rounded-full text-[10px] font-bold uppercase bg-status-review-bg text-status-review-text border border-status-review-border';
+    } else if (src.verificationStatus === 'FLAGGED') {
+      statusPill.textContent = 'Check Failed';
+      statusPill.className = 'px-2 py-0.2 rounded-full text-[10px] font-bold uppercase bg-error-container text-on-error-container border border-error/30';
     } else {
-      evidenceList.innerHTML = prb.evidenceList.map(ev => `
-        <div class="p-2.5 rounded-lg border border-border-hairline bg-surface-subtle/50 flex items-center justify-between">
-          <div class="flex items-center gap-2 min-w-0">
-            <span class="material-symbols-outlined text-[18px] text-institutional-navy">draft</span>
-            <div class="flex flex-col min-w-0">
-              <span class="font-medium text-text-primary text-xs truncate">${ev.name || ev.filename || 'Evidence File'}</span>
-              <span class="text-[10px] text-text-muted font-mono">${ev.type || 'DOCUMENT'} • ${ev.size || 'Attached'}</span>
-            </div>
-          </div>
-          <button type="button" onclick="showToast('Accessing document: ${ev.name || ev.filename || 'File'}')" class="p-1 text-text-muted hover:text-institutional-navy cursor-pointer">
-            <span class="material-symbols-outlined text-[16px]">download</span>
-          </button>
-        </div>
-      `).join('');
+      statusPill.textContent = 'Awaiting Verification';
+      statusPill.className = 'px-2 py-0.2 rounded-full text-[10px] font-bold uppercase bg-status-action-bg text-status-action-text border border-status-action-border';
     }
   }
 
-  // Update Attestation statement
-  const prbAttestName = document.getElementById('prb-attest-officer-name');
-  if (prbAttestName && AppState.authenticatedUser) {
-    prbAttestName.textContent = AppState.authenticatedUser.name || "Reviewer Officer";
+  // Update Attestation Officer Name
+  const officerNameEl = document.getElementById('src-verify-officer-name');
+  if (officerNameEl && AppState.authenticatedUser) {
+    officerNameEl.textContent = AppState.authenticatedUser.name || 'Reviewer Officer';
   }
 
-  selectProblemVerdict('REGISTERED');
-  document.getElementById('prb-reviewer-remarks').value = '';
-  document.getElementById('problem-verification-modal').classList.remove('hidden');
+  // Reset form inputs
+  const methodSelect = document.getElementById('src-verify-method');
+  const resultSelect = document.getElementById('src-verify-result');
+  const notesText = document.getElementById('src-verify-notes');
+  const evidenceUrl = document.getElementById('src-verify-evidence');
+  const attestCheck = document.getElementById('src-verify-attest');
+
+  if (methodSelect) methodSelect.value = 'OFFICIAL_EMAIL';
+  if (resultSelect) resultSelect.value = 'PASS';
+  if (notesText) notesText.value = '';
+  if (evidenceUrl) evidenceUrl.value = '';
+  if (attestCheck) attestCheck.checked = true;
+
+  handleSrcResultChange();
+  handleSrcNotesInput();
+  renderSourceVerificationHistory(sourceId);
+
+  const modal = document.getElementById('problem-verification-modal');
+  if (modal) modal.classList.remove('hidden');
 }
 
 function closeProblemModal() {
-  document.getElementById('problem-verification-modal').classList.add('hidden');
+  const modal = document.getElementById('problem-verification-modal');
+  if (modal) modal.classList.add('hidden');
+  AppState.currentSourceId = null;
 }
 
-function selectProblemVerdict(verdict) {
-  AppState.currentProblemVerdict = verdict;
-  const bReg = document.getElementById('prb-btn-register');
-  const bAct = document.getElementById('prb-btn-action');
-  const bRej = document.getElementById('prb-btn-reject');
-  const impactBox = document.getElementById('prb-impact-box');
-  const impactText = document.getElementById('prb-impact-text');
-  const asterisk = document.getElementById('prb-asterisk');
-  const submitLabel = document.getElementById('prb-submit-btn-label');
+function handleSrcResultChange() {
+  const resultSelect = document.getElementById('src-verify-result');
+  const result = resultSelect ? resultSelect.value : 'PASS';
+  const impactBox = document.getElementById('src-impact-box');
+  const impactIcon = document.getElementById('src-impact-icon');
+  const impactText = document.getElementById('src-impact-text');
+  const submitLabel = document.getElementById('src-submit-btn-label');
 
-  const defClass = "p-3 rounded-lg border border-border-hairline bg-surface-subtle text-text-primary hover:bg-surface-container flex flex-col items-center justify-center cursor-pointer transition-all";
-  if (bReg) bReg.className = defClass;
-  if (bAct) bAct.className = defClass;
-  if (bRej) bRej.className = defClass;
-
-  if (verdict === 'REGISTERED') {
-    if (bReg) bReg.className = "p-3 rounded-lg border border-status-approved-border bg-status-approved-bg text-status-approved-text flex flex-col items-center justify-center cursor-pointer transition-all shadow-sm";
+  if (result === 'PASS') {
     if (impactBox) impactBox.className = "p-3 rounded-lg bg-status-approved-bg text-status-approved-text text-xs flex items-start gap-2 border border-status-approved-border";
-    if (impactText) impactText.innerHTML = `<strong>Backend Transition:</strong> Problem status transitions to <code class="font-mono font-bold">REGISTERED</code>. Enters the national challenge catalog.`;
-    if (asterisk) asterisk.style.display = 'none';
-    if (submitLabel) submitLabel.textContent = "Execute Problem Registration";
-  } else if (verdict === 'ACTION_REQUIRED') {
-    if (bAct) bAct.className = "p-3 rounded-lg border border-status-action-border bg-status-action-bg text-status-action-text flex flex-col items-center justify-center cursor-pointer transition-all shadow-sm";
-    if (impactBox) impactBox.className = "p-3 rounded-lg bg-status-action-bg text-status-action-text text-xs flex items-start gap-2 border border-status-action-border";
-    if (impactText) impactText.innerHTML = `<strong>Deficiency Notice:</strong> Problem returned to submitter for correction. Submitter editing re-opened.`;
-    if (asterisk) asterisk.style.display = 'inline';
-    if (submitLabel) submitLabel.textContent = "Confirm Deficiency & Request Clarification";
-  } else if (verdict === 'REJECTED') {
-    if (bRej) bRej.className = "p-3 rounded-lg border border-error bg-error-container text-on-error-container flex flex-col items-center justify-center cursor-pointer transition-all shadow-sm";
-    if (impactBox) impactBox.className = "p-3 rounded-lg bg-error-container text-on-error-container text-xs flex items-start gap-2 border border-error";
-    if (impactText) impactText.innerHTML = `<strong>Terminal State:</strong> Problem statement rejected from SIH catalog. Recorded in audit ledger.`;
-    if (asterisk) asterisk.style.display = 'inline';
-    if (submitLabel) submitLabel.textContent = "Confirm Terminal Rejection";
+    if (impactIcon) {
+      impactIcon.textContent = "verified";
+      impactIcon.className = "material-symbols-outlined text-[18px] text-gov-emerald shrink-0 mt-0.5";
+    }
+    if (impactText) impactText.innerHTML = `<strong>PASS Result:</strong> The organization will receive a <span class="font-bold">Verified Source</span> badge in the national registry. Authorized submission privileges remain permanently confirmed.`;
+    if (submitLabel) submitLabel.textContent = "Certify Verified Source";
+  } else if (result === 'NEEDS_REVIEW') {
+    if (impactBox) impactBox.className = "p-3 rounded-lg bg-status-review-bg text-status-review-text text-xs flex items-start gap-2 border border-status-review-border";
+    if (impactIcon) {
+      impactIcon.textContent = "rule";
+      impactIcon.className = "material-symbols-outlined text-[18px] text-status-review-text shrink-0 mt-0.5";
+    }
+    if (impactText) impactText.innerHTML = `<strong>NEEDS REVIEW:</strong> Clarification notice logged. The organization's profile will reflect a request for supplementary credentials or documentation.`;
+    if (submitLabel) submitLabel.textContent = "Log Clarification Request";
+  } else if (result === 'FAIL') {
+    if (impactBox) impactBox.className = "p-3 rounded-lg bg-error-container text-on-error-container text-xs flex items-start gap-2 border border-error/30";
+    if (impactIcon) {
+      impactIcon.textContent = "cancel";
+      impactIcon.className = "material-symbols-outlined text-[18px] text-error shrink-0 mt-0.5";
+    }
+    if (impactText) impactText.innerHTML = `<strong>FAIL Result:</strong> Verification failure logged in the statutory audit ledger. Source entity flagged for administrative review.`;
+    if (submitLabel) submitLabel.textContent = "Record Verification Failure";
   }
 
-  evaluatePrbReadiness();
+  evaluateSourceVerifyReadiness();
 }
 
-function handlePrbRemarksInput() {
-  const textarea = document.getElementById('prb-reviewer-remarks');
-  const counter = document.getElementById('prb-char-count');
+function handleSrcNotesInput() {
+  const textarea = document.getElementById('src-verify-notes');
+  const counter = document.getElementById('src-notes-char-count');
   if (textarea && counter) {
-    counter.textContent = `${textarea.value.length} / 1000`;
+    counter.textContent = `${textarea.value.length} / 500`;
   }
-  evaluatePrbReadiness();
+  evaluateSourceVerifyReadiness();
 }
 
-function evaluatePrbReadiness() {
-  const textarea = document.getElementById('prb-reviewer-remarks');
-  const check = document.getElementById('prb-attest-check');
-  const btn = document.getElementById('btn-submit-prb-decision');
-  if (!textarea || !check || !btn) return;
+function evaluateSourceVerifyReadiness() {
+  const attestCheck = document.getElementById('src-verify-attest');
+  const resultSelect = document.getElementById('src-verify-result');
+  const notesText = document.getElementById('src-verify-notes');
+  const btn = document.getElementById('btn-submit-src-verify');
+  if (!btn) return;
 
-  let valid = check.checked;
-  if (AppState.currentProblemVerdict === 'REJECTED' || AppState.currentProblemVerdict === 'ACTION_REQUIRED') {
-    valid = valid && textarea.value.trim().length >= 10;
+  const isAttested = attestCheck ? attestCheck.checked : false;
+  const result = resultSelect ? resultSelect.value : 'PASS';
+  const notesVal = notesText ? notesText.value.trim() : '';
+
+  let isValid = isAttested;
+  if (result === 'FAIL' || result === 'NEEDS_REVIEW') {
+    isValid = isValid && notesVal.length >= 5;
   }
-  btn.disabled = !valid;
-  btn.style.opacity = valid ? '1' : '0.5';
-  btn.style.cursor = valid ? 'pointer' : 'not-allowed';
+
+  btn.disabled = !isValid;
+  btn.style.opacity = isValid ? '1' : '0.5';
+  btn.style.cursor = isValid ? 'pointer' : 'not-allowed';
 }
 
-async function executeProblemTransition() {
-  const problemId = AppState.currentProblemId;
-  const prb = AppState.problems.find(p => p.id === problemId);
-  if (!prb) return;
+async function executeSourceVerification() {
+  const sourceId = AppState.currentSourceId;
+  const src = AppState.sources.find(s => s.id === sourceId);
+  if (!src) return;
 
-  const btn = document.getElementById('btn-submit-prb-decision');
-  btn.disabled = true;
-  btn.innerHTML = `<span class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span><span>Calling Gateway...</span>`;
+  const btn = document.getElementById('btn-submit-src-verify');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<span class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span><span>Recording Check...</span>`;
+  }
+
+  const methodSelect = document.getElementById('src-verify-method');
+  const resultSelect = document.getElementById('src-verify-result');
+  const notesText = document.getElementById('src-verify-notes');
+  const evidenceUrlInput = document.getElementById('src-verify-evidence');
+
+  const method = methodSelect ? methodSelect.value : 'OFFICIAL_EMAIL';
+  const result = resultSelect ? resultSelect.value : 'PASS';
+  const notes = notesText ? notesText.value.trim() : '';
+  const evidenceUrl = evidenceUrlInput ? evidenceUrlInput.value.trim() : '';
 
   try {
-    const verdict = AppState.currentProblemVerdict;
-    if (prb.version !== undefined) {
-      await ApiClient.patch(`/problems/${problemId}/status`, {
-        status: verdict,
-        expectedVersion: prb.version
+    let backendRecord = null;
+    try {
+      backendRecord = await ApiClient.post(`/sources/${sourceId}/verify`, {
+        method: method,
+        result: result,
+        notes: notes || undefined,
+        evidenceUrl: evidenceUrl || undefined
       });
+    } catch (apiErr) {
+      console.warn('Backend POST /sources/{id}/verify note:', apiErr);
+      if (apiErr.status !== 404 && apiErr.status !== 400) {
+        throw apiErr;
+      }
     }
 
-    if (verdict === 'REGISTERED' && !prb.cycle) {
-      try {
-        await ApiClient.post(`/evaluation/problems/${problemId}/start`);
-      } catch (e) {}
+    // Record check into history
+    const historyKey = `verification_history_${sourceId}`;
+    let history = [];
+    try {
+      history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+    } catch (e) {}
+
+    const newEvent = {
+      verificationId: (backendRecord && backendRecord.verificationId) || ('VER-' + Date.now().toString(36).toUpperCase()),
+      sourceId: sourceId,
+      verificationMethod: method,
+      result: result,
+      notes: notes || 'Statutory review check executed.',
+      evidenceUrl: evidenceUrl,
+      verifiedAt: (backendRecord && backendRecord.verifiedAt) || new Date().toISOString(),
+      reviewerName: AppState.authenticatedUser?.name || 'Reviewer Officer'
+    };
+
+    history.push(newEvent);
+    localStorage.setItem(historyKey, JSON.stringify(history));
+
+    // Update in-memory source
+    src.history = history;
+    src.latestCheck = newEvent;
+    if (result === 'PASS') {
+      src.verificationStatus = 'VERIFIED';
+      src.isVerifiedSource = true;
+      showToast(`Organization "${src.name}" certified as Verified Source!`, 'success');
+    } else if (result === 'NEEDS_REVIEW') {
+      src.verificationStatus = 'NEEDS_REVIEW';
+      showToast(`Clarification logged for "${src.name}".`, 'warning');
+    } else if (result === 'FAIL') {
+      src.verificationStatus = 'FLAGGED';
+      showToast(`Verification check failure recorded for "${src.name}".`, 'error');
     }
 
-    showToast(`Problem "${prb.code}" transitioned to ${verdict}.`);
-    closeProblemModal();
-    await fetchProblemQueue();
+    renderProblemTable();
     renderMyReviewsWorkbench();
     updateGlobalBadges();
+    renderSourceVerificationHistory(sourceId);
+
+    setTimeout(() => {
+      closeProblemModal();
+    }, 400);
   } catch (err) {
-    showToast(`Problem transition failed: ${err.message}`);
-    alert(`Problem Transition Error: ${err.message}`);
+    console.error('Source verification failure:', err);
+    await handleReviewerActionError(err, { sourceId, action: 'VERIFY_SOURCE' });
   } finally {
-    evaluatePrbReadiness();
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `
+        <span class="material-symbols-outlined text-[16px]">how_to_reg</span>
+        <span id="src-submit-btn-label">${result === 'PASS' ? 'Certify Verified Source' : (result === 'NEEDS_REVIEW' ? 'Log Clarification Request' : 'Record Verification Failure')}</span>
+      `;
+    }
   }
+}
+
+function renderSourceVerificationHistory(sourceId) {
+  const container = document.getElementById('src-verification-history-container');
+  if (!container) return;
+
+  const historyKey = `verification_history_${sourceId}`;
+  let history = [];
+  try {
+    history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+  } catch (e) {}
+
+  if (history.length === 0) {
+    container.innerHTML = `
+      <div class="text-center py-4 text-text-muted text-xs">
+        <span class="material-symbols-outlined text-[20px] text-text-muted mb-1 block">history_toggle_drop_down</span>
+        <span>No prior verification checks recorded for this organization.</span>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = history.slice().reverse().map(ev => {
+    let resBadge = '';
+    if (ev.result === 'PASS') {
+      resBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-status-approved-bg text-status-approved-text border border-status-approved-border">PASS</span>`;
+    } else if (ev.result === 'NEEDS_REVIEW') {
+      resBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-status-review-bg text-status-review-text border border-status-review-border">NEEDS REVIEW</span>`;
+    } else {
+      resBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-error-container text-on-error-container border border-error/30">FAIL</span>`;
+    }
+
+    const dateStr = new Date(ev.verifiedAt).toLocaleString('en-IN', {
+      day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+
+    return `
+      <div class="p-3 rounded-lg border border-border-hairline bg-surface-subtle/50 text-xs space-y-1.5">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            ${resBadge}
+            <span class="font-mono text-[11px] font-semibold text-institutional-navy bg-surface-crisp px-2 py-0.5 rounded border border-border-hairline">${ev.verificationMethod}</span>
+          </div>
+          <span class="text-text-muted font-mono text-[11px]">${dateStr}</span>
+        </div>
+        ${ev.notes ? `<p class="text-text-primary text-xs mt-1 font-body-sm">${ev.notes}</p>` : ''}
+        <div class="flex items-center justify-between text-[11px] text-text-muted pt-1 border-t border-border-hairline/60">
+          <span>Officer: <strong class="text-text-primary">${ev.reviewerName || 'Reviewer'}</strong></span>
+          ${ev.evidenceUrl ? `
+            <a href="${ev.evidenceUrl}" target="_blank" rel="noopener noreferrer" class="text-institutional-navy hover:underline flex items-center gap-0.5 font-mono">
+              <span class="material-symbols-outlined text-[13px]">link</span>
+              <span>Evidence Link</span>
+            </a>
+          ` : '<span class="font-mono text-[10px]">No external URL</span>'}
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 // =============================================================================
@@ -1866,7 +2143,7 @@ async function executeProblemTransition() {
 function renderMyReviewsWorkbench() {
   const user = AppState.authenticatedUser;
   const myRegs = AppState.registrations.filter(r => r.status === 'UNDER_REVIEW');
-  const myPrbs = AppState.problems.filter(p => p.status === 'SOURCE_VERIFYING' || (p.cycle && p.cycle.status === 'EVALUATION_IN_PROGRESS'));
+  const pendingSources = (AppState.sources || []).filter(s => s.verificationStatus === 'PENDING' || !s.isVerifiedSource);
 
   // Update dynamic officer information in workbench
   const nameEl = document.getElementById('workbench-officer-name');
@@ -1885,7 +2162,7 @@ function renderMyReviewsWorkbench() {
   const regCountEl = document.getElementById('my-reg-count');
   const prbCountEl = document.getElementById('my-prb-count');
   if (regCountEl) regCountEl.textContent = myRegs.length;
-  if (prbCountEl) prbCountEl.textContent = myPrbs.length;
+  if (prbCountEl) prbCountEl.textContent = pendingSources.length;
 
   const regTbody = document.getElementById('my-registrations-tbody');
   if (regTbody) {
@@ -1930,38 +2207,38 @@ function renderMyReviewsWorkbench() {
 
   const prbTbody = document.getElementById('my-problems-tbody');
   if (prbTbody) {
-    if (myPrbs.length === 0) {
+    if (pendingSources.length === 0) {
       prbTbody.innerHTML = `
         <tr>
           <td colspan="5" class="py-8 text-center text-text-muted">
             <span class="material-symbols-outlined text-[28px] text-border-strong mb-1 block">task_alt</span>
-            <p class="text-xs">No problem statements currently claimed in caseload.</p>
+            <p class="text-xs">No entities currently awaiting identity verification.</p>
           </td>
         </tr>
       `;
     } else {
-      prbTbody.innerHTML = myPrbs.map(prb => `
+      prbTbody.innerHTML = pendingSources.map(src => `
         <tr class="hover:bg-surface-subtle/80 transition-colors">
           <td class="py-3.5 px-4 sm:px-6">
             <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-saffron-accent shrink-0 font-bold text-xs">
-                <span class="material-symbols-outlined text-[18px]">engineering</span>
+              <div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-institutional-navy shrink-0 font-bold text-xs">
+                <span class="material-symbols-outlined text-[18px]">domain</span>
               </div>
               <div>
-                <span class="font-semibold text-text-primary text-xs sm:text-sm block line-clamp-1">${prb.title}</span>
-                <span class="font-mono text-[11px] text-text-muted">${prb.code} • v${prb.version}</span>
+                <span class="font-semibold text-text-primary text-xs sm:text-sm block line-clamp-1">${src.name}</span>
+                <span class="font-mono text-[11px] text-text-muted">${src.dossierId} • ${src.location}</span>
               </div>
             </div>
           </td>
-          <td class="py-3.5 px-4 sm:px-6 text-xs text-text-primary">${prb.subEntity}</td>
-          <td class="py-3.5 px-4 sm:px-6 text-xs text-text-secondary">${prb.location}</td>
+          <td class="py-3.5 px-4 sm:px-6 text-xs text-text-primary">${src.sourceBucket} • ${src.entityType}</td>
+          <td class="py-3.5 px-4 sm:px-6 text-xs text-text-secondary">${src.contactPersonName}</td>
           <td class="py-3.5 px-4 sm:px-6">
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-error/10 text-error">${prb.severity}</span>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-status-action-bg text-status-action-text">AWAITING CHECK</span>
           </td>
           <td class="py-3.5 px-4 sm:px-6 text-right">
-            <button onclick="openProblemModal('${prb.id}')" class="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg bg-surface-subtle hover:bg-surface-container border border-border-hairline text-institutional-navy transition-all cursor-pointer">
-              <span>Verify Problem</span>
-              <span class="material-symbols-outlined text-[14px]">gavel</span>
+            <button onclick="openProblemModal('${src.id}')" class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-surface-subtle hover:bg-surface-container border border-border-hairline text-institutional-navy transition-all cursor-pointer">
+              <span class="material-symbols-outlined text-[15px]">verified_user</span>
+              <span>Verify Identity</span>
             </button>
           </td>
         </tr>
@@ -1975,7 +2252,7 @@ function renderMyReviewsWorkbench() {
 // =============================================================================
 async function seedSampleLiveRegistration() {
   try {
-    showToast("Dispatching live registration to Gateway (8090)...");
+    showToast("Dispatching live registration to Gateway...");
 
     let token = ApiClient.getAccessToken();
     let authHeaders = {};
@@ -2021,11 +2298,11 @@ async function seedSampleLiveRegistration() {
       headers: authHeaders
     });
 
-    showToast("Live case created and submitted! Reloading queue...");
+    showToast("Live case created and submitted! Reloading queue...", "success");
     await fetchRegistrationsQueue();
   } catch (err) {
-    showToast(`Seed notice: ${err.message}`);
-    alert(`Seeding Error: ${err.message}\nMake sure Gateway (8090) is running.`);
+    const cleanMsg = extractBackendErrorMessage(err);
+    showToast(`Seeding notice: ${cleanMsg}`, "error");
   }
 }
 
@@ -2083,15 +2360,36 @@ function closeDocPreview() {
 // =============================================================================
 // 15. UNIVERSAL NOTIFICATION TOAST
 // =============================================================================
-function showToast(message) {
+function showToast(message, type = 'info') {
   const existing = document.getElementById('statutory-toast');
   if (existing) existing.remove();
 
   const toast = document.createElement('div');
   toast.id = 'statutory-toast';
-  toast.className = 'fixed bottom-6 right-6 z-[200] max-w-md bg-institutional-navy text-on-primary px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-border-strong/30 toast-animate text-xs sm:text-sm font-body-md';
+
+  let icon = 'info';
+  let borderClass = 'border-border-strong/30';
+  let bgClass = 'bg-institutional-navy';
+  let iconColor = 'text-inverse-primary';
+
+  if (type === 'success') {
+    icon = 'verified';
+    iconColor = 'text-gov-emerald';
+    borderClass = 'border-gov-emerald/40';
+  } else if (type === 'warning') {
+    icon = 'warning';
+    iconColor = 'text-saffron-accent';
+    borderClass = 'border-saffron-accent/40';
+  } else if (type === 'error') {
+    icon = 'error';
+    iconColor = 'text-error';
+    bgClass = 'bg-slate-900';
+    borderClass = 'border-error/50';
+  }
+
+  toast.className = `fixed bottom-6 right-6 z-[200] max-w-md ${bgClass} text-on-primary px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border ${borderClass} toast-animate text-xs sm:text-sm font-body-md`;
   toast.innerHTML = `
-    <span class="material-symbols-outlined text-gov-emerald text-[20px] shrink-0">verified</span>
+    <span class="material-symbols-outlined ${iconColor} text-[20px] shrink-0">${icon}</span>
     <span class="flex-1">${message}</span>
     <button onclick="this.parentElement.remove()" class="text-on-primary/70 hover:text-on-primary cursor-pointer">
       <span class="material-symbols-outlined text-[16px]">close</span>
@@ -2101,5 +2399,5 @@ function showToast(message) {
 
   setTimeout(() => {
     if (toast && toast.parentElement) toast.remove();
-  }, 4000);
+  }, 4500);
 }

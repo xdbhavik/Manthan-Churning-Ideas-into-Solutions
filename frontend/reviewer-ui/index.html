@@ -230,14 +230,14 @@
           <span class="ml-1.5 px-1.5 py-0.2 bg-surface-muted text-institutional-navy rounded-full text-[10px] font-bold" id="nav-reg-count">4</span>
         </a>
         <a class="nav-link px-3 py-1.5 transition-colors flex items-center text-xs sm:text-sm rounded-lg font-medium text-on-surface-variant hover:bg-surface-container-high" data-target="problem-queue" href="#/problem-queue" id="nav-link-problem-queue">
-          <span class="material-symbols-outlined text-[16px] mr-1">report_problem</span>
-          <span>Problem Queue</span>
-          <span class="ml-1.5 px-1.5 py-0.2 bg-surface-muted text-saffron-accent rounded-full text-[10px] font-bold" id="nav-prb-count">6</span>
+          <span class="material-symbols-outlined text-[16px] mr-1">verified_user</span>
+          <span>Source Verification</span>
+          <span class="ml-1.5 px-1.5 py-0.2 bg-surface-muted text-saffron-accent rounded-full text-[10px] font-bold" id="nav-prb-count">0</span>
         </a>
         <a class="nav-link px-3 py-1.5 transition-colors flex items-center text-xs sm:text-sm rounded-lg font-medium text-on-surface-variant hover:bg-surface-container-high" data-target="my-reviews" href="#/my-reviews" id="nav-link-my-reviews">
           <span class="material-symbols-outlined text-[16px] mr-1">assignment</span>
           <span>My Reviews</span>
-          <span class="ml-1.5 px-1.5 py-0.2 bg-status-review-bg text-status-review-text rounded-full text-[10px] font-bold" id="nav-my-count">4</span>
+          <span class="ml-1.5 px-1.5 py-0.2 bg-status-review-bg text-status-review-text rounded-full text-[10px] font-bold" id="nav-my-count">0</span>
         </a>
       </nav>
 
@@ -298,8 +298,8 @@
                 <span>Registration Queue</span>
               </a>
               <a href="#/problem-queue" onclick="closeProfileDropdown()" class="w-full flex items-center gap-3 px-4 py-2 text-xs sm:text-sm text-text-primary hover:bg-surface-muted transition-colors">
-                <span class="material-symbols-outlined text-[18px] text-text-muted">report_problem</span>
-                <span>Problem Queue</span>
+                <span class="material-symbols-outlined text-[18px] text-text-muted">verified_user</span>
+                <span>Source Verification</span>
               </a>
               <a href="#/my-reviews" onclick="closeProfileDropdown()" class="w-full flex items-center gap-3 px-4 py-2 text-xs sm:text-sm text-text-primary hover:bg-surface-muted transition-colors">
                 <span class="material-symbols-outlined text-[18px] text-text-muted">assignment</span>
@@ -372,15 +372,15 @@
             </div>
           </div>
 
-          <!-- Gateway Connectivity Status Pill -->
+          <!-- System Connectivity Status Pill -->
           <div class="px-3 py-2 bg-surface-subtle/90 rounded-lg border border-border-hairline text-xs flex items-center justify-between">
             <span class="text-text-muted flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-[15px] text-institutional-navy">hub</span>
-              <span>Backend Gateway:</span>
+              <span class="material-symbols-outlined text-[15px] text-institutional-navy">cloud_done</span>
+              <span>Network Status:</span>
             </span>
-            <span id="gateway-status-pill" class="font-mono text-[11px] font-semibold text-gov-emerald flex items-center gap-1">
+            <span id="gateway-status-pill" class="font-mono text-[11px] font-semibold text-gov-emerald flex items-center gap-1.5">
               <span class="w-2 h-2 rounded-full bg-gov-emerald animate-pulse"></span>
-              <span>http://localhost:8090</span>
+              <span>Systems Online</span>
             </span>
           </div>
 
@@ -728,7 +728,7 @@
                   <span class="material-symbols-outlined text-[15px]">database</span>
                   <span>Seed Live Test Case</span>
                 </button>
-                <span class="text-xs text-text-muted font-mono">Gateway: 8090</span>
+                <span class="text-xs text-text-muted font-mono flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-gov-emerald"></span>Systems Online</span>
                 <span class="px-2.5 py-1 text-xs font-mono text-text-secondary bg-surface-subtle rounded border border-border-hairline">Active Triage Batch</span>
               </div>
             </div>
@@ -1131,16 +1131,16 @@
           <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6 mb-6 sm:mb-8">
             <div class="space-y-1.5">
               <div class="flex items-center gap-space-sm text-text-muted font-mono-code text-[11px] sm:text-label-sm uppercase tracking-wider flex-wrap">
-                <span>STATUTORY PROBLEM REVIEW CONSOLE</span>
+                <span>STATUTORY SOURCE IDENTITY CONSOLE</span>
                 <span>/</span>
-                <span class="text-saffron-accent font-semibold">QUEUE ID: PRB-NATIONAL-01</span>
+                <span class="text-saffron-accent font-semibold">QUEUE ID: SRC-VERIFY-NATIONAL</span>
                 <span class="w-1.5 h-1.5 rounded-full bg-gov-emerald animate-pulse"></span>
               </div>
               <h1 class="font-headline-xl text-2xl sm:text-3xl lg:text-headline-xl text-text-primary tracking-tight">
-                Problem Statement Review Queue
+                Source Identity Verification Console
               </h1>
               <p class="font-body-md text-sm sm:text-body-md text-text-secondary max-w-3xl">
-                Authorized technical verification and statutory validation of inbound problem statements from Government Departments, Panchayats, Urban Local Bodies, and Cooperatives before National SIH Cataloging.
+                Authorized statutory verification of entity identity, credentials, and institutional authorization for approved problem sources across Government Departments, Panchayats, Urban Local Bodies, Universities, and Enterprises.
               </p>
             </div>
             
@@ -1156,7 +1156,7 @@
               <div class="flex items-center gap-space-xs px-3 py-1.5 sm:px-space-md sm:py-space-xs rounded-lg bg-surface-subtle">
                 <span class="material-symbols-outlined text-institutional-navy text-[18px] sm:text-[20px]">sync</span>
                 <div class="flex flex-col">
-                  <span class="font-label-sm text-[10px] sm:text-label-sm text-text-muted uppercase">Registry Sync</span>
+                  <span class="font-label-sm text-[10px] sm:text-label-sm text-text-muted uppercase">Source Registry</span>
                   <span class="font-mono-code text-[11px] sm:text-[12px] text-text-primary font-semibold">SIH-LIVE-V2</span>
                 </div>
               </div>
@@ -1165,80 +1165,80 @@
 
           <!-- Summary Metrics Strip -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8 lg:mb-10">
-            <!-- Metric 1: Total Problems -->
+            <!-- Metric 1: Total Approved Sources -->
             <div class="bg-surface-crisp rounded-xl p-5 sm:p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all cursor-pointer border border-border-hairline" onclick="switchProblemTab('all')">
               <div class="flex items-center justify-between mb-space-sm">
-                <span class="font-label-sm text-[11px] sm:text-label-sm text-text-muted uppercase tracking-wider">Total Active Intake</span>
+                <span class="font-label-sm text-[11px] sm:text-label-sm text-text-muted uppercase tracking-wider">Total Approved Sources</span>
                 <span class="p-2 rounded-lg bg-surface-container-high text-primary">
-                  <span class="material-symbols-outlined text-[20px]">inbox</span>
+                  <span class="material-symbols-outlined text-[20px]">domain</span>
                 </span>
               </div>
               <div class="flex items-baseline justify-between">
                 <span class="font-headline-xl text-3xl sm:text-headline-xl text-text-primary tracking-tight" id="prb-metric-total">0</span>
-                <span class="font-label-sm text-xs sm:text-label-sm text-saffron-accent bg-status-action-bg px-2 py-0.5 rounded-full font-bold">Active</span>
+                <span class="font-label-sm text-xs sm:text-label-sm text-institutional-navy bg-surface-subtle px-2 py-0.5 rounded-full font-bold">Approved</span>
               </div>
               <div class="mt-space-md pt-space-xs flex items-center gap-2">
                 <div class="h-1.5 w-full bg-surface-muted rounded-full overflow-hidden">
-                  <div class="h-full bg-saffron-accent rounded-full" style="width: 75%;"></div>
+                  <div class="h-full bg-institutional-navy rounded-full" style="width: 100%;"></div>
                 </div>
-                <span class="font-mono-code text-[11px] text-text-muted">75%</span>
+                <span class="font-mono-code text-[11px] text-text-muted">Total</span>
               </div>
             </div>
 
-            <!-- Metric 2: Under Triage (Source Verifying) -->
+            <!-- Metric 2: Awaiting Verification -->
             <div class="bg-surface-crisp rounded-xl p-5 sm:p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all cursor-pointer border border-border-hairline" onclick="switchProblemTab('my-reviews')">
               <div class="flex items-center justify-between mb-space-sm">
-                <span class="font-label-sm text-[11px] sm:text-label-sm text-text-muted uppercase tracking-wider">Assigned to Me</span>
-                <span class="p-2 rounded-lg bg-surface-container-high text-institutional-navy">
-                  <span class="material-symbols-outlined text-[20px]">assignment_ind</span>
+                <span class="font-label-sm text-[11px] sm:text-label-sm text-text-muted uppercase tracking-wider">Awaiting Verification</span>
+                <span class="p-2 rounded-lg bg-surface-container-high text-saffron-accent">
+                  <span class="material-symbols-outlined text-[20px]">pending_actions</span>
                 </span>
               </div>
               <div class="flex items-baseline justify-between">
                 <span class="font-headline-xl text-3xl sm:text-headline-xl text-text-primary tracking-tight" id="prb-metric-my">0</span>
-                <span class="font-label-sm text-xs sm:text-label-sm text-status-review-text bg-status-review-bg px-2 py-0.5 rounded-full font-bold">Under Review</span>
+                <span class="font-label-sm text-xs sm:text-label-sm text-saffron-accent bg-status-action-bg px-2 py-0.5 rounded-full font-bold">Action Needed</span>
               </div>
               <div class="mt-space-md pt-space-xs flex items-center justify-between">
-                <span class="font-body-sm text-xs sm:text-body-sm text-text-muted">Triage Capacity</span>
-                <span class="font-mono-code text-[11px] text-institutional-navy font-semibold">2 / 4 cases</span>
+                <span class="font-body-sm text-xs sm:text-body-sm text-text-muted">Eligible for Check</span>
+                <span class="font-mono-code text-[11px] text-saffron-accent font-semibold">Priority</span>
               </div>
             </div>
 
-            <!-- Metric 3: Verified & Registered -->
+            <!-- Metric 3: Verified Sources -->
             <div class="bg-surface-crisp rounded-xl p-5 sm:p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all cursor-pointer border border-border-hairline" onclick="switchProblemTab('registered')">
               <div class="flex items-center justify-between mb-space-sm">
-                <span class="font-label-sm text-[11px] sm:text-label-sm text-text-muted uppercase tracking-wider">Registered in SIH</span>
+                <span class="font-label-sm text-[11px] sm:text-label-sm text-text-muted uppercase tracking-wider">Verified Sources</span>
                 <span class="p-2 rounded-lg bg-surface-container-high text-gov-emerald">
-                  <span class="material-symbols-outlined text-[20px]">task_alt</span>
+                  <span class="material-symbols-outlined text-[20px]">verified</span>
                 </span>
               </div>
               <div class="flex items-baseline justify-between">
                 <span class="font-headline-xl text-3xl sm:text-headline-xl text-text-primary tracking-tight" id="prb-metric-registered">0</span>
                 <div class="flex items-center text-gov-emerald font-label-sm text-xs sm:text-label-sm">
-                  <span class="material-symbols-outlined text-[16px]">verified</span>
-                  <span>Cataloged</span>
+                  <span class="material-symbols-outlined text-[16px]">task_alt</span>
+                  <span>PASS Certified</span>
                 </div>
               </div>
               <div class="mt-space-md pt-space-xs flex items-center justify-between">
-                <span class="font-body-sm text-xs sm:text-body-sm text-text-muted">National Repository</span>
-                <span class="font-mono-code text-[11px] text-gov-emerald font-semibold">Phase-1 Ready</span>
+                <span class="font-body-sm text-xs sm:text-body-sm text-text-muted">Identity Cleared</span>
+                <span class="font-mono-code text-[11px] text-gov-emerald font-semibold">Accredited</span>
               </div>
             </div>
 
-            <!-- Metric 4: Critical & High Priority -->
-            <div class="bg-surface-crisp rounded-xl p-5 sm:p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all cursor-pointer border border-border-hairline">
+            <!-- Metric 4: Flagged / Needs Review -->
+            <div class="bg-surface-crisp rounded-xl p-5 sm:p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all cursor-pointer border border-border-hairline" onclick="switchProblemTab('rejected')">
               <div class="flex items-center justify-between mb-space-sm">
-                <span class="font-label-sm text-[11px] sm:text-label-sm text-text-muted uppercase tracking-wider">Critical Severity</span>
-                <span class="p-2 rounded-lg bg-surface-container-high text-error">
-                  <span class="material-symbols-outlined text-[20px]">emergency</span>
+                <span class="font-label-sm text-[11px] sm:text-label-sm text-text-muted uppercase tracking-wider">Needs Review / Flagged</span>
+                <span class="p-2 rounded-lg bg-surface-container-high text-status-review-text">
+                  <span class="material-symbols-outlined text-[20px]">rule</span>
                 </span>
               </div>
               <div class="flex items-baseline justify-between">
                 <span class="font-headline-xl text-3xl sm:text-headline-xl text-text-primary tracking-tight" id="prb-metric-critical">0</span>
-                <span class="font-label-sm text-xs sm:text-label-sm text-error bg-error/10 px-2 py-0.5 rounded-full font-bold">Urgent Action</span>
+                <span class="font-label-sm text-xs sm:text-label-sm text-status-review-text bg-status-review-bg px-2 py-0.5 rounded-full font-bold">Review Queue</span>
               </div>
               <div class="mt-space-md pt-space-xs flex items-center justify-between">
-                <span class="font-body-sm text-xs sm:text-body-sm text-text-muted">High Population Impact</span>
-                <span class="font-mono-code text-[11px] text-error font-semibold">Priority Triage</span>
+                <span class="font-body-sm text-xs sm:text-body-sm text-text-muted">Pending Clarification</span>
+                <span class="font-mono-code text-[11px] text-status-review-text font-semibold">Triage</span>
               </div>
             </div>
           </div>
@@ -1252,19 +1252,19 @@
               <!-- Tab Pills -->
               <div class="flex items-center gap-1 sm:gap-2 bg-surface-container-low p-1 rounded-lg self-start border border-border-hairline flex-wrap">
                 <button class="tab-btn-prb px-3 sm:px-space-md py-1.5 rounded-md font-label-md text-xs sm:text-label-md transition-all flex items-center gap-1.5 bg-surface-crisp text-primary shadow-sm cursor-pointer" id="tab-prb-all" onclick="switchProblemTab('all')">
-                  <span>All Active Intake</span>
+                  <span>All Approved Sources</span>
                   <span class="font-mono-code text-[10px] px-1.5 py-0.2 rounded-full bg-surface-container-high text-text-primary font-bold" id="tab-prb-all-badge">0</span>
                 </button>
                 <button class="tab-btn-prb px-3 sm:px-space-md py-1.5 rounded-md font-label-md text-xs sm:text-label-md transition-all flex items-center gap-1.5 text-text-secondary hover:text-text-primary cursor-pointer" id="tab-prb-my" onclick="switchProblemTab('my-reviews')">
-                  <span>Assigned to Me</span>
-                  <span class="font-mono-code text-[10px] px-1.5 py-0.2 rounded-full bg-status-review-bg text-status-review-text font-bold" id="tab-prb-my-badge">0</span>
+                  <span>Awaiting Verification</span>
+                  <span class="font-mono-code text-[10px] px-1.5 py-0.2 rounded-full bg-status-action-bg text-status-action-text font-bold" id="tab-prb-my-badge">0</span>
                 </button>
                 <button class="tab-btn-prb px-3 sm:px-space-md py-1.5 rounded-md font-label-md text-xs sm:text-label-md transition-all flex items-center gap-1.5 text-text-secondary hover:text-text-primary cursor-pointer" id="tab-prb-registered" onclick="switchProblemTab('registered')">
-                  <span>Verified &amp; Registered</span>
+                  <span>Verified Sources</span>
                   <span class="font-mono-code text-[10px] px-1.5 py-0.2 rounded-full bg-status-approved-bg text-status-approved-text font-bold" id="tab-prb-registered-badge">0</span>
                 </button>
                 <button class="tab-btn-prb px-3 sm:px-space-md py-1.5 rounded-md font-label-md text-xs sm:text-label-md transition-all flex items-center gap-1.5 text-text-secondary hover:text-text-primary cursor-pointer" id="tab-prb-rejected" onclick="switchProblemTab('rejected')">
-                  <span>Deficiency / Rejected</span>
+                  <span>Needs Review / Flagged</span>
                   <span class="font-mono-code text-[10px] px-1.5 py-0.2 rounded-full bg-surface-muted text-text-muted font-bold" id="tab-prb-rejected-badge">0</span>
                 </button>
               </div>
@@ -1274,7 +1274,7 @@
                 <!-- Search Box -->
                 <div class="relative flex-1 sm:w-64 min-w-[200px]">
                   <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[18px]">search</span>
-                  <input class="w-full pl-9 pr-3 py-1.5 rounded-lg border border-border-hairline bg-surface-crisp font-body-sm text-xs sm:text-body-sm text-text-primary placeholder:text-text-muted focus:border-institutional-navy focus:outline-none transition-colors" id="problem-search" oninput="filterProblemRows()" placeholder="Search title, ID, submitter..." type="text"/>
+                  <input class="w-full pl-9 pr-3 py-1.5 rounded-lg border border-border-hairline bg-surface-crisp font-body-sm text-xs sm:text-body-sm text-text-primary placeholder:text-text-muted focus:border-institutional-navy focus:outline-none transition-colors" id="problem-search" oninput="filterProblemRows()" placeholder="Search organization, reg number, nodal contact..." type="text"/>
                 </div>
 
                 <!-- Source Bucket Filter -->
@@ -1284,14 +1284,15 @@
                   <option value="COMMUNITY">Community / Co-op</option>
                   <option value="INDUSTRY">Industry / Corporate</option>
                   <option value="HEI">Academia / University (HEI)</option>
+                  <option value="CITIZEN">Citizen / Individual</option>
                 </select>
 
-                <!-- Severity Filter -->
+                <!-- Status Filter -->
                 <select class="py-1.5 px-3 rounded-lg border border-border-hairline bg-surface-crisp font-label-sm text-xs sm:text-label-sm text-text-primary focus:border-institutional-navy focus:outline-none cursor-pointer" id="problem-severity-filter" onchange="filterProblemRows()">
-                  <option value="ALL">All Severities</option>
-                  <option value="CRITICAL">Critical Severity</option>
-                  <option value="HIGH">High Severity</option>
-                  <option value="MEDIUM">Medium Severity</option>
+                  <option value="ALL">All Verification Statuses</option>
+                  <option value="PENDING">Awaiting Verification</option>
+                  <option value="VERIFIED">Verified Source (PASS)</option>
+                  <option value="NEEDS_REVIEW">Needs Review / Flagged</option>
                 </select>
 
                 <button class="p-1.5 rounded-lg border border-border-hairline bg-surface-crisp text-text-muted hover:text-text-primary hover:bg-surface-subtle transition-colors cursor-pointer" onclick="resetProblemFilters()" title="Reset Filters" type="button">
@@ -1303,12 +1304,12 @@
             <!-- Queue Counter Info -->
             <div class="px-4 sm:px-space-lg py-2.5 bg-surface-subtle/50 border-b border-border-hairline flex items-center justify-between text-xs text-text-muted flex-wrap gap-2">
               <div class="flex items-center gap-2">
-                <span>Displaying <strong class="text-text-primary font-semibold" id="prb-displayed-count">0</strong> problem statements</span>
+                <span>Displaying <strong class="text-text-primary font-semibold" id="prb-displayed-count">0</strong> approved organizations</span>
                 <span class="text-border-strong">•</span>
                 <span class="text-institutional-navy cursor-pointer hover:underline" onclick="resetProblemFilters()">Reset Filters</span>
               </div>
               <div class="font-mono text-[11px] text-text-muted">
-                Statutory SLA Standard: 48h from Intake Dispatch
+                Statutory Authority: POST /sources/{id}/verify (Doc 11 Sec 1)
               </div>
             </div>
 
@@ -1317,11 +1318,11 @@
               <table class="w-full text-left border-collapse min-w-[880px]">
                 <thead>
                   <tr class="bg-surface-container-high/40 text-text-secondary font-label-md text-xs sm:text-label-md uppercase tracking-wider border-b border-border-hairline">
-                    <th class="py-3 px-4 sm:px-6" scope="col">Problem Statement &amp; Dossier</th>
-                    <th class="py-3 px-4 sm:px-6" scope="col">Source Bucket &amp; Entity</th>
-                    <th class="py-3 px-4 sm:px-6" scope="col">Location &amp; Impact</th>
-                    <th class="py-3 px-4 sm:px-6" scope="col">Severity / Urgency</th>
-                    <th class="py-3 px-4 sm:px-6" scope="col">Triage Status</th>
+                    <th class="py-3 px-4 sm:px-6" scope="col">Organization Entity &amp; Dossier</th>
+                    <th class="py-3 px-4 sm:px-6" scope="col">Source Bucket &amp; Category</th>
+                    <th class="py-3 px-4 sm:px-6" scope="col">Registration / Identifier</th>
+                    <th class="py-3 px-4 sm:px-6" scope="col">Primary Nodal Contact</th>
+                    <th class="py-3 px-4 sm:px-6" scope="col">Verification Status</th>
                     <th class="py-3 px-4 sm:px-6 text-right" scope="col">Statutory Action</th>
                   </tr>
                 </thead>
@@ -1333,8 +1334,8 @@
 
             <!-- Table Footer -->
             <div class="p-4 sm:p-space-base border-t border-border-hairline flex flex-col sm:flex-row items-center justify-between gap-3 bg-surface-subtle/20 text-xs text-text-secondary">
-              <span class="font-mono-code text-[11px]">Audit Protocol: SIH26043-SECTION-14-REGISTRY</span>
-              <span class="font-body-sm text-[11px] text-text-muted">Optimistic Version Control Enabled • Multi-Factor Signatures Active</span>
+              <span class="font-mono-code text-[11px]">Audit Protocol: SIH26043-SOURCE-VERIFICATION-REGISTRY</span>
+              <span class="font-body-sm text-[11px] text-text-muted">Immutable Audit Trail • Multi-Factor Attestation Active</span>
             </div>
 
           </div>
@@ -1393,12 +1394,12 @@
 
             <div class="bg-surface-crisp rounded-xl p-5 shadow-sm border border-border-hairline flex items-center justify-between">
               <div>
-                <span class="text-xs uppercase font-bold text-text-muted tracking-wider block mb-1">Claimed Problems</span>
+                <span class="text-xs uppercase font-bold text-text-muted tracking-wider block mb-1">Pending Identity Checks</span>
                 <span class="text-2xl font-bold text-text-primary" id="my-prb-count">0</span>
-                <span class="text-xs text-saffron-accent block mt-0.5">Source Verifying in Progress</span>
+                <span class="text-xs text-saffron-accent block mt-0.5">Awaiting Source Verification</span>
               </div>
               <div class="w-11 h-11 rounded-xl bg-status-action-bg text-status-action-text flex items-center justify-center">
-                <span class="material-symbols-outlined text-[24px]">report_problem</span>
+                <span class="material-symbols-outlined text-[24px]">verified_user</span>
               </div>
             </div>
 
@@ -1445,15 +1446,15 @@
             </div>
           </div>
 
-          <!-- Section 2: Claimed Problems Table -->
+          <!-- Section 2: Entities Awaiting Identity Verification Table -->
           <div class="bg-surface-crisp rounded-xl shadow-md border border-border-hairline overflow-hidden">
             <div class="p-4 sm:p-5 border-b border-border-hairline bg-surface-subtle/40 flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-saffron-accent text-[20px]">engineering</span>
-                <h2 class="text-base font-bold text-ashoka-blue">Assigned Problem Statements (Technical Verification)</h2>
+                <span class="material-symbols-outlined text-saffron-accent text-[20px]">verified_user</span>
+                <h2 class="text-base font-bold text-ashoka-blue">Entities Awaiting Identity Verification (Source Clearance)</h2>
               </div>
               <a href="#/problem-queue" class="text-xs text-institutional-navy hover:underline font-medium flex items-center gap-1">
-                <span>View All Problems</span>
+                <span>View All Sources</span>
                 <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
               </a>
             </div>
@@ -1462,10 +1463,10 @@
               <table class="w-full text-left border-collapse min-w-[780px]">
                 <thead>
                   <tr class="bg-surface-container-high/30 text-text-secondary font-label-md text-xs uppercase tracking-wider border-b border-border-hairline">
-                    <th class="py-3 px-4 sm:px-6">Problem Title &amp; ID</th>
-                    <th class="py-3 px-4 sm:px-6">Submitting Agency</th>
-                    <th class="py-3 px-4 sm:px-6">Location &amp; Scope</th>
-                    <th class="py-3 px-4 sm:px-6">Severity</th>
+                    <th class="py-3 px-4 sm:px-6">Organization Entity</th>
+                    <th class="py-3 px-4 sm:px-6">Source Bucket &amp; Category</th>
+                    <th class="py-3 px-4 sm:px-6">Primary Nodal Contact</th>
+                    <th class="py-3 px-4 sm:px-6">Verification Status</th>
                     <th class="py-3 px-4 sm:px-6 text-right">Direct Action</th>
                   </tr>
                 </thead>
@@ -1482,10 +1483,10 @@
   </section>
 
   <!-- ========================================================================= -->
-  <!-- MODAL: PROBLEM VERIFICATION & STATUTORY TRIAGE                            -->
+  <!-- MODAL: SOURCE IDENTITY VERIFICATION & STATUTORY ATTESTATION                -->
   <!-- ========================================================================= -->
   <div id="problem-verification-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-primary/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 transition-opacity">
-    <div class="relative bg-surface-crisp rounded-xl shadow-2xl border border-border-hairline max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div class="relative bg-surface-crisp rounded-xl shadow-2xl border border-border-hairline max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
       
       <!-- Top Colored Stripe -->
       <div class="w-full h-1.5 bg-gradient-to-r from-saffron-accent via-surface-crisp to-gov-emerald"></div>
@@ -1494,14 +1495,14 @@
       <div class="px-5 py-4 bg-surface-subtle border-b border-border-hairline flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="w-9 h-9 rounded-lg bg-institutional-navy text-on-primary flex items-center justify-center shrink-0 shadow-sm">
-            <span class="material-symbols-outlined text-[20px]">verified</span>
+            <span class="material-symbols-outlined text-[20px]">verified_user</span>
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <span class="font-mono text-xs font-bold text-saffron-accent" id="modal-prb-id">#PRB-2024-PB092</span>
-              <span class="px-2 py-0.2 rounded-full text-[10px] font-bold uppercase bg-status-review-bg text-status-review-text" id="modal-prb-status-pill">SOURCE VERIFYING</span>
+              <span class="font-mono text-xs font-bold text-saffron-accent" id="modal-src-id">#SRC-ORG-000000</span>
+              <span class="px-2 py-0.2 rounded-full text-[10px] font-bold uppercase bg-status-action-bg text-status-action-text" id="modal-src-status-pill">Awaiting Verification</span>
             </div>
-            <h2 class="text-base sm:text-lg font-bold text-ashoka-blue line-clamp-1" id="modal-prb-title">Groundwater Arsenic &amp; Heavy Metal Contamination</h2>
+            <h2 class="text-base sm:text-lg font-bold text-ashoka-blue line-clamp-1" id="modal-src-name">Organization Name</h2>
           </div>
         </div>
         <button type="button" onclick="closeProblemModal()" class="w-8 h-8 rounded-lg hover:bg-surface-container text-text-muted hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer">
@@ -1515,110 +1516,135 @@
         <!-- Metadata Overview Card -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-surface-subtle/60 p-3.5 rounded-lg border border-border-hairline">
           <div>
-            <span class="text-text-muted text-[10px] uppercase font-bold block">Submitting Agency</span>
-            <span class="font-semibold text-text-primary block mt-0.5" id="modal-prb-agency">--</span>
+            <span class="text-text-muted text-[10px] uppercase font-bold block">Organization Entity</span>
+            <span class="font-semibold text-text-primary block mt-0.5 truncate" id="modal-src-org">--</span>
           </div>
           <div>
-            <span class="text-text-muted text-[10px] uppercase font-bold block">Nodal Officer</span>
-            <span class="font-semibold text-text-primary block mt-0.5" id="modal-prb-nodal">--</span>
+            <span class="text-text-muted text-[10px] uppercase font-bold block">Bucket &amp; Category</span>
+            <span class="font-semibold text-institutional-navy block mt-0.5 truncate" id="modal-src-bucket-category">--</span>
           </div>
           <div>
-            <span class="text-text-muted text-[10px] uppercase font-bold block">Jurisdiction / Scope</span>
-            <span class="font-semibold text-text-primary block mt-0.5" id="modal-prb-location">--</span>
+            <span class="text-text-muted text-[10px] uppercase font-bold block">Registration / CIN / PAN</span>
+            <span class="font-mono text-[11px] text-text-primary block mt-0.5 font-semibold truncate" id="modal-src-identifier">--</span>
           </div>
           <div>
-            <span class="text-text-muted text-[10px] uppercase font-bold block">Affected Population</span>
-            <span class="font-semibold text-gov-emerald block mt-0.5" id="modal-prb-population">--</span>
+            <span class="text-text-muted text-[10px] uppercase font-bold block">State / District</span>
+            <span class="font-semibold text-text-primary block mt-0.5 truncate" id="modal-src-location">--</span>
+          </div>
+          <div>
+            <span class="text-text-muted text-[10px] uppercase font-bold block">Primary Nodal Contact</span>
+            <span class="font-semibold text-text-primary block mt-0.5 truncate" id="modal-src-nodal">--</span>
+          </div>
+          <div>
+            <span class="text-text-muted text-[10px] uppercase font-bold block">Official Email</span>
+            <span class="font-mono text-[11px] text-text-secondary block mt-0.5 truncate" id="modal-src-email">--</span>
+          </div>
+          <div>
+            <span class="text-text-muted text-[10px] uppercase font-bold block">Official Phone</span>
+            <span class="font-mono text-[11px] text-text-secondary block mt-0.5 truncate" id="modal-src-phone">--</span>
+          </div>
+          <div>
+            <span class="text-text-muted text-[10px] uppercase font-bold block">Registration Dossier</span>
+            <span class="font-mono text-[11px] text-saffron-accent block mt-0.5 truncate" id="modal-src-dossier">--</span>
           </div>
         </div>
 
-        <!-- Problem Statement Description -->
-        <div class="space-y-1.5">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-text-muted flex items-center gap-1.5">
-            <span class="material-symbols-outlined text-[16px] text-institutional-navy">description</span>
-            <span>Problem Description &amp; Technical Bottleneck</span>
-          </h3>
-          <p class="text-text-primary bg-surface-crisp p-3.5 rounded-lg border border-border-hairline leading-relaxed" id="modal-prb-description">
-            Loading problem details...
-          </p>
-        </div>
-
-        <!-- Expected Outcome & Acceptance Criteria -->
-        <div class="space-y-1.5">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-text-muted flex items-center gap-1.5">
-            <span class="material-symbols-outlined text-[16px] text-gov-emerald">task_alt</span>
-            <span>Expected Outcome &amp; Success Metric</span>
-          </h3>
-          <p class="text-text-secondary bg-surface-crisp p-3.5 rounded-lg border border-border-hairline leading-relaxed" id="modal-prb-outcome">
-            Loading expected outcome...
-          </p>
-        </div>
-
-        <!-- Evidence & Technical Documentation -->
-        <div class="space-y-2">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-text-muted flex items-center gap-1.5">
-            <span class="material-symbols-outlined text-[16px] text-saffron-accent">attach_file</span>
-            <span>Empirical Evidence &amp; Supporting Documents</span>
-          </h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5" id="modal-prb-evidence-list">
-            <!-- Populated dynamically -->
-          </div>
-        </div>
-
-        <!-- Quasi-Judicial Decision Form -->
-        <div class="border-t border-border-hairline pt-5 space-y-4">
-          <div class="flex items-center justify-between">
+        <!-- Identity Verification Action Card -->
+        <div class="border border-border-hairline rounded-xl p-4 sm:p-5 bg-surface-crisp shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-border-hairline pb-3">
             <div>
-              <span class="text-xs font-bold uppercase tracking-wider text-text-muted block">Quasi-Judicial Action</span>
-              <h3 class="text-sm font-bold text-ashoka-blue">Select Statutory Verification Verdict</h3>
+              <span class="text-xs font-bold uppercase tracking-wider text-text-muted block">Statutory Identity Check</span>
+              <h3 class="text-sm font-bold text-ashoka-blue">Record Verification Event (POST /sources/{id}/verify)</h3>
             </div>
-            <span class="font-mono text-[10px] text-gov-emerald bg-gov-emerald/10 px-2 py-0.5 rounded-full font-bold">DSC Sign Required</span>
+            <span class="font-mono text-[10px] text-institutional-navy bg-surface-subtle px-2 py-0.5 rounded-full font-bold">Single Event Protocol</span>
           </div>
 
-          <!-- Decision Action Selector -->
-          <div class="grid grid-cols-3 gap-2">
-            <button type="button" id="prb-btn-register" onclick="selectProblemVerdict('REGISTERED')" class="p-3 rounded-lg border border-border-hairline bg-status-approved-bg text-status-approved-text flex flex-col items-center justify-center cursor-pointer transition-all">
-              <span class="material-symbols-outlined text-[20px] text-gov-emerald mb-1">verified</span>
-              <span class="font-bold text-xs">Verify &amp; Register</span>
-              <span class="text-[10px] opacity-80">Catalog in SIH Repo</span>
-            </button>
-            <button type="button" id="prb-btn-action" onclick="selectProblemVerdict('ACTION_REQUIRED')" class="p-3 rounded-lg border border-border-hairline bg-surface-subtle text-text-primary hover:bg-surface-container flex flex-col items-center justify-center cursor-pointer transition-all">
-              <span class="material-symbols-outlined text-[20px] text-saffron-accent mb-1">replay</span>
-              <span class="font-bold text-xs">Request Action</span>
-              <span class="text-[10px] text-text-muted">Return for Correction</span>
-            </button>
-            <button type="button" id="prb-btn-reject" onclick="selectProblemVerdict('REJECTED')" class="p-3 rounded-lg border border-border-hairline bg-surface-subtle text-text-primary hover:bg-surface-container flex flex-col items-center justify-center cursor-pointer transition-all">
-              <span class="material-symbols-outlined text-[20px] text-error mb-1">cancel</span>
-              <span class="font-bold text-xs">Reject Problem</span>
-              <span class="text-[10px] text-text-muted">Out of Mandate</span>
-            </button>
-          </div>
-
-          <!-- Impact Notice -->
-          <div class="p-3 rounded-lg bg-status-approved-bg text-status-approved-text text-xs flex items-start gap-2 border border-status-approved-border" id="prb-impact-box">
-            <span class="material-symbols-outlined text-[18px] text-gov-emerald shrink-0 mt-0.5">info</span>
-            <span id="prb-impact-text">
-              <strong>State Transition:</strong> Problem will transition to <code class="font-mono font-bold">REGISTERED</code>. Problem statement enters the national SIH 2024 active challenge catalog with full evidence attachments.
-            </span>
-          </div>
-
-          <!-- Comments Textarea -->
-          <div class="space-y-1">
-            <div class="flex items-center justify-between text-xs">
-              <label for="prb-reviewer-remarks" class="font-bold text-text-primary">
-                Technical Review Remarks <span class="text-saffron-accent font-bold" id="prb-asterisk" style="display:none;">*</span>
+          <!-- Form Fields: Method & Result -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Verification Method -->
+            <div class="space-y-1.5">
+              <label for="src-verify-method" class="font-bold text-text-primary text-xs flex items-center gap-1">
+                <span>Verification Method</span>
+                <span class="text-error">*</span>
               </label>
-              <span class="font-mono text-[10px] text-text-muted" id="prb-char-count">0 / 1000</span>
+              <select id="src-verify-method" class="w-full py-2 px-3 rounded-lg border border-border-hairline bg-surface-crisp font-body-sm text-xs text-text-primary focus:border-institutional-navy focus:outline-none cursor-pointer">
+                <option value="OFFICIAL_EMAIL">OFFICIAL_EMAIL — Official Domain Email Verification</option>
+                <option value="AUTHORIZATION_DOC">AUTHORIZATION_DOC — Head of Institution Letter</option>
+                <option value="OTP">OTP — Nodal Officer Direct Mobile OTP</option>
+                <option value="REGISTRATION_API">REGISTRATION_API — Statutory Registry API Check</option>
+                <option value="INSTITUTIONAL_EMAIL">INSTITUTIONAL_EMAIL — Academic / Gov Email Domain</option>
+                <option value="MANUAL_REVIEW">MANUAL_REVIEW — Field Officer Physical Verification</option>
+              </select>
             </div>
-            <textarea id="prb-reviewer-remarks" rows="3" oninput="handlePrbRemarksInput()" class="w-full rounded-lg p-3 text-xs bg-surface-crisp border border-border-hairline focus:border-institutional-navy focus:outline-none resize-none" placeholder="Provide statutory notes, technological evaluation remarks, or deficiency citations..."></textarea>
+
+            <!-- Verification Result -->
+            <div class="space-y-1.5">
+              <label for="src-verify-result" class="font-bold text-text-primary text-xs flex items-center gap-1">
+                <span>Verification Result</span>
+                <span class="text-error">*</span>
+              </label>
+              <select id="src-verify-result" onchange="handleSrcResultChange()" class="w-full py-2 px-3 rounded-lg border border-border-hairline bg-surface-crisp font-body-sm text-xs text-text-primary focus:border-institutional-navy focus:outline-none cursor-pointer">
+                <option value="PASS">PASS — Identity &amp; Credentials Verified</option>
+                <option value="NEEDS_REVIEW">NEEDS_REVIEW — Clarification / Additional Proof Needed</option>
+                <option value="FAIL">FAIL — Verification Failed / Invalid Credentials</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Dynamic Consequence Notice Box -->
+          <div class="p-3 rounded-lg bg-status-approved-bg text-status-approved-text text-xs flex items-start gap-2 border border-status-approved-border" id="src-impact-box">
+            <span class="material-symbols-outlined text-[18px] text-gov-emerald shrink-0 mt-0.5" id="src-impact-icon">verified</span>
+            <div id="src-impact-text">
+              <strong>PASS Result:</strong> The organization will receive a <span class="font-bold">Verified Source</span> badge in the national registry. Authorized submission privileges remain permanently confirmed.
+            </div>
+          </div>
+
+          <!-- Notes / Observation -->
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between text-xs">
+              <label for="src-verify-notes" class="font-bold text-text-primary">
+                Verification Observations &amp; Registry Notes
+              </label>
+              <span class="font-mono text-[10px] text-text-muted" id="src-notes-char-count">0 / 500</span>
+            </div>
+            <textarea id="src-verify-notes" rows="2" oninput="handleSrcNotesInput()" class="w-full rounded-lg p-2.5 text-xs bg-surface-crisp border border-border-hairline focus:border-institutional-navy focus:outline-none resize-none" placeholder="Provide verification notes, certificate registration check references, or official rationale (optional)..."></textarea>
+          </div>
+
+          <!-- Evidence URL -->
+          <div class="space-y-1.5">
+            <label for="src-verify-evidence" class="font-bold text-text-primary text-xs flex items-center gap-1">
+              <span class="material-symbols-outlined text-[15px] text-text-muted">link</span>
+              <span>Evidence Document URL / Verification Artifact Link</span>
+              <span class="text-text-muted font-normal text-[11px]">(Optional)</span>
+            </label>
+            <input type="url" id="src-verify-evidence" class="w-full px-3 py-2 rounded-lg border border-border-hairline bg-surface-crisp font-mono text-xs text-text-primary placeholder:text-text-muted focus:border-institutional-navy focus:outline-none" placeholder="https://drive.google.com/... or https://portal.mca.gov.in/..."/>
           </div>
 
           <!-- Attestation Checkbox -->
           <div class="p-3 rounded-lg bg-surface-subtle flex items-start gap-2 border border-border-hairline">
-            <input type="checkbox" id="prb-attest-check" onchange="evaluatePrbReadiness()" checked class="mt-0.5 rounded text-institutional-navy focus:ring-institutional-navy cursor-pointer">
-            <label for="prb-attest-check" class="text-xs text-text-secondary select-none cursor-pointer">
-              I, <strong class="text-text-primary" id="prb-attest-officer-name">Reviewer Officer</strong>, certify that this problem statement has been evaluated against statutory jurisdiction, authenticity, and technical viability.
+            <input type="checkbox" id="src-verify-attest" onchange="evaluateSourceVerifyReadiness()" checked class="mt-0.5 rounded text-institutional-navy focus:ring-institutional-navy cursor-pointer">
+            <label for="src-verify-attest" class="text-xs text-text-secondary select-none cursor-pointer">
+              I, <strong class="text-text-primary" id="src-verify-officer-name">Reviewer Officer</strong>, certify under statutory authority that the identity credentials for this organization have been evaluated against verified official records and documented evidence.
             </label>
+          </div>
+        </div>
+
+        <!-- Append-only History of Past Verification Events -->
+        <div class="space-y-2.5">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-text-muted flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[16px] text-institutional-navy">history</span>
+              <span>Verification Audit Trail &amp; Past Events</span>
+            </h3>
+            <span class="font-mono text-[10px] text-text-muted">Append-only Record</span>
+          </div>
+
+          <div id="src-verification-history-container" class="space-y-2 bg-surface-crisp rounded-xl border border-border-hairline p-3 sm:p-4">
+            <!-- Rendered dynamically by renderSourceVerificationHistory() -->
+            <div class="text-center py-4 text-text-muted text-xs">
+              <span class="material-symbols-outlined text-[20px] text-text-muted mb-1 block">history_toggle_drop_down</span>
+              <span>No prior verification checks recorded for this organization.</span>
+            </div>
           </div>
         </div>
 
@@ -1626,14 +1652,14 @@
 
       <!-- Modal Footer -->
       <div class="px-5 py-3.5 bg-surface-subtle border-t border-border-hairline flex items-center justify-between">
-        <span class="font-mono text-[11px] text-text-muted">SESSION: SIH26043-REV-ACTIVE</span>
+        <span class="font-mono text-[11px] text-text-muted">STATUTORY VERIFICATION GATEWAY</span>
         <div class="flex items-center gap-2">
           <button type="button" onclick="closeProblemModal()" class="px-4 py-2 text-xs font-semibold rounded-lg bg-surface-crisp hover:bg-surface-container border border-border-hairline text-text-secondary cursor-pointer transition-colors">
             Cancel
           </button>
-          <button type="button" id="btn-submit-prb-decision" onclick="executeProblemTransition()" class="px-5 py-2 text-xs font-semibold rounded-lg bg-institutional-navy hover:bg-primary text-on-primary flex items-center gap-1.5 shadow-sm cursor-pointer transition-all">
+          <button type="button" id="btn-submit-src-verify" onclick="executeSourceVerification()" class="px-5 py-2 text-xs font-semibold rounded-lg bg-institutional-navy hover:bg-primary text-on-primary flex items-center gap-1.5 shadow-sm cursor-pointer transition-all">
             <span class="material-symbols-outlined text-[16px]">how_to_reg</span>
-            <span id="prb-submit-btn-label">Execute Problem Registration</span>
+            <span id="src-submit-btn-label">Submit Identity Verification</span>
           </button>
         </div>
       </div>
