@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🇮🇳 SIH 2024 · National Innovation & Evaluation Architecture
+# 🇮🇳 SIH 2026 · National Innovation & Evaluation Architecture
 ### **Next-Gen Institutional Problem Repository & Multi-Role Assessment Suite**
 
 [![Vite](https://img.shields.io/badge/Vite-6.x%20%2F%208.x-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
