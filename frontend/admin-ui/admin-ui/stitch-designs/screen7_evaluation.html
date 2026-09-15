@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&amp;family=Noto+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-primary-fixed": "#001c37", "status-submitted-text": "#1E40AF", "background": "#f8f9ff", "on-tertiary": "#ffffff", "error": "#ba1a1a", "status-action-bg": "#FFF7ED", "saffron-accent": "#E05A10", "status-approved-bg": "#ECFDF5", "on-secondary": "#ffffff", "surface-container": "#e5eeff", "tertiary-container": "#002a1b", "on-tertiary-fixed-variant": "#005137", "on-primary-fixed-variant": "#314865", "text-muted": "#64748B", "surface-container-low": "#eff4ff", "status-submitted-bg": "#EFF6FF", "on-secondary-container": "#1d3989", "outline": "#74777e", "secondary-container": "#8fa7fe", "secondary-fixed-dim": "#b6c4ff", "status-approved-border": "#A7F3D0", "text-secondary": "#475569", "gov-emerald": "#059669", "primary-container": "#0a2540", "on-surface-variant": "#43474d", "status-review-text": "#5B21B6", "tertiary-fixed-dim": "#68dba9", "on-primary-container": "#768dad", "surface-bright": "#f8f9ff", "primary-fixed": "#d2e4ff", "surface-variant": "#d3e4fe", "status-action-text": "#9A3412", "surface-crisp": "#FFFFFF", "surface": "#f8f9ff", "on-secondary-fixed-variant": "#264191", "surface-container-high": "#dce9ff", "surface-subtle": "#F8FAFC", "surface-muted": "#F1F5F9", "institutional-navy": "#1E3A8A", "primary": "#000f22", "tertiary": "#001209", "secondary": "#4059aa", "secondary-fixed": "#dce1ff", "on-surface": "#0b1c30", "on-error": "#ffffff", "on-primary": "#ffffff", "on-tertiary-fixed": "#002114", "on-tertiary-container": "#1a9e70", "on-secondary-fixed": "#00164e", "status-review-border": "#DDD6FE", "inverse-primary": "#b0c8eb", "error-container": "#ffdad6", "surface-tint": "#49607e", "surface-container-highest": "#d3e4fe", "border-hairline": "#E2E8F0", "ashoka-blue": "#0A2540", "inverse-surface": "#213145", "surface-container-lowest": "#ffffff", "status-action-border": "#FED7AA", "border-strong": "#CBD5E1", "surface-dim": "#cbdbf5", "text-primary": "#0F172A", "on-background": "#0b1c30", "status-submitted-border": "#BFDBFE", "primary-fixed-dim": "#b0c8eb", "inverse-on-surface": "#eaf1ff", "outline-variant": "#c4c6ce", "status-approved-text": "#065F46", "tertiary-fixed": "#85f8c4", "status-review-bg": "#F5F3FF", "on-error-container": "#93000a" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "space-2xs": "0.125rem", "space-base": "1rem", "space-lg": "1.5rem", "form-max-width": "42rem", "space-sm": "0.5rem", "space-xl": "2rem", "space-2xl": "3rem", "space-xs": "0.25rem", "container-max-width": "72rem", "space-md": "0.75rem", "space-3xl": "4rem", "gutter-desktop": "1.5rem", "gutter-mobile": "1rem" }, "fontFamily": { "headline-xl": ["Noto Sans"], "label-sm": ["Noto Sans"], "label-md": ["Noto Sans"], "body-lg": ["Noto Sans"], "mono-code": ["JetBrains Mono"], "headline-sm": ["Noto Sans"], "headline-xl-mobile": ["Noto Sans"], "label-lg": ["Noto Sans"], "body-sm": ["Noto Sans"], "headline-lg": ["Noto Sans"], "headline-md": ["Noto Sans"], "body-md": ["Noto Sans"] }, "fontSize": { "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "700" }], "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }], "body-lg": ["16px", { "lineHeight": "26px", "letterSpacing": "0em", "fontWeight": "400" }], "mono-code": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500" }], "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" }], "headline-xl-mobile": ["26px", { "lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700" }], "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }], "body-sm": ["12px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "400" }], "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "700" }], "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "body-md": ["14px", { "lineHeight": "22px", "letterSpacing": "0em", "fontWeight": "400" }] } } } };</script></head><body class="bg-background font-body-md text-text-primary min-h-screen"><header class="fixed top-0 left-0 right-0 z-50 h-16 bg-surface-crisp border-b border-border-hairline shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 w-full px-gutter-desktop flex items-center justify-between"><div class="flex items-center gap-space-md"><img alt="Brand logo. - Primary color: #0a2540 - Font: notoSans - Mode: light - Roundness: rounded-sm" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XI9nSKj4rsNvj5snYwu2dgdHUz78RhkH0lBCnRaOqOhtGnUNsQysd2e-ypOuKlSsYysXy2FIHwfOUDz-A2woFf2EtzFja2lz78uLpqLmnkym8ETOpXDZgnvhksjEwmkaYB2i8oVLyAs2dWDy8YybtL3lXV3EqS1D7-QblRnnArH1wpH6sUx1rzDl42N69jr-q2OnNXQAez7NlBGgcbxjLoGVDeFY8sCARpMLHHdQFKMxwE4E19VnntFgX0"/><div class="flex items-center gap-space-sm"><span class="font-headline-sm text-headline-sm text-ashoka-blue tracking-tight">🛡️ SIH26043 Admin Panel</span><span class="inline-flex items-center px-2 py-0.5 rounded-full bg-primary-container text-on-primary font-label-sm text-label-sm tracking-wider uppercase border border-ashoka-blue/20">🛡️ ADMIN</span></div></div><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-sm pl-space-md border-l border-border-hairline"><div class="flex flex-col text-right"><span class="font-label-md text-label-md text-text-primary leading-tight">Superuser Root</span><span class="font-mono-code text-body-sm text-text-muted leading-tight">sysadmin@sih26043.gov.in</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div><a class="inline-flex items-center gap-space-xs px-space-md py-1.5 rounded-lg border border-border-strong text-text-secondary hover:bg-surface-muted hover:text-on-surface font-label-md text-label-md transition-colors" data-path="login" href="#"><span class="material-symbols-outlined text-[18px]">logout</span><span>Logout</span></a></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-64 bg-surface-subtle border-r border-border-hairline z-40 flex flex-col justify-between pt-space-md pb-space-lg"><div class="flex flex-col gap-space-xs"><div class="px-space-md pb-space-sm mb-space-xs border-b border-border-hairline"><span class="font-label-sm text-label-sm text-text-muted tracking-wider uppercase">Navigation Authority</span></div><nav class="px-space-sm flex flex-col gap-space-2xs" data-active-classes="bg-primary-container text-on-primary font-semibold"><a class="flex items-center justify-between px-space-md py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-lg text-label-lg" data-path="users" href="#"><span class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">group</span><span>Users</span></span><span class="px-1.5 py-0.5 rounded-full bg-status-action-bg text-status-action-text border border-status-action-border font-label-sm text-label-sm">Admin Only</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-lg text-label-lg" data-path="registrations" href="#"><span class="material-symbols-outlined text-[20px]">assignment</span><span>Registrations</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-lg text-label-lg" data-path="problems" href="#"><span class="material-symbols-outlined text-[20px]">extension</span><span>Problems</span></a><a aria-current="page" class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg transition-colors bg-primary-container text-on-primary font-semibold" data-path="evaluation" href="#"><span class="material-symbols-outlined text-[20px]">biotech</span><span>Evaluation</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-lg text-label-lg" data-path="audit" href="#"><span class="material-symbols-outlined text-[20px]">history_edu</span><span>Audit</span></a></nav></div><div class="px-space-md pt-space-sm border-t border-border-hairline"><div class="flex items-center justify-between text-text-muted font-body-sm text-body-sm"><span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-gov-emerald"></span>Core v2.4</span><span class="font-mono-code text-[11px]">SECURE-LEVEL-1</span></div></div></aside><div class="pl-64"><main class="relative pt-16 bg-background min-h-[calc(100vh-4rem)]"><div class="w-full max-w-container-max-width mx-auto px-gutter-desktop py-space-lg"><div class="flex flex-col w-full">
+<section class="flex flex-col gap-space-lg">
+<!-- Header Context & Quick Metrics Strip -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md pb-space-sm">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-mono-code text-label-sm text-saffron-accent uppercase tracking-wider">PHASE 2 WORKSPACE</span>
+<span class="text-text-muted text-label-sm">•</span>
+<span class="font-mono-code text-label-sm text-text-muted">STATUTORY ARBITRATION ID: N-EVAL-26043</span>
+</div>
+<div class="flex items-baseline gap-space-md">
+<h2 class="font-headline-lg text-headline-lg text-primary tracking-tight">Evaluation Operations &amp; Cycle Orchestration</h2>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container font-mono-code text-body-sm text-institutional-navy">
+<span class="w-2 h-2 rounded-full bg-gov-emerald animate-pulse"></span>
+            Queue Online • AI Agent v4.8
+          </span>
+</div>
+</div>
+<!-- Quick KPI Stats Array (No borders, pure tonal layers) -->
+<div class="grid grid-cols-3 gap-space-xs sm:gap-space-sm bg-surface-subtle p-space-xs rounded-xl">
+<div class="bg-surface-crisp px-space-md py-space-xs rounded-lg shadow-sm">
+<span class="block font-label-sm text-label-sm text-text-muted uppercase">Active Cycles</span>
+<span class="font-mono-code text-headline-sm text-ashoka-blue font-bold">54</span>
+</div>
+<div class="bg-surface-crisp px-space-md py-space-xs rounded-lg shadow-sm">
+<span class="block font-label-sm text-label-sm text-text-muted uppercase">Degraded / Stalled</span>
+<span class="font-mono-code text-headline-sm text-saffron-accent font-bold">03</span>
+</div>
+<div class="bg-surface-crisp px-space-md py-space-xs rounded-lg shadow-sm">
+<span class="block font-label-sm text-label-sm text-text-muted uppercase">Phase 3 Ready</span>
+<span class="font-mono-code text-headline-sm text-gov-emerald font-bold">19</span>
+</div>
+</div>
+</div>
+<!-- Filter & Tool Bar -->
+<div class="bg-surface-crisp p-space-md rounded-xl shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-space-md">
+<!-- Status Filter Pills -->
+<div class="flex items-center gap-space-xs overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+<button class="cycle-filter-btn px-3 py-1.5 rounded-full font-label-sm text-label-sm bg-primary text-on-primary shadow-sm" data-filter="ALL" type="button">
+          ALL (54)
+        </button>
+<button class="cycle-filter-btn px-3 py-1.5 rounded-full font-label-sm text-label-sm bg-surface-subtle text-text-secondary hover:bg-surface-container transition-colors" data-filter="RECEIVED" type="button">
+          RECEIVED (4)
+        </button>
+<button class="cycle-filter-btn px-3 py-1.5 rounded-full font-label-sm text-label-sm bg-status-action-bg text-status-action-text hover:brightness-95 transition-colors" data-filter="ANALYSIS_FAILED" type="button">
+          ANALYSIS FAILED (3)
+        </button>
+<button class="cycle-filter-btn px-3 py-1.5 rounded-full font-label-sm text-label-sm bg-status-review-bg text-status-review-text hover:brightness-95 transition-colors" data-filter="EVALUATION_IN_PROGRESS" type="button">
+          IN PROGRESS (12)
+        </button>
+<button class="cycle-filter-btn px-3 py-1.5 rounded-full font-label-sm text-label-sm bg-status-approved-bg text-status-approved-text hover:brightness-95 transition-colors" data-filter="PHASE_3_READY" type="button">
+          PHASE 3 READY (19)
+        </button>
+</div>
+<!-- Action Utilities -->
+<div class="flex items-center gap-space-sm justify-end">
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-text-muted text-[18px]">search</span>
+<input class="w-64 pl-9 pr-3 py-1.5 bg-surface-subtle rounded-lg text-body-sm font-body-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:bg-surface-crisp shadow-inner" placeholder="Search Cycle or Problem ID..." type="text"/>
+</div>
+<button class="p-2 rounded-lg bg-surface-subtle text-text-secondary hover:bg-surface-container hover:text-text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">filter_list</span>
+</button>
+<button class="p-2 rounded-lg bg-surface-subtle text-text-secondary hover:bg-surface-container hover:text-text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">file_download</span>
+</button>
+</div>
+</div>
+<!-- Main Asymmetric Workspace Layout: Data Table (7 Cols) + Dedicated Inspector Panel (5 Cols) -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
+<!-- Left: Institutional Data Table Matrix (7 Cols) -->
+<div class="xl:col-span-7 bg-surface-crisp rounded-xl shadow-sm overflow-hidden flex flex-col">
+<!-- Table Header Controls Bar -->
+<div class="px-space-md py-space-sm bg-surface-subtle flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="font-label-md text-label-md text-primary">Active Batches &amp; Execution Pipeline</span>
+<span class="px-2 py-0.5 rounded font-mono-code text-[11px] bg-surface-container text-institutional-navy font-semibold">PAGE 1 OF 6</span>
+</div>
+<span class="font-mono-code text-body-sm text-text-muted">Showing 1–10 of 54 cycles</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-muted/60 text-text-secondary font-label-sm text-label-sm uppercase tracking-wider">
+<th class="py-3 px-space-md">Cycle ID &amp; Target</th>
+<th class="py-3 px-space-sm">Panel / Node</th>
+<th class="py-3 px-space-sm text-right">Items</th>
+<th class="py-3 px-space-sm">Status Demarcation</th>
+<th class="py-3 px-space-md text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-hairline text-body-sm">
+<!-- Row 1: Selected / Degraded Focus (ANALYSIS_FAILED) -->
+<tr class="cycle-row bg-surface-container-low hover:bg-surface-container cursor-pointer transition-colors" data-cycle-id="CYC-2024-EVAL-08">
+<td class="py-3 px-space-md">
+<div class="flex flex-col">
+<span class="font-mono-code font-bold text-ashoka-blue text-label-lg flex items-center gap-1.5">
+                      CYC-2024-EVAL-08
+                      <span class="w-1.5 h-1.5 rounded-full bg-saffron-accent"></span>
+</span>
+<span class="font-mono-code text-body-sm text-text-muted">PRB-IND-AGRI-109</span>
+</div>
+</td>
+<td class="py-3 px-space-sm">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary">Panel Beta-3</span>
+<span class="font-mono-code text-[11px] text-text-muted">Worker #4 [STALL]</span>
+</div>
+</td>
+<td class="py-3 px-space-sm text-right font-mono-code font-semibold text-text-primary">
+                  128
+                </td>
+<td class="py-3 px-space-sm">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-status-action-bg text-status-action-text font-bold">
+                    ANALYSIS_FAILED
+                  </span>
+</td>
+<td class="py-3 px-space-md text-right">
+<button class="inline-flex items-center px-2 py-1 rounded bg-primary-container text-on-primary hover:bg-institutional-navy transition-colors font-label-sm text-label-sm">
+                    Inspect
+                  </button>
+</td>
+</tr>
+<!-- Row 2: In Progress -->
+<tr class="cycle-row hover:bg-surface-subtle cursor-pointer transition-colors" data-cycle-id="CYC-2024-EVAL-09">
+<td class="py-3 px-space-md">
+<div class="flex flex-col">
+<span class="font-mono-code font-semibold text-text-primary text-label-lg">CYC-2024-EVAL-09</span>
+<span class="font-mono-code text-body-sm text-text-muted">PRB-GOV-URB-042</span>
+</div>
+</td>
+<td class="py-3 px-space-sm">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary">Panel Alpha-1</span>
+<span class="font-mono-code text-[11px] text-text-muted">Cluster Grid West</span>
+</div>
+</td>
+<td class="py-3 px-space-sm text-right font-mono-code font-semibold text-text-primary">
+                  256
+                </td>
+<td class="py-3 px-space-sm">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-status-review-bg text-status-review-text font-bold">
+                    EVAL_IN_PROGRESS
+                  </span>
+</td>
+<td class="py-3 px-space-md text-right">
+<button class="inline-flex items-center px-2 py-1 rounded bg-surface-muted text-text-secondary hover:bg-surface-container transition-colors font-label-sm text-label-sm">
+                    Inspect
+                  </button>
+</td>
+</tr>
+<!-- Row 3: Phase 3 Ready -->
+<tr class="cycle-row hover:bg-surface-subtle cursor-pointer transition-colors" data-cycle-id="CYC-2024-EVAL-07">
+<td class="py-3 px-space-md">
+<div class="flex flex-col">
+<span class="font-mono-code font-semibold text-text-primary text-label-lg">CYC-2024-EVAL-07</span>
+<span class="font-mono-code text-body-sm text-text-muted">PRB-HEA-CARE-018</span>
+</div>
+</td>
+<td class="py-3 px-space-sm">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary">Panel Gamma-Core</span>
+<span class="font-mono-code text-[11px] text-text-muted">Validated Sovereign</span>
+</div>
+</td>
+<td class="py-3 px-space-sm text-right font-mono-code font-semibold text-text-primary">
+                  64
+                </td>
+<td class="py-3 px-space-sm">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-status-approved-bg text-status-approved-text font-bold">
+                    PHASE_3_READY
+                  </span>
+</td>
+<td class="py-3 px-space-md text-right">
+<button class="inline-flex items-center px-2 py-1 rounded bg-surface-muted text-text-secondary hover:bg-surface-container transition-colors font-label-sm text-label-sm">
+                    Inspect
+                  </button>
+</td>
+</tr>
+<!-- Row 4: Scores Aggregated -->
+<tr class="cycle-row hover:bg-surface-subtle cursor-pointer transition-colors" data-cycle-id="CYC-2024-EVAL-06">
+<td class="py-3 px-space-md">
+<div class="flex flex-col">
+<span class="font-mono-code font-semibold text-text-primary text-label-lg">CYC-2024-EVAL-06</span>
+<span class="font-mono-code text-body-sm text-text-muted">PRB-ED-TECH-882</span>
+</div>
+</td>
+<td class="py-3 px-space-sm">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary">Panel Epsilon</span>
+<span class="font-mono-code text-[11px] text-text-muted">Node Delhi-02</span>
+</div>
+</td>
+<td class="py-3 px-space-sm text-right font-mono-code font-semibold text-text-primary">
+                  180
+                </td>
+<td class="py-3 px-space-sm">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-status-submitted-bg text-status-submitted-text font-bold">
+                    SCORES_AGGREGATED
+                  </span>
+</td>
+<td class="py-3 px-space-md text-right">
+<button class="inline-flex items-center px-2 py-1 rounded bg-surface-muted text-text-secondary hover:bg-surface-container transition-colors font-label-sm text-label-sm">
+                    Inspect
+                  </button>
+</td>
+</tr>
+<!-- Row 5: Prioritized -->
+<tr class="cycle-row hover:bg-surface-subtle cursor-pointer transition-colors" data-cycle-id="CYC-2024-EVAL-05">
+<td class="py-3 px-space-md">
+<div class="flex flex-col">
+<span class="font-mono-code font-semibold text-text-primary text-label-lg">CYC-2024-EVAL-05</span>
+<span class="font-mono-code text-body-sm text-text-muted">PRB-ENRG-WND-003</span>
+</div>
+</td>
+<td class="py-3 px-space-sm">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary">Panel Theta</span>
+<span class="font-mono-code text-[11px] text-text-muted">Node Bengaluru-01</span>
+</div>
+</td>
+<td class="py-3 px-space-sm text-right font-mono-code font-semibold text-text-primary">
+                  92
+                </td>
+<td class="py-3 px-space-sm">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-surface-container text-institutional-navy font-bold">
+                    PRIORITIZED
+                  </span>
+</td>
+<td class="py-3 px-space-md text-right">
+<button class="inline-flex items-center px-2 py-1 rounded bg-surface-muted text-text-secondary hover:bg-surface-container transition-colors font-label-sm text-label-sm">
+                    Inspect
+                  </button>
+</td>
+</tr>
+<!-- Row 6: Evaluation Completed -->
+<tr class="cycle-row hover:bg-surface-subtle cursor-pointer transition-colors" data-cycle-id="CYC-2024-EVAL-04">
+<td class="py-3 px-space-md">
+<div class="flex flex-col">
+<span class="font-mono-code font-semibold text-text-primary text-label-lg">CYC-2024-EVAL-04</span>
+<span class="font-mono-code text-body-sm text-text-muted">PRB-WAT-DIST-141</span>
+</div>
+</td>
+<td class="py-3 px-space-sm">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary">Panel Alpha-2</span>
+<span class="font-mono-code text-[11px] text-text-muted">Node Hyderabad</span>
+</div>
+</td>
+<td class="py-3 px-space-sm text-right font-mono-code font-semibold text-text-primary">
+                  64
+                </td>
+<td class="py-3 px-space-sm">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-status-approved-bg text-status-approved-text font-bold">
+                    EVAL_COMPLETED
+                  </span>
+</td>
+<td class="py-3 px-space-md text-right">
+<button class="inline-flex items-center px-2 py-1 rounded bg-surface-muted text-text-secondary hover:bg-surface-container transition-colors font-label-sm text-label-sm">
+                    Inspect
+                  </button>
+</td>
+</tr>
+<!-- Row 7: Routing -->
+<tr class="cycle-row hover:bg-surface-subtle cursor-pointer transition-colors" data-cycle-id="CYC-2024-EVAL-03">
+<td class="py-3 px-space-md">
+<div class="flex flex-col">
+<span class="font-mono-code font-semibold text-text-primary text-label-lg">CYC-2024-EVAL-03</span>
+<span class="font-mono-code text-body-sm text-text-muted">PRB-CYB-DEF-900</span>
+</div>
+</td>
+<td class="py-3 px-space-sm">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary">Automated Dispatch</span>
+<span class="font-mono-code text-[11px] text-text-muted">Ingress Pipeline</span>
+</div>
+</td>
+<td class="py-3 px-space-sm text-right font-mono-code font-semibold text-text-primary">
+                  310
+                </td>
+<td class="py-3 px-space-sm">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-surface-container text-on-surface font-bold">
+                    ROUTING
+                  </span>
+</td>
+<td class="py-3 px-space-md text-right">
+<button class="inline-flex items-center px-2 py-1 rounded bg-surface-muted text-text-secondary hover:bg-surface-container transition-colors font-label-sm text-label-sm">
+                    Inspect
+                  </button>
+</td>
+</tr>
+<!-- Row 8: Analyzing -->
+<tr class="cycle-row hover:bg-surface-subtle cursor-pointer transition-colors" data-cycle-id="CYC-2024-EVAL-02">
+<td class="py-3 px-space-md">
+<div class="flex flex-col">
+<span class="font-mono-code font-semibold text-text-primary text-label-lg">CYC-2024-EVAL-02</span>
+<span class="font-mono-code text-body-sm text-text-muted">PRB-FIN-INC-654</span>
+</div>
+</td>
+<td class="py-3 px-space-sm">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary">Synthesizer Worker</span>
+<span class="font-mono-code text-[11px] text-text-muted">LLM-Cluster-C</span>
+</div>
+</td>
+<td class="py-3 px-space-sm text-right font-mono-code font-semibold text-text-primary">
+                  144
+                </td>
+<td class="py-3 px-space-sm">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-status-review-bg text-status-review-text font-bold">
+                    ANALYZING
+                  </span>
+</td>
+<td class="py-3 px-space-md text-right">
+<button class="inline-flex items-center px-2 py-1 rounded bg-surface-muted text-text-secondary hover:bg-surface-container transition-colors font-label-sm text-label-sm">
+                    Inspect
+                  </button>
+</td>
+</tr>
+<!-- Row 9: Received -->
+<tr class="cycle-row hover:bg-surface-subtle cursor-pointer transition-colors" data-cycle-id="CYC-2024-EVAL-01">
+<td class="py-3 px-space-md">
+<div class="flex flex-col">
+<span class="font-mono-code font-semibold text-text-primary text-label-lg">CYC-2024-EVAL-01</span>
+<span class="font-mono-code text-body-sm text-text-muted">PRB-LOG-RUR-223</span>
+</div>
+</td>
+<td class="py-3 px-space-sm">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary">Staging Area</span>
+<span class="font-mono-code text-[11px] text-text-muted">Gateway Ingest</span>
+</div>
+</td>
+<td class="py-3 px-space-sm text-right font-mono-code font-semibold text-text-primary">
+                  50
+                </td>
+<td class="py-3 px-space-sm">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-status-submitted-bg text-status-submitted-text font-bold">
+                    RECEIVED
+                  </span>
+</td>
+<td class="py-3 px-space-md text-right">
+<button class="inline-flex items-center px-2 py-1 rounded bg-surface-muted text-text-secondary hover:bg-surface-container transition-colors font-label-sm text-label-sm">
+                    Inspect
+                  </button>
+</td>
+</tr>
+<!-- Row 10: Prioritized 2 -->
+<tr class="cycle-row hover:bg-surface-subtle cursor-pointer transition-colors" data-cycle-id="CYC-2024-EVAL-00">
+<td class="py-3 px-space-md">
+<div class="flex flex-col">
+<span class="font-mono-code font-semibold text-text-primary text-label-lg">CYC-2024-EVAL-00</span>
+<span class="font-mono-code text-body-sm text-text-muted">PRB-MIN-GEO-771</span>
+</div>
+</td>
+<td class="py-3 px-space-sm">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary">Panel Sigma</span>
+<span class="font-mono-code text-[11px] text-text-muted">Node Pune-01</span>
+</div>
+</td>
+<td class="py-3 px-space-sm text-right font-mono-code font-semibold text-text-primary">
+                  110
+                </td>
+<td class="py-3 px-space-sm">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-surface-container text-institutional-navy font-bold">
+                    PRIORITIZED
+                  </span>
+</td>
+<td class="py-3 px-space-md text-right">
+<button class="inline-flex items-center px-2 py-1 rounded bg-surface-muted text-text-secondary hover:bg-surface-container transition-colors font-label-sm text-label-sm">
+                    Inspect
+                  </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Institutional Pagination Controls -->
+<div class="p-space-md bg-surface-subtle flex flex-col sm:flex-row items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-xs text-text-muted font-body-sm text-body-sm">
+<span>Displaying items 1 to 10 of 54 cycles</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="inline-flex items-center gap-1 px-3 py-1.5 rounded bg-surface-crisp text-text-secondary hover:bg-surface-container font-label-md text-label-md shadow-sm transition-colors cursor-not-allowed opacity-50" disabled="">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+              Previous
+            </button>
+<span class="px-3 py-1.5 rounded font-mono-code text-label-md text-primary font-bold bg-surface-crisp shadow-sm">
+              Page 1 of 6
+            </span>
+<button class="inline-flex items-center gap-1 px-3 py-1.5 rounded bg-surface-crisp text-text-secondary hover:bg-surface-container font-label-md text-label-md shadow-sm transition-colors">
+              Next
+              <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Right: Detailed Selected Cycle Workspace Inspector (5 Cols) -->
+<div class="xl:col-span-5 flex flex-col gap-space-md">
+<!-- Target Detail Master Card -->
+<div class="bg-surface-crisp rounded-xl shadow-md p-space-lg flex flex-col gap-space-lg">
+<!-- Inspection Header -->
+<div class="flex items-start justify-between">
+<div class="flex flex-col gap-space-2xs">
+<span class="font-mono-code text-label-sm text-text-muted uppercase tracking-wider">SELECTED CYCLE AUDIT LOG</span>
+<div class="flex items-center gap-space-sm">
+<h3 class="font-headline-md text-headline-md text-ashoka-blue tracking-tight">CYC-2024-EVAL-08</h3>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-label-sm font-label-sm bg-status-action-bg text-status-action-text font-bold">
+                  ANALYSIS_FAILED
+                </span>
+</div>
+</div>
+<div class="p-2 rounded-lg bg-surface-subtle text-text-muted">
+<span class="material-symbols-outlined text-[24px]">terminal</span>
+</div>
+</div>
+<!-- Metadata Spec Matrix (Flat & Structured) -->
+<div class="grid grid-cols-2 gap-space-sm bg-surface-subtle p-space-md rounded-lg">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-text-muted uppercase">Associated Problem</span>
+<span class="font-mono-code text-label-md text-ashoka-blue font-semibold">PRB-IND-AGRI-109</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-text-muted uppercase">Evaluator Panel</span>
+<span class="font-body-md text-body-md text-text-primary font-semibold">Panel Beta-3 (Agritech)</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-text-muted uppercase">Batch Allocation</span>
+<span class="font-mono-code text-label-md text-text-primary">128 Dossiers</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-text-muted uppercase">Pipeline Ingest</span>
+<span class="font-mono-code text-label-md text-text-primary">Today, 09:14:22 IST</span>
+</div>
+<div class="col-span-2 pt-space-xs flex flex-col">
+<span class="font-label-sm text-label-sm text-text-muted uppercase">Last Attempt Execution</span>
+<span class="font-mono-code text-body-sm text-saffron-accent font-semibold">Today, 10:48:19 IST (Cluster Exit Code: 137)</span>
+</div>
+</div>
+<!-- Action Callout & Execution Trigger -->
+<div class="flex flex-col gap-space-xs bg-surface-container-low p-space-md rounded-lg">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-institutional-navy">Orchestration Action</span>
+<span class="font-mono-code text-[11px] text-gov-emerald font-semibold">STATE: IDEMPOTENT-READY</span>
+</div>
+<button class="w-full mt-space-xs py-2.5 px-space-md rounded bg-saffron-accent text-on-primary hover:brightness-110 active:brightness-90 transition-all font-label-lg text-label-lg flex items-center justify-center gap-space-sm shadow-sm" id="rerun-btn" type="button">
+<span class="material-symbols-outlined text-[20px] transition-transform" id="rerun-icon">restart_alt</span>
+<span>(Re-)Run AI Analysis</span>
+</button>
+<p class="font-body-sm text-body-sm text-text-secondary leading-relaxed pt-space-2xs">
+              Safe idempotent execution. Re-runs model analysis or clears stuck processes for cycles in <span class="font-mono-code text-saffron-accent font-bold">ANALYSIS_FAILED</span> without duplicate ledger charges.
+            </p>
+</div>
+<!-- Chronological Append-Only Event Stream -->
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-primary uppercase tracking-wide">Cycle Event Stream (Append-Only)</span>
+<span class="font-mono-code text-[11px] text-text-muted">4 RECORDED NODES</span>
+</div>
+<div class="relative pl-6 flex flex-col gap-space-md before:content-[''] before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-surface-container-high">
+<!-- Event 1: RECEIVED -->
+<div class="relative flex flex-col gap-space-2xs">
+<span class="absolute -left-6 top-1 w-3 h-3 rounded-full bg-status-submitted-text ring-4 ring-surface-crisp"></span>
+<div class="flex items-center justify-between">
+<span class="inline-flex items-center px-1.5 py-0.5 rounded font-mono-code text-[11px] bg-status-submitted-bg text-status-submitted-text font-bold">RECEIVED</span>
+<span class="font-mono-code text-[11px] text-text-muted">09:14:22.108 IST</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary">
+                  Batch manifest registered from Central Sovereign Ingest. 128 items cryptographically signed.
+                </p>
+</div>
+<!-- Event 2: ROUTING -->
+<div class="relative flex flex-col gap-space-2xs">
+<span class="absolute -left-6 top-1 w-3 h-3 rounded-full bg-institutional-navy ring-4 ring-surface-crisp"></span>
+<div class="flex items-center justify-between">
+<span class="inline-flex items-center px-1.5 py-0.5 rounded font-mono-code text-[11px] bg-surface-container text-institutional-navy font-bold">ROUTING</span>
+<span class="font-mono-code text-[11px] text-text-muted">09:15:05.412 IST</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary">
+                  Assigned affinity matrix to Panel Beta-3 (Agritech &amp; Rural Electrification Review Core).
+                </p>
+</div>
+<!-- Event 3: ANALYZING -->
+<div class="relative flex flex-col gap-space-2xs">
+<span class="absolute -left-6 top-1 w-3 h-3 rounded-full bg-status-review-text ring-4 ring-surface-crisp"></span>
+<div class="flex items-center justify-between">
+<span class="inline-flex items-center px-1.5 py-0.5 rounded font-mono-code text-[11px] bg-status-review-bg text-status-review-text font-bold">ANALYZING</span>
+<span class="font-mono-code text-[11px] text-text-muted">09:18:40.003 IST</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary">
+                  Dispatched container workloads to compute nodes <span class="font-mono-code text-[12px] text-text-primary">worker-04</span> and <span class="font-mono-code text-[12px] text-text-primary">worker-05</span>.
+                </p>
+</div>
+<!-- Event 4: ANALYSIS_FAILED -->
+<div class="relative flex flex-col gap-space-2xs">
+<span class="absolute -left-6 top-1 w-3 h-3 rounded-full bg-error ring-4 ring-surface-crisp"></span>
+<div class="flex items-center justify-between">
+<span class="inline-flex items-center px-1.5 py-0.5 rounded font-mono-code text-[11px] bg-status-action-bg text-status-action-text font-bold">ANALYSIS_FAILED</span>
+<span class="font-mono-code text-[11px] text-error font-bold">10:48:19.890 IST</span>
+</div>
+<div class="p-2.5 rounded bg-error-container/40 text-on-error-container font-mono-code text-[12px] leading-relaxed">
+                  TIMEOUT: OOM on cluster worker #4 during semantic vector normalization. Task terminated by node daemon.
+                </div>
+</div>
+</div>
+</div>
+<!-- Audit Signature Footer -->
+<div class="pt-space-sm bg-surface-subtle p-space-sm rounded-lg flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-text-muted">Cryptographic Ledger Checksum</span>
+<span class="font-mono-code text-[11px] text-text-primary tracking-wider">sha256:7e8d...a302ff</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Inline Micro-interactions for Filter/Inspect/Retry -->
+<script>
+    (function() {
+      // Re-run AI Analysis Interaction
+      const rerunBtn = document.getElementById('rerun-btn');
+      const rerunIcon = document.getElementById('rerun-icon');
+      
+      if (rerunBtn && rerunIcon) {
+        rerunBtn.addEventListener('click', function() {
+          rerunIcon.classList.add('animate-spin');
+          rerunBtn.disabled = true;
+          rerunBtn.classList.add('opacity-75');
+          const originalText = rerunBtn.querySelector('span:last-child').textContent;
+          rerunBtn.querySelector('span:last-child').textContent = "Dispatching Worker Pipeline...";
+          
+          setTimeout(() => {
+            rerunIcon.classList.remove('animate-spin');
+            rerunBtn.disabled = false;
+            rerunBtn.classList.remove('opacity-75');
+            rerunBtn.querySelector('span:last-child').textContent = "Pipeline Queued (Job #8821)";
+            
+            setTimeout(() => {
+              rerunBtn.querySelector('span:last-child').textContent = originalText;
+            }, 3000);
+          }, 1400);
+        });
+      }
+
+      // Filter Pill Active Toggle
+      const filterBtns = document.querySelectorAll('.cycle-filter-btn');
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          filterBtns.forEach(b => {
+            b.classList.remove('bg-primary', 'text-on-primary', 'shadow-sm');
+            b.classList.add('bg-surface-subtle', 'text-text-secondary');
+          });
+          btn.classList.remove('bg-surface-subtle', 'text-text-secondary');
+          btn.classList.add('bg-primary', 'text-on-primary', 'shadow-sm');
+        });
+      });
+
+      // Cycle Row Selection
+      const cycleRows = document.querySelectorAll('.cycle-row');
+      cycleRows.forEach(row => {
+        row.addEventListener('click', () => {
+          cycleRows.forEach(r => r.classList.remove('bg-surface-container-low'));
+          row.classList.add('bg-surface-container-low');
+        });
+      });
+    })();
+  </script>
+</div></div></main></div></body></html>

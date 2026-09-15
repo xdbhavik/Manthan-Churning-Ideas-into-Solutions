@@ -1,0 +1,109 @@
+@layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    overscroll-behavior: none;
+  }
+  main > :first-child {
+    margin-top: 0 !important;
+  }
+  main > :last-child {
+    margin-bottom: 0 !important;
+  }
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  scrollbar-width: none;
+}
+
+/* Smooth page transitions */
+#app-content {
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* OTP cell focus styles */
+.otp-cell:focus {
+  box-shadow: 0 0 0 2px #0A2540;
+  border-color: #0A2540;
+}
+
+/* Modal backdrop */
+.modal-backdrop {
+  background: rgba(11, 28, 48, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+/* Select appearance fix */
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Timeline vertical line */
+.timeline-track::before {
+  content: '';
+  position: absolute;
+  left: 0.25rem;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  width: 2px;
+  background: #E2E8F0;
+}
+
+/* Profile dropdown animation (matches Reviewer/Submitter portals) */
+.profile-dropdown {
+  transform-origin: top right;
+  animation: profileDropIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes profileDropIn {
+  from { transform: scale(0.92) translateY(-4px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* Toast animation */
+.toast-animate {
+  animation: slideInDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideInDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Close profile dropdown on click outside */
+.profile-dropdown-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+}
