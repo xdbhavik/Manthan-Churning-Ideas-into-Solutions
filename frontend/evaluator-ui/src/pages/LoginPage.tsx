@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { sendOtp, register as registerUser, verifyOtp, refreshToken, logout } from '../services/authService';
+import { sendOtp, verifyOtp, refreshToken, logout } from '../services/authService';
 import { getMyProfile } from '../services/evaluatorService';
 import {
   setTokens,
@@ -20,7 +20,6 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const [stage, setStage] = useState<Stage>('login');
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [challengeId, setChallengeId] = useState('');
@@ -73,36 +72,7 @@ export default function LoginPage() {
     setStage('loading');
 
     try {
-      let res;
-      if (authMode === 'register') {
-        try {
-          res = await registerUser(cleanPhone, email);
-        } catch (regErr) {
-          const msg = getErrorMessage(regErr);
-          // If phone is already registered, gracefully fallback to login
-          if (msg.includes('already registered') || msg.includes('409') || msg.includes('Conflict')) {
-            res = await sendOtp(cleanPhone, email);
-            setAuthMode('login');
-            setSuccessMsg('Phone already registered. Issued login OTP challenge.');
-          } else {
-            throw regErr;
-          }
-        }
-      } else {
-        try {
-          res = await sendOtp(cleanPhone, email);
-        } catch (loginErr) {
-          const msg = getErrorMessage(loginErr);
-          // If phone is not registered, automatically register and issue OTP
-          if (msg.includes('not registered') || msg.includes('404') || msg.includes('Not Found')) {
-            res = await registerUser(cleanPhone, email);
-            setAuthMode('register');
-            setSuccessMsg('Account registered. Issued OTP challenge.');
-          } else {
-            throw loginErr;
-          }
-        }
-      }
+      const res = await sendOtp(cleanPhone, email);
 
       setChallengeId(res.challengeId);
       setCountdown(120);
@@ -119,11 +89,21 @@ export default function LoginPage() {
       setTimeout(() => inputRefs.current[0]?.focus(), 100);
     } catch (err) {
       const msg = getErrorMessage(err);
-      setError(
-        msg.includes('429') || msg.includes('Too Many')
-          ? 'Too many OTP requests. Please wait before retrying.'
-          : msg
-      );
+      if (
+        msg.includes('not registered') ||
+        msg.includes('404') ||
+        msg.includes('Not Found') ||
+        msg.includes('USER_NOT_FOUND') ||
+        msg.includes('User not found')
+      ) {
+        setError(
+          'Evaluator accounts are created by a platform Administrator. If you believe you should have evaluator access, please contact your Admin.'
+        );
+      } else if (msg.includes('429') || msg.includes('Too Many')) {
+        setError('Too many OTP requests. Please wait before retrying.');
+      } else {
+        setError(msg);
+      }
       setStage('login');
     }
   };
@@ -400,43 +380,14 @@ export default function LoginPage() {
                   STATUTORY SSO GATEWAY
                 </span>
               </div>
-              {/* Active tab switch */}
-              <div className="flex items-center bg-surface-muted p-1 rounded-lg border border-border-hairline">
-                <button
-                  className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                    authMode === 'login'
-                      ? 'bg-ashoka-blue text-white shadow-sm'
-                      : 'text-text-secondary hover:text-text-primary'
-                  }`}
-                  id="tab-login"
-                  onClick={() => {
-                    setAuthMode('login');
-                    setError('');
-                  }}
-                  type="button"
-                >
-                  Login
-                </button>
-                <button
-                  className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                    authMode === 'register'
-                      ? 'bg-ashoka-blue text-white shadow-sm'
-                      : 'text-text-secondary hover:text-text-primary'
-                  }`}
-                  id="tab-register"
-                  onClick={() => {
-                    setAuthMode('register');
-                    setError('');
-                  }}
-                  type="button"
-                >
-                  Register
-                </button>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-surface-muted text-text-secondary border border-border-hairline text-xs font-semibold">
+                <span className="material-symbols-outlined text-[15px] text-ashoka-blue">lock</span>
+                <span>Evaluator Portal</span>
               </div>
             </div>
 
             <h1 className="text-xl sm:text-2xl font-bold text-ashoka-blue tracking-tight mb-1" id="card-heading">
-              {authMode === 'login' ? 'Sign In / Register as an Evaluator' : 'Register New Evaluator Profile'}
+              Evaluator Sign In
             </h1>
             <p className="text-sm text-text-muted mb-6">
               Access the statutory problem evaluation docket and assessment scoring engine.
@@ -516,15 +467,26 @@ export default function LoginPage() {
                     </>
                   ) : (
                     <>
-                      <span id="btn-submit-text">
-                        {authMode === 'login' ? 'Verify Credentials / Request OTP' : 'Register & Request OTP'}
-                      </span>
+                      <span id="btn-submit-text">Verify Credentials / Request OTP</span>
                       <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
                     </>
                   )}
                 </button>
               </div>
             </form>
+
+            {/* Explanatory Notice for Evaluator Accounts */}
+            <div className="mt-5 p-4 bg-blue-50/70 border border-blue-200/80 rounded-xl flex items-start gap-3 text-xs" id="evaluator-account-notice">
+              <span className="material-symbols-outlined text-[20px] text-ashoka-blue flex-shrink-0 mt-0.5">info</span>
+              <div className="space-y-1">
+                <p className="font-semibold text-ashoka-blue text-xs">
+                  Don't have an Evaluator Account?
+                </p>
+                <p className="text-text-secondary text-xs leading-relaxed">
+                  Evaluator accounts are created by a platform Administrator. If you believe you should have evaluator access, please contact your Admin.
+                </p>
+              </div>
+            </div>
 
             {/* OTP Verification Section */}
             {(stage === 'otp' || challengeId) && (
