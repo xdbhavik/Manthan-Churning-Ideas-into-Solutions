@@ -1,6 +1,0 @@
-{
-  "name": "SIH Innovation Portal",
-  "description": "Smart India Hackathon national innovation challenge repository, proposal submission, and evaluator review workbench system.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

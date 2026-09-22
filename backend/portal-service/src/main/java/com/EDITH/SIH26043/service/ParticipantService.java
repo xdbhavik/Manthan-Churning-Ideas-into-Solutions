@@ -96,6 +96,27 @@ public class ParticipantService {
     }
 
     /**
+     * Updates the caller's participant profile fields.
+     */
+    @Transactional
+    public Participant updateMe(AuthUser caller, com.EDITH.SIH26043.web.dto.ParticipantUpdateRequest request) {
+        Participant existing = participantRepository.findByUserId(caller.getUserId())
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "STUDENT_NOT_REGISTERED"));
+
+        if (request.fullName() != null && !request.fullName().isBlank()) {
+            existing.setFullName(request.fullName().trim());
+        }
+        if (request.email() != null) {
+            existing.setEmail(request.email().isBlank() ? null : request.email().trim());
+        }
+        if (request.phone() != null && !request.phone().isBlank()) {
+            existing.setPhone(request.phone().trim());
+        }
+        
+        return participantRepository.save(existing);
+    }
+
+    /**
      * Access-rule predicate shared by browse/detail/submission-create/member-join:
      *
      * <ul>

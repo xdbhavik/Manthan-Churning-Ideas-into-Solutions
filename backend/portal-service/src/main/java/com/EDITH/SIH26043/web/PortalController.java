@@ -90,6 +90,14 @@ public class PortalController {
         return toResponse(participantService.me(me));
     }
 
+    @Operation(summary = "✏️ Update my profile",
+            description = "Updates the caller's participant profile (name, email, phone).")
+    @PatchMapping("/me")
+    public ParticipantResponse updateMe(@AuthenticationPrincipal AuthUser me,
+                                        @Valid @RequestBody com.EDITH.SIH26043.web.dto.ParticipantUpdateRequest request) {
+        return toResponse(participantService.updateMe(me, request));
+    }
+
     @Operation(summary = "🧑‍🎓 Register as a STUDENT",
             description = "STUDENT self-registration. Rejected with 409 when the caller " +
                     "already has a participant profile or owns a verified HEI source " +

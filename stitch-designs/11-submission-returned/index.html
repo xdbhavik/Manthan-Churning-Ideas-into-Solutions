@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={"darkMode":"class","theme":{"extend":{"colors":{"state-submitted-text":"#1D4ED8","error":"#ba1a1a","on-tertiary-container":"#ffa583","on-tertiary":"#ffffff","state-review-text":"#B45309","state-review-bg":"#FEF3C7","on-background":"#131b2e","surface-container-high":"#e2e7ff","secondary-fixed-dim":"#b4c5ff","state-returned-border":"#FECACA","tertiary-fixed":"#ffdbce","secondary":"#0051d5","surface-bright":"#faf8ff","state-returned-bg":"#FEF2F2","background":"#faf8ff","state-review-border":"#FDE68A","inverse-surface":"#283044","on-error-container":"#93000a","outline":"#757684","on-tertiary-fixed":"#380d00","state-accepted-border":"#A7F3D0","on-secondary-fixed-variant":"#003ea8","secondary-fixed":"#dbe1ff","surface-container-low":"#f2f3ff","surface-variant":"#dae2fd","on-primary":"#ffffff","inverse-primary":"#b8c4ff","surface-card":"#FFFFFF","surface-dim":"#d2d9f4","on-tertiary-fixed-variant":"#802a00","on-primary-fixed-variant":"#173bab","on-primary-container":"#a8b8ff","tertiary":"#611e00","surface-container":"#eaedff","state-draft-bg":"#F1F5F9","on-surface-variant":"#444653","outline-variant":"#c4c5d5","primary":"#00288e","error-container":"#ffdad6","on-secondary-container":"#fefcff","primary-fixed":"#dde1ff","on-primary-fixed":"#001453","state-draft-border":"#CBD5E1","on-error":"#ffffff","on-secondary-fixed":"#00174b","primary-fixed-dim":"#b8c4ff","secondary-container":"#316bf3","surface-container-highest":"#dae2fd","on-secondary":"#ffffff","tertiary-fixed-dim":"#ffb59a","surface-tint":"#3755c3","surface":"#faf8ff","on-surface":"#131b2e","primary-container":"#1e40af","state-accepted-bg":"#ECFDF5","state-submitted-border":"#BFDBFE","surface-container-lowest":"#ffffff","surface-canvas":"#F8FAFC","border-subtle":"#E2E8F0","text-secondary":"#64748B","state-submitted-bg":"#EFF6FF","inverse-on-surface":"#eef0ff","state-accepted-text":"#047857","state-returned-text":"#B91C1C","state-draft-text":"#475569","tertiary-container":"#872d00"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-sm":"0.5rem","margin-mobile":"1rem","space-lg":"1.5rem","space-xs":"0.25rem","space-xl":"2rem","gutter":"1.5rem","margin":"2rem","space-md":"1rem","gutter-mobile":"1rem"},"fontFamily":{"display-lg":["Inter"],"body-lg":["Inter"],"body-md":["Inter"],"label-mono-md":["JetBrains Mono"],"body-sm":["Inter"],"headline-md":["Inter"],"headline-sm":["Inter"],"headline-lg":["Inter"],"label-mono-sm":["JetBrains Mono"],"display-lg-mobile":["Inter"]},"fontSize":{"display-lg":["36px",{"lineHeight":"44px","letterSpacing":"-0.02em","fontWeight":"700"}],"body-lg":["16px",{"lineHeight":"24px","letterSpacing":"0","fontWeight":"400"}],"body-md":["14px",{"lineHeight":"20px","letterSpacing":"0","fontWeight":"400"}],"label-mono-md":["13px",{"lineHeight":"18px","letterSpacing":"0.02em","fontWeight":"500"}],"body-sm":["12px",{"lineHeight":"16px","letterSpacing":"0.01em","fontWeight":"400"}],"headline-md":["20px",{"lineHeight":"28px","letterSpacing":"-0.01em","fontWeight":"600"}],"headline-sm":["16px",{"lineHeight":"24px","letterSpacing":"0","fontWeight":"600"}],"headline-lg":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"600"}],"label-mono-sm":["11px",{"lineHeight":"16px","letterSpacing":"0.04em","fontWeight":"500"}],"display-lg-mobile":["28px",{"lineHeight":"36px","letterSpacing":"-0.015em","fontWeight":"700"}]}}}};</script></head><body class="bg-surface-canvas font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-card border-r border-border-subtle z-50 flex flex-col justify-between"><div class="flex flex-col"><div class="h-16 px-space-md flex items-center gap-space-sm border-b border-border-subtle"><img alt="Innovation Portal SIH26043 Logo" class="h-7 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1X_wTDfo4_BsF2DyR-Ub0ly0V9ME27te0axDhpKHliqQxEFa-5Q7pCcIHqhs_cvljstcZTbkx0MsmHlD4eXTObgASFbAw9-6phSktxpliZv5KSaFtkYupcqdtPN8SHVhP5GmZJymtlzRNDklma2QNEDolVDZK2kAhuUA6FIH5g9PN7sQ8SygC-J7XxlZ_vW007m_rao4FabJUdt6ZGjG9I2uNhPhBOT_O6ZbNMCJyhziI-qIpo8Ci-UBPYf"/><div class="flex flex-col overflow-hidden"><span class="font-headline-sm text-headline-sm text-primary truncate leading-tight">Innovation Portal</span><span class="font-label-mono-sm text-label-mono-sm text-text-secondary uppercase truncate">SIH26043</span></div></div><nav class="flex flex-col p-space-sm gap-space-xs" data-active-classes="bg-surface-container-low text-primary font-headline-sm"><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[20px]">grid_view</span><span>Dashboard</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="explore-problems" href="#"><span class="material-symbols-outlined text-[20px]">travel_explore</span><span>Explore Problems</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="my-submissions" href="#"><span class="material-symbols-outlined text-[20px]">folder_shared</span><span>My Submissions</span></a><div class="h-px bg-border-subtle my-space-xs mx-space-sm"></div><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="profile" href="#"><span class="material-symbols-outlined text-[20px]">badge</span><span>Profile</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="help" href="#"><span class="material-symbols-outlined text-[20px]">help_center</span><span>Help</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="settings" href="#"><span class="material-symbols-outlined text-[20px]">settings</span><span>Settings</span></a></nav></div><div class="p-space-md border-t border-border-subtle bg-surface-canvas/50"><div class="flex items-center gap-space-sm"><img alt="Profile" class="w-9 h-9 rounded-full object-cover border border-border-subtle" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXE1lY36f_erOMfcaU3wYiYE6m2bxHeOoQU2dT83Vohp-XhnVz9wDh05qGQipkJnQ8zv0wzEi9L4I3PAiqEJM4DpJiCDDXcLUsBEXzYTgCJ5QHRWKOs_sblF1iStKoywU9xfYRiRwrnJjnARUhhT3Gt0-RRcvmTGGfTlrFqmUVyxRM4myDtzWNTmDo4T2Mr_gUR767YxQZ-zdFGlGHAJZxdlURPBijpOnnycmmdCr1s865Q8oWLP9nmg"/><div class="flex flex-col min-w-0 flex-1"><span class="font-headline-sm text-headline-sm text-on-surface truncate leading-tight">Yogesh Ghule</span><div class="flex items-center gap-space-xs mt-space-xs"><span class="inline-block w-1.5 h-1.5 rounded-full bg-state-accepted-text"></span><span class="font-label-mono-sm text-label-mono-sm text-text-secondary uppercase truncate">STUDENT</span></div></div></div></div></aside><div class="pl-64 min-h-screen flex flex-col"><header class="fixed top-0 left-64 right-0 h-16 bg-surface-card/90 backdrop-blur-xl border-b border-border-subtle z-40 px-space-lg flex items-center justify-between"><div class="flex items-center gap-space-md flex-1 max-w-xl"><div class="relative w-full max-w-md"><span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-text-secondary">search</span><input class="w-full h-10 pl-9 pr-space-md bg-surface-canvas border border-border-subtle rounded-lg font-body-sm text-body-sm text-on-surface placeholder:text-text-secondary focus:outline-none focus:border-primary transition-all" placeholder="Search problems, submission IDs, repositories..." type="text"/></div></div><div class="flex items-center gap-space-md"><button aria-label="Notifications" class="relative p-space-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-colors" type="button"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error"></span></button><div class="h-6 w-px bg-border-subtle"></div><div class="flex items-center gap-space-sm"><img alt="Innovation Portal SIH26043 Logo" class="h-6 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1X_wTDfo4_BsF2DyR-Ub0ly0V9ME27te0axDhpKHliqQxEFa-5Q7pCcIHqhs_cvljstcZTbkx0MsmHlD4eXTObgASFbAw9-6phSktxpliZv5KSaFtkYupcqdtPN8SHVhP5GmZJymtlzRNDklma2QNEDolVDZK2kAhuUA6FIH5g9PN7sQ8SygC-J7XxlZ_vW007m_rao4FabJUdt6ZGjG9I2uNhPhBOT_O6ZbNMCJyhziI-qIpo8Ci-UBPYf"/><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXE1lY36f_erOMfcaU3wYiYE6m2bxHeOoQU2dT83Vohp-XhnVz9wDh05qGQipkJnQ8zv0wzEi9L4I3PAiqEJM4DpJiCDDXcLUsBEXzYTgCJ5QHRWKOs_sblF1iStKoywU9xfYRiRwrnJjnARUhhT3Gt0-RRcvmTGGfTlrFqmUVyxRM4myDtzWNTmDo4T2Mr_gUR767YxQZ-zdFGlGHAJZxdlURPBijpOnnycmmdCr1s865Q8oWLP9nmg"/></div></div></header><main class="w-full pt-16 bg-surface-canvas flex-1"><div class="flex flex-col w-full">
+<div class="w-full max-w-7xl mx-auto px-space-md sm:px-space-lg lg:px-space-xl py-space-lg space-y-space-lg">
+<!-- Top Action Breadcrumb & Action Cluster -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-sm min-w-0">
+<a class="inline-flex items-center gap-space-xs font-headline-sm text-headline-sm text-text-secondary hover:text-primary transition-colors group" href="#">
+<span class="material-symbols-outlined text-[18px] group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
+<span>Back to My Submissions</span>
+</a>
+<span class="text-text-secondary font-label-mono-sm text-label-mono-sm">/</span>
+<div class="inline-flex items-center gap-space-xs bg-surface-container-high px-space-sm py-0.5 rounded-full">
+<span class="material-symbols-outlined text-[14px] text-primary">tag</span>
+<span class="font-label-mono-sm text-label-mono-sm text-primary uppercase">sub-7321</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm self-start sm:self-auto">
+<button class="inline-flex items-center gap-space-xs h-10 px-space-md rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container font-headline-sm text-headline-sm transition-colors shadow-sm" type="button">
+<span class="material-symbols-outlined text-[18px]">history</span>
+<span>Diff History</span>
+</button>
+<button class="inline-flex items-center gap-space-xs h-10 px-space-md rounded-lg bg-primary-container hover:bg-state-submitted-text text-on-primary font-headline-sm text-headline-sm transition-all shadow-md hover:shadow-lg active:scale-95" type="button">
+<span class="material-symbols-outlined text-[18px]">edit_document</span>
+<span>Edit & Resubmit Solution</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Title & Problem Statement Banner -->
+<div class="relative overflow-hidden rounded-xl bg-surface-card p-space-lg sm:p-space-xl shadow-sm">
+<div class="absolute -right-16 -top-16 w-64 h-64 bg-state-review-bg/50 rounded-full blur-3xl pointer-events-none"></div>
+<div class="relative flex flex-col md:flex-row md:items-center justify-between gap-space-lg">
+<div class="space-y-space-xs max-w-3xl">
+<div class="flex flex-wrap items-center gap-space-sm">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-state-review-bg text-state-review-text font-label-mono-sm text-label-mono-sm">
+<span class="w-2 h-2 rounded-full bg-state-review-text animate-pulse"></span>
+              RETURNED · CHANGES REQUESTED
+            </span>
+<span class="font-label-mono-sm text-label-mono-sm text-text-secondary">SIH26043-AGRI-108</span>
+<span class="inline-flex items-center gap-1 font-label-mono-sm text-label-mono-sm text-state-accepted-text bg-state-accepted-bg px-2 py-0.5 rounded-full">
+<span class="material-symbols-outlined text-[14px]">verified</span> Integrity Verified
+            </span>
+</div>
+<h1 class="font-display-lg text-display-lg text-on-surface tracking-tight">
+            Bio-Telemetry ColdChain Sentinel
+          </h1>
+<div class="flex items-start gap-space-xs pt-space-xs">
+<span class="material-symbols-outlined text-text-secondary text-[20px] shrink-0 mt-0.5">account_tree</span>
+<p class="font-body-md text-body-md text-text-secondary">
+<span class="font-headline-sm text-headline-sm text-on-surface">Problem Statement:</span>
+              Decentralized Cold-Chain Telemetry and Spoilage Prediction for Perishable Produce
+              <span class="inline-block mx-1.5 text-outline">•</span>
+<span class="text-primary font-headline-sm text-headline-sm">Ministry of Agriculture & Farmers Welfare</span>
+</p>
+</div>
+</div>
+<!-- Quick Summary Gauge -->
+<div class="flex items-center gap-space-md bg-surface-canvas p-space-md rounded-xl shrink-0">
+<div class="relative w-16 h-16 flex items-center justify-center">
+<svg class="w-16 h-16 transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-border-subtle" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3.5"></path>
+<path class="text-state-review-text" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="72, 100" stroke-linecap="round" stroke-width="3.5"></path>
+</svg>
+<span class="absolute font-headline-md text-headline-md text-on-surface">72%</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">Review Stage 1</span>
+<span class="font-body-sm text-body-sm text-text-secondary">3 criteria pending rework</span>
+</div>
+</div>
+</div>
+<!-- Prominent Alert Banner -->
+<div class="mt-space-lg rounded-xl bg-state-review-bg p-space-md flex items-start gap-space-md">
+<div class="p-2 rounded-lg bg-state-review-text/10 text-state-review-text shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[24px]">assignment_late</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+<p class="font-headline-sm text-headline-sm text-state-review-text">Action Required: Substantive Revisions Demanded</p>
+<span class="font-label-mono-sm text-label-mono-sm text-state-review-text">Deadline: 19 Oct 2024, 23:59 IST</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface mt-1">
+            Your submission has been reviewed by the assigned problem evaluator and returned for necessary modifications before final acceptance into Round 2 ranking.
+          </p>
+</div>
+</div>
+</div>
+<!-- Official Evaluator Decision & Comments (Prominent Card) -->
+<div class="bg-surface-card rounded-xl shadow-md overflow-hidden">
+<div class="p-space-lg bg-surface-card flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[28px]">rate_review</span>
+</div>
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Official Evaluator Decision & Comments</h2>
+<div class="flex flex-wrap items-center gap-x-space-md gap-y-1 mt-1 text-text-secondary font-label-mono-sm text-label-mono-sm">
+<span class="inline-flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-[15px]">badge</span>
+                Assigned Subject Matter Evaluator #EV-402
+              </span>
+<span>•</span>
+<span class="text-on-surface-variant">Dept of Agriculture Panel</span>
+<span>•</span>
+<span class="inline-flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-[15px]">schedule</span>
+                14 Oct 2024 at 16:30 IST
+              </span>
+</div>
+</div>
+</div>
+<div class="inline-flex items-center gap-space-xs bg-state-review-bg text-state-review-text px-space-md py-1.5 rounded-lg font-headline-sm text-headline-sm">
+<span class="material-symbols-outlined text-[18px]">sync_problem</span>
+<span>Review Round 1 · Needs Work</span>
+</div>
+</div>
+<div class="p-space-lg sm:p-space-xl space-y-space-lg">
+<!-- Reviewer Feedback Narrative -->
+<div class="rounded-xl bg-surface-canvas p-space-lg relative">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-state-review-text rounded-l-xl"></div>
+<div class="flex items-start gap-space-md">
+<span class="material-symbols-outlined text-text-secondary text-[24px] shrink-0">format_quote</span>
+<div class="space-y-space-sm flex-1">
+<p class="font-body-lg text-body-lg text-on-surface leading-relaxed">
+                “The predictive thermal modeling and offline caching logic are well architected. However, the telemetry packet format documentation does not define the compression ratios or fallback behavior when the LoRa gateway drops packets. Please update the technical brief PDF and provide explicit test vectors in the pinned commit before resubmitting for final round scoring.”
+              </p>
+<div class="flex items-center gap-space-md text-text-secondary font-body-sm text-body-sm pt-space-xs">
+<span>Evaluator Rubric Score: <strong class="text-on-surface font-headline-sm">28 / 40</strong> (Pass threshold: 30)</span>
+<span>•</span>
+<span class="text-state-review-text font-headline-sm">Eligibility: Conditionally Active</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Checklist of requested modifications -->
+<div class="space-y-space-md">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm text-on-surface uppercase tracking-wider flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-state-review-text text-[20px]">fact_check</span>
+              Checklist of Requested Modifications (0/3 Completed)
+            </h3>
+<span class="font-label-mono-sm text-label-mono-sm text-text-secondary">Mandatory for Final Acceptance</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<!-- Item 1 -->
+<label class="group relative flex flex-col justify-between p-space-md rounded-xl bg-surface-canvas hover:bg-surface-container-low transition-colors cursor-pointer shadow-sm">
+<div class="flex items-start gap-space-sm">
+<input class="mt-1 h-4 w-4 rounded text-primary focus:ring-primary" id="mod-check-1" type="checkbox"/>
+<div class="space-y-1">
+<span class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">LoRa Payload Specs</span>
+<p class="font-body-sm text-body-sm text-text-secondary">Clarify LoRa packet payload compression spec and dropped frame fallbacks.</p>
+</div>
+</div>
+<div class="mt-space-md pt-space-sm flex items-center justify-between font-label-mono-sm text-label-mono-sm text-text-secondary">
+<span class="inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">description</span> Spec Doc</span>
+<span class="text-state-review-text">Pending</span>
+</div>
+</label>
+<!-- Item 2 -->
+<label class="group relative flex flex-col justify-between p-space-md rounded-xl bg-surface-canvas hover:bg-surface-container-low transition-colors cursor-pointer shadow-sm">
+<div class="flex items-start gap-space-sm">
+<input class="mt-1 h-4 w-4 rounded text-primary focus:ring-primary" id="mod-check-2" type="checkbox"/>
+<div class="space-y-1">
+<span class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">Firmware Test Vectors</span>
+<p class="font-body-sm text-body-sm text-text-secondary">Update test vector documentation and edge sample logs in Git repository.</p>
+</div>
+</div>
+<div class="mt-space-md pt-space-sm flex items-center justify-between font-label-mono-sm text-label-mono-sm text-text-secondary">
+<span class="inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">commit</span> Git /tests</span>
+<span class="text-state-review-text">Pending</span>
+</div>
+</label>
+<!-- Item 3 -->
+<label class="group relative flex flex-col justify-between p-space-md rounded-xl bg-surface-canvas hover:bg-surface-container-low transition-colors cursor-pointer shadow-sm">
+<div class="flex items-start gap-space-sm">
+<input class="mt-1 h-4 w-4 rounded text-primary focus:ring-primary" id="mod-check-3" type="checkbox"/>
+<div class="space-y-1">
+<span class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">Revised Architecture PDF</span>
+<p class="font-body-sm text-body-sm text-text-secondary">Re-upload revised Technical Architecture PDF with annotated schematics (<50 MB).</p>
+</div>
+</div>
+<div class="mt-space-md pt-space-sm flex items-center justify-between font-label-mono-sm text-label-mono-sm text-text-secondary">
+<span class="inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">cloud_upload</span> Artifact</span>
+<span class="text-state-review-text">Pending</span>
+</div>
+</label>
+</div>
+</div>
+</div>
+</div>
+<!-- Navigation Tabs -->
+<div class="flex items-center gap-space-xs bg-surface-container-low p-1.5 rounded-xl self-start">
+<button class="tab-btn active px-space-md py-2 rounded-lg font-headline-sm text-headline-sm bg-surface-card text-primary shadow-sm transition-all" data-tab="timeline" type="button">
+        Overview & Timeline
+      </button>
+<button class="tab-btn px-space-md py-2 rounded-lg font-headline-sm text-headline-sm text-text-secondary hover:text-on-surface transition-all" data-tab="files" type="button">
+        Project Files <span class="ml-1 text-xs px-1.5 py-0.5 rounded-full bg-surface-container-high text-primary">3</span>
+</button>
+<button class="tab-btn px-space-md py-2 rounded-lg font-headline-sm text-headline-sm text-text-secondary hover:text-on-surface transition-all" data-tab="repo" type="button">
+        Code Repository
+      </button>
+<button class="tab-btn px-space-md py-2 rounded-lg font-headline-sm text-headline-sm text-text-secondary hover:text-on-surface transition-all" data-tab="audit" type="button">
+        Evaluation Audit
+      </button>
+</div>
+<!-- MAIN TWO-COLUMN WORKSPACE CANVAS -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
+<!-- Left Column: Interactive Timeline & Telemetry Spec (7 Cols) -->
+<div class="lg:col-span-7 space-y-space-lg">
+<!-- Interactive Submission Lifecycle Timeline -->
+<div class="bg-surface-card rounded-xl p-space-lg sm:p-space-xl shadow-sm space-y-space-lg">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="p-2 rounded-lg bg-surface-container-low text-primary">
+<span class="material-symbols-outlined text-[20px]">timeline</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Lifecycle Progress Audit</h3>
+</div>
+<span class="font-label-mono-sm text-label-mono-sm text-text-secondary">Audit Trail #AT-9812</span>
+</div>
+<!-- Vertical Timeline Nodes -->
+<div class="relative pl-6 space-y-space-lg">
+<!-- Continuous Line Behind Dots -->
+<div class="absolute left-[11px] top-3 bottom-4 w-0.5 bg-surface-container-high"></div>
+<!-- Node 1: Draft Created -->
+<div class="relative flex items-start gap-space-md group">
+<span class="absolute -left-6 top-1 w-6 h-6 rounded-full bg-state-accepted-bg text-state-accepted-text flex items-center justify-center shadow-sm ring-4 ring-surface-card">
+<span class="material-symbols-outlined text-[14px]">check</span>
+</span>
+<div class="flex-1 bg-surface-canvas p-space-md rounded-xl">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+<span class="font-headline-sm text-headline-sm text-on-surface">Draft Created</span>
+<span class="font-label-mono-sm text-label-mono-sm text-text-secondary">10 Oct 2024 • 10:15 AM IST</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary mt-1">
+                  Repository initialized by Yogesh Ghule with baseline FreeRTOS firmware and prototype architecture docs.
+                </p>
+</div>
+</div>
+<!-- Node 2: Submitted for Review -->
+<div class="relative flex items-start gap-space-md group">
+<span class="absolute -left-6 top-1 w-6 h-6 rounded-full bg-state-accepted-bg text-state-accepted-text flex items-center justify-center shadow-sm ring-4 ring-surface-card">
+<span class="material-symbols-outlined text-[14px]">check</span>
+</span>
+<div class="flex-1 bg-surface-canvas p-space-md rounded-xl">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+<span class="font-headline-sm text-headline-sm text-on-surface">Submitted for Review</span>
+<span class="font-label-mono-sm text-label-mono-sm text-text-secondary">11 Oct 2024 • 18:40 PM IST</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary mt-1">
+                  Formal submission lock engaged. Cryptographic hash stamped and payload forwarded to Ministry panel.
+                </p>
+</div>
+</div>
+<!-- Node 3: Under Evaluation -->
+<div class="relative flex items-start gap-space-md group">
+<span class="absolute -left-6 top-1 w-6 h-6 rounded-full bg-state-accepted-bg text-state-accepted-text flex items-center justify-center shadow-sm ring-4 ring-surface-card">
+<span class="material-symbols-outlined text-[14px]">check</span>
+</span>
+<div class="flex-1 bg-surface-canvas p-space-md rounded-xl">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+<span class="font-headline-sm text-headline-sm text-on-surface">Under Evaluation</span>
+<span class="font-label-mono-sm text-label-mono-sm text-text-secondary">12 Oct 2024 • 11:20 AM IST</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary mt-1">
+                  Routed to Lead Evaluator #EV-402 (Dept of Agriculture). Hardware benchmarks and code tests initiated.
+                </p>
+</div>
+</div>
+<!-- Node 4: Changes Requested / Returned (CURRENT ACTIVE NODE) -->
+<div class="relative flex items-start gap-space-md">
+<span class="absolute -left-6 top-1 w-6 h-6 rounded-full bg-state-review-text text-on-primary flex items-center justify-center shadow-md ring-4 ring-state-review-bg animate-bounce">
+<span class="material-symbols-outlined text-[14px]">priority_high</span>
+</span>
+<div class="flex-1 bg-state-review-bg/40 p-space-md rounded-xl shadow-sm">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+<span class="font-headline-sm text-headline-sm text-state-review-text">Changes Requested / Returned</span>
+<span class="font-label-mono-sm text-label-mono-sm text-state-review-text font-bold">14 Oct 2024 • 16:30 PM IST</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface mt-1">
+                  Evaluation report published with 3 requested items. Submission status converted to interactive editing state.
+                </p>
+<div class="mt-space-sm pt-space-xs flex items-center gap-space-xs font-label-mono-sm text-label-mono-sm text-state-review-text">
+<span class="w-2 h-2 rounded-full bg-state-review-text"></span>
+                  Active Stage: Author Revision in Progress
+                </div>
+</div>
+</div>
+<!-- Node 5: Resubmission Pending -->
+<div class="relative flex items-start gap-space-md opacity-60">
+<span class="absolute -left-6 top-1 w-6 h-6 rounded-full bg-surface-card border-2 border-border-subtle text-text-secondary flex items-center justify-center ring-4 ring-surface-card">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+</span>
+<div class="flex-1 bg-surface-canvas p-space-md rounded-xl">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+<span class="font-headline-sm text-headline-sm text-text-secondary">Resubmission Pending Review Round 2</span>
+<span class="font-label-mono-sm text-label-mono-sm text-text-secondary">Scheduled Post-Upload</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary mt-1">
+                  Evaluation committee will re-convene within 24 hours of resubmission to verify requested changes.
+                </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Technical Solution Brief Preview Card -->
+<div class="bg-surface-card rounded-xl p-space-lg shadow-sm space-y-space-md">
+<div class="flex items-center justify-between">
+<h4 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">architecture</span>
+              System Architecture & Telemetry Matrix
+            </h4>
+<span class="font-label-mono-sm text-label-mono-sm text-text-secondary">v1.2-rc4</span>
+</div>
+<div class="p-space-md rounded-xl bg-surface-canvas space-y-space-sm">
+<p class="font-body-md text-body-md text-on-surface">
+              The Sentinel node records ambient temp (-40°C to +85°C), RH (0-100%), volatile ethylene emissions, and multi-axis vibrational telemetry on a 30-second interval, cached in ferroelectric RAM (FRAM).
+            </p>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-space-sm pt-space-xs">
+<div class="bg-surface-card p-space-sm rounded-lg">
+<span class="font-label-mono-sm text-label-mono-sm text-text-secondary block">FREQUENCY</span>
+<span class="font-headline-sm text-headline-sm text-primary">868 MHz LoRa</span>
+</div>
+<div class="bg-surface-card p-space-sm rounded-lg">
+<span class="font-label-mono-sm text-label-mono-sm text-text-secondary block">PAYLOAD BUDGET</span>
+<span class="font-headline-sm text-headline-sm text-primary">51 Bytes/frame</span>
+</div>
+<div class="bg-surface-card p-space-sm rounded-lg">
+<span class="font-label-mono-sm text-label-mono-sm text-text-secondary block">OFFLINE BUFFER</span>
+<span class="font-headline-sm text-headline-sm text-primary">72 Hours Local</span>
+</div>
+<div class="bg-surface-card p-space-sm rounded-lg">
+<span class="font-label-mono-sm text-label-mono-sm text-text-secondary block">ENCRYPTION</span>
+<span class="font-headline-sm text-headline-sm text-primary">AES-128 GCM</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Metadata Grid, Artifacts & Team (5 Cols) -->
+<div class="lg:col-span-5 space-y-space-lg">
+<!-- Attached Files & Integrity Verification -->
+<div class="bg-surface-card rounded-xl p-space-lg shadow-sm space-y-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">folder</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Attached Submission Artifacts (3)</h3>
+</div>
+<button class="text-primary hover:text-state-submitted-text font-label-mono-sm text-label-mono-sm flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[16px]">download</span>
+<span>All (.ZIP)</span>
+</button>
+</div>
+<div class="space-y-space-xs">
+<!-- File 1 (Flagged for Replacement) -->
+<div class="p-space-sm rounded-xl bg-state-review-bg/30 flex items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-10 h-10 rounded-lg bg-state-review-bg text-state-review-text flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px]">picture_as_pdf</span>
+</div>
+<div class="min-w-0 flex-1">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-headline-sm text-on-surface truncate">ColdChain_Spec.pdf</span>
+<span class="px-1.5 py-0.2 rounded bg-state-review-text text-on-primary font-label-mono-sm text-[10px]">UPDATE REQ</span>
+</div>
+<div class="flex items-center gap-space-xs font-label-mono-sm text-label-mono-sm text-text-secondary">
+<span>14.2 MB</span>
+<span>•</span>
+<span class="text-state-review-text">Needs revision</span>
+</div>
+</div>
+</div>
+<button class="p-1.5 text-text-secondary hover:text-primary rounded-lg hover:bg-surface-container-low transition-colors" title="Download">
+<span class="material-symbols-outlined text-[18px]">download</span>
+</button>
+</div>
+<!-- File 2 -->
+<div class="p-space-sm rounded-xl bg-surface-canvas flex items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-10 h-10 rounded-lg bg-surface-container text-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px]">memory</span>
+</div>
+<div class="min-w-0 flex-1">
+<span class="font-headline-sm text-headline-sm text-on-surface truncate block">Sensor_Schematic.kicad</span>
+<div class="flex items-center gap-space-xs font-label-mono-sm text-label-mono-sm text-text-secondary">
+<span>3.8 MB</span>
+<span>•</span>
+<span class="text-state-accepted-text">Valid</span>
+</div>
+</div>
+</div>
+<button class="p-1.5 text-text-secondary hover:text-primary rounded-lg hover:bg-surface-container-low transition-colors" title="Download">
+<span class="material-symbols-outlined text-[18px]">download</span>
+</button>
+</div>
+<!-- File 3 -->
+<div class="p-space-sm rounded-xl bg-surface-canvas flex items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-10 h-10 rounded-lg bg-surface-container text-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px]">table_chart</span>
+</div>
+<div class="min-w-0 flex-1">
+<span class="font-headline-sm text-headline-sm text-on-surface truncate block">Field_Trial_Logs.csv</span>
+<div class="flex items-center gap-space-xs font-label-mono-sm text-label-mono-sm text-text-secondary">
+<span>28.4 MB</span>
+<span>•</span>
+<span class="text-state-accepted-text">Valid</span>
+</div>
+</div>
+</div>
+<button class="p-1.5 text-text-secondary hover:text-primary rounded-lg hover:bg-surface-container-low transition-colors" title="Download">
+<span class="material-symbols-outlined text-[18px]">download</span>
+</button>
+</div>
+</div>
+<!-- Security Integrity Seal -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-state-accepted-text text-[20px] shrink-0 mt-0.5">verified_user</span>
+<div class="space-y-0.5">
+<p class="font-headline-sm text-headline-sm text-on-surface">Cryptographic Integrity Seal</p>
+<p class="font-label-mono-sm text-label-mono-sm text-text-secondary">SHA-256 seal verified on all raw assets at upload boundary.</p>
+<div class="font-label-mono-sm text-label-mono-sm text-on-surface-variant break-all pt-1 select-all">
+                a983b92ec849202f54a88f7129cd8a1b327b87c093a021
+              </div>
+</div>
+</div>
+</div>
+<!-- Git Code Repository & Pinned Commit -->
+<div class="bg-surface-card rounded-xl p-space-lg shadow-sm space-y-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">code</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Linked Codebase</h3>
+</div>
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-label-mono-sm text-label-mono-sm">Public</span>
+</div>
+<div class="p-space-md rounded-xl bg-surface-canvas space-y-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-mono-sm text-label-mono-sm text-text-secondary">GITHUB REPOSITORY</span>
+<a class="inline-flex items-center gap-1 font-label-mono-sm text-label-mono-sm text-primary hover:underline" href="https://github.com/cryotrackers/coldchain-telemetry" target="_blank">
+                cryotrackers/coldchain-telemetry
+                <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+</a>
+</div>
+<div class="flex items-center justify-between pt-space-xs">
+<span class="font-label-mono-sm text-label-mono-sm text-text-secondary">PINNED AUDIT COMMIT</span>
+<div class="inline-flex items-center gap-space-xs bg-surface-card px-2.5 py-1 rounded font-label-mono-sm text-label-mono-sm text-on-surface shadow-xs">
+<span class="material-symbols-outlined text-[14px] text-text-secondary">commit</span>
+<span class="font-bold">7b29ec4</span>
+<button class="text-text-secondary hover:text-on-surface transition-colors" onclick="navigator.clipboard.writeText('7b29ec4')" title="Copy SHA">
+<span class="material-symbols-outlined text-[14px]">content_copy</span>
+</button>
+</div>
+</div>
+<div class="pt-space-xs">
+<div class="flex items-center justify-between font-label-mono-sm text-label-mono-sm text-text-secondary pb-1">
+<span>Repository Health Check</span>
+<span class="text-state-accepted-text">CI Passing (18 tests)</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+<div class="w-5/6 h-full bg-state-accepted-text rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Team Metadata & Roles -->
+<div class="bg-surface-card rounded-xl p-space-lg shadow-sm space-y-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">groups</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Team CryoTrackers</h3>
+</div>
+<span class="font-label-mono-sm text-label-mono-sm text-text-secondary">3 Members</span>
+</div>
+<div class="space-y-space-sm">
+<!-- Member 1: Leader (You) -->
+<div class="flex items-center justify-between p-space-sm rounded-lg bg-surface-canvas">
+<div class="flex items-center gap-space-sm min-w-0">
+<img alt="Yogesh Ghule" class="w-8 h-8 rounded-full object-cover shrink-0" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXE1lY36f_erOMfcaU3wYiYE6m2bxHeOoQU2dT83Vohp-XhnVz9wDh05qGQipkJnQ8zv0wzEi9L4I3PAiqEJM4DpJiCDDXcLUsBEXzYTgCJ5QHRWKOs_sblF1iStKoywU9xfYRiRwrnJjnARUhhT3Gt0-RRcvmTGGfTlrFqmUVyxRM4myDtzWNTmDo4T2Mr_gUR767YxQZ-zdFGlGHAJZxdlURPBijpOnnycmmdCr1s865Q8oWLP9nmg"/>
+<div class="min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-headline-sm text-on-surface truncate">Yogesh Ghule</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container text-primary font-label-mono-sm text-[10px]">YOU</span>
+</div>
+<span class="font-body-sm text-body-sm text-text-secondary">Team Lead & Embedded Arch</span>
+</div>
+</div>
+<span class="font-label-mono-sm text-label-mono-sm text-state-accepted-text flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-state-accepted-text"></span> Active
+              </span>
+</div>
+<!-- Member 2 -->
+<div class="flex items-center justify-between p-space-sm rounded-lg bg-surface-canvas">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-8 h-8 rounded-full bg-secondary-container text-on-secondary flex items-center justify-center font-headline-sm text-headline-sm shrink-0">
+                  RS
+                </div>
+<div class="min-w-0">
+<span class="font-headline-sm text-headline-sm text-on-surface truncate block">Rahul Sharma</span>
+<span class="font-body-sm text-body-sm text-text-secondary">Firmware & LoRa Developer</span>
+</div>
+</div>
+<span class="font-label-mono-sm text-label-mono-sm text-text-secondary">Verified</span>
+</div>
+<!-- Member 3 -->
+<div class="flex items-center justify-between p-space-sm rounded-lg bg-surface-canvas">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-headline-sm text-headline-sm shrink-0">
+                  AP
+                </div>
+<div class="min-w-0">
+<span class="font-headline-sm text-headline-sm text-on-surface truncate block">Amit Patel</span>
+<span class="font-body-sm text-body-sm text-text-secondary">ML Spoilage Model Specialist</span>
+</div>
+</div>
+<span class="font-label-mono-sm text-label-mono-sm text-text-secondary">Verified</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Resubmission Sticky Banner / Callout -->
+<div class="bg-surface-card rounded-xl p-space-lg shadow-sm flex flex-col sm:flex-row items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md">
+<div class="p-2.5 rounded-xl bg-surface-container text-primary">
+<span class="material-symbols-outlined text-[24px]">published_with_changes</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface">Ready to upload updated documentation?</h4>
+<p class="font-body-sm text-body-sm text-text-secondary">Editing unlocks file upload replacements and enables pushing an updated pinned commit.</p>
+</div>
+</div>
+<div class="flex items-center gap-space-sm w-full sm:w-auto">
+<button class="w-full sm:w-auto px-space-md py-2.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-headline-sm text-headline-sm transition-colors" type="button">
+          Download Feedback Brief
+        </button>
+<button class="w-full sm:w-auto px-space-lg py-2.5 rounded-lg bg-primary-container hover:bg-state-submitted-text text-on-primary font-headline-sm text-headline-sm transition-all shadow-md" type="button">
+          Begin Resubmission Flow →
+        </button>
+</div>
+</div>
+</div>
+<!-- Interactive script for checklist progress & Tab navigation -->
+<script>
+    (function() {
+      // Checklist tracker logic
+      const checkboxes = document.querySelectorAll('#mod-check-1, #mod-check-2, #mod-check-3');
+      const headerTitle = document.querySelector('h3.font-headline-sm');
+
+      function updateCount() {
+        const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+        if (headerTitle) {
+          headerTitle.innerHTML = `<span class="material-symbols-outlined text-state-review-text text-[20px]">fact_check</span> Checklist of Requested Modifications (${checkedCount}/3 Completed)`;
+        }
+      }
+
+      checkboxes.forEach(cb => {
+        cb.addEventListener('change', updateCount);
+      });
+
+      // Tab switching styling micro-interaction
+      const tabs = document.querySelectorAll('.tab-btn');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          tabs.forEach(t => {
+            t.classList.remove('bg-surface-card', 'text-primary', 'shadow-sm');
+            t.classList.add('text-text-secondary');
+          });
+          tab.classList.add('bg-surface-card', 'text-primary', 'shadow-sm');
+          tab.classList.remove('text-text-secondary');
+        });
+      });
+    })();
+  </script>
+</div></main></div></body></html>
