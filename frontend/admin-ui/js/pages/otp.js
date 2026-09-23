@@ -165,12 +165,27 @@ window.otpPage = {
       if (next) next.focus();
     }
     checkComplete();
+    const code = getOtpValue();
+    if (code.length === 6) {
+      window.otpPage.verifyOtp();
+    }
   },
 
   handleKeydown(e, index) {
     if (e.key === 'Backspace' && !e.target.value && index > 0) {
       const prev = document.querySelector(`.otp-cell[data-index="${index - 1}"]`);
       if (prev) { prev.value = ''; prev.focus(); }
+    } else if (e.key === 'ArrowLeft' && index > 0) {
+      const prev = document.querySelector(`.otp-cell[data-index="${index - 1}"]`);
+      if (prev) prev.focus();
+    } else if (e.key === 'ArrowRight' && index < 5) {
+      const next = document.querySelector(`.otp-cell[data-index="${index + 1}"]`);
+      if (next) next.focus();
+    } else if (e.key === 'Enter') {
+      const code = getOtpValue();
+      if (code.length === 6) {
+        window.otpPage.verifyOtp();
+      }
     }
     checkComplete();
   },
@@ -185,6 +200,9 @@ window.otpPage = {
     const lastIdx = Math.min(pasted.length, 6) - 1;
     if (cells[lastIdx]) cells[lastIdx].focus();
     checkComplete();
+    if (pasted.length === 6) {
+      window.otpPage.verifyOtp();
+    }
   },
 
   async verifyOtp() {
@@ -196,8 +214,8 @@ window.otpPage = {
 
     if (code.length !== 6) return;
 
-    btn.disabled = true;
-    btnText.textContent = 'Verifying Security Token...';
+    if (btn) btn.disabled = true;
+    if (btnText) btnText.textContent = 'Verifying Security Token...';
     if (feedback) feedback.classList.add('hidden');
 
     try {
@@ -210,7 +228,23 @@ window.otpPage = {
 
       // Verify user payload / role
       const user = res.user || (res.accessToken ? decodeJwtPayload(res.accessToken) : null) || {};
-      const role = (user.role || (user.roles && user.roles[0]) || '').toUpperCase();
+      const role = (user.role || (user.roles && user.roles[0]) || 'ADMIN').toUpperCase();
+      const userName = user.name || (user.email ? user.email.split('@')[0].toUpperCase() : (role === 'ADMIN' ? 'Sovereign Administrator' : 'Reviewer Officer'));
+      user.name = userName;
+
+      // Persist tokens and user into sessionStorage
+      setTokens(res.accessToken, res.refreshToken, user);
+
+      // Immediately synchronize global state
+      setState({
+        authenticated: true,
+        user: {
+          name: userName,
+          email: user.email || 'admin@sih26043.gov.in',
+          role: role,
+          phone: user.phone || sessionStorage.getItem('auth_phone') || '',
+        },
+      });
 
       if (feedback) {
         feedback.classList.remove('hidden');
@@ -225,7 +259,7 @@ window.otpPage = {
           </div>`;
       }
 
-      showToast(`Welcome, ${user.name || user.phone || 'Admin'}`);
+      showToast(`Welcome, ${userName}`, 'success');
 
       setTimeout(() => {
         if (role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'REVIEWER') {
@@ -233,11 +267,11 @@ window.otpPage = {
         } else {
           navigate('unauthorized');
         }
-      }, 700);
+      }, 500);
     } catch (err) {
       console.error('OTP Verification Error:', err);
-      btn.disabled = false;
-      btnText.textContent = 'Verify & Authenticate';
+      if (btn) btn.disabled = false;
+      if (btnText) btnText.textContent = 'Verify & Authenticate';
       if (feedback) {
         feedback.classList.remove('hidden');
         feedback.className = 'rounded-lg p-3 flex items-start gap-2.5 mt-4 bg-status-rejected-bg border border-status-rejected-border';

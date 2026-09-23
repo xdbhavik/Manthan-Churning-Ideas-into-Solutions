@@ -146,7 +146,7 @@
   <!-- App Core (ES Modules) -->
   <script type="module">
     // Import app core first (registers router, exposes globals)
-    import './js/app.js';
+    import { handleRoute } from './js/app.js';
 
     // Import all page modules (each self-registers via registerPage)
     import './js/pages/login.js';
@@ -158,8 +158,8 @@
     import './js/pages/evaluation.js';
     import './js/pages/audit.js';
 
-    // Trigger initial route after all pages are registered
-    window.dispatchEvent(new Event('hashchange'));
+    // Trigger initial route directly after all pages are registered
+    handleRoute();
   </script>
 </body>
 </html>

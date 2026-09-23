@@ -68,7 +68,7 @@ function render() {
                 </svg>
                 <span class="font-mono-code text-sm font-semibold text-text-primary">+91</span>
               </div>
-              <input autocomplete="tel-national" class="w-full h-11 px-3.5 bg-transparent font-mono-code text-sm text-text-primary placeholder:text-text-muted focus:outline-none min-w-0" id="phone-input" inputmode="numeric" maxlength="10" placeholder="98XXX XXXXX" type="tel" oninput="window.loginPage.validatePhone(this)"/>
+              <input autocomplete="tel-national" class="w-full h-11 px-3.5 bg-transparent font-mono-code text-sm text-text-primary placeholder:text-text-muted focus:outline-none min-w-0" id="phone-input" inputmode="numeric" placeholder="98XXX XXXXX" type="tel" oninput="window.loginPage.validatePhone(this)" onpaste="window.loginPage.handlePaste(event)"/>
               <div class="px-3 text-gov-emerald opacity-0 transition-opacity shrink-0" id="mobile-check-icon">
                 <span class="material-symbols-outlined text-base">check_circle</span>
               </div>
@@ -81,7 +81,7 @@ function render() {
 
           <!-- Statutory Checkbox -->
           <div class="flex items-start gap-2.5 p-3 bg-surface-subtle/90 rounded-lg border border-border-hairline">
-            <input type="checkbox" id="statutory-check" class="mt-0.5 accent-ashoka-blue w-4 h-4" onchange="window.loginPage.toggleCheck()"/>
+            <input type="checkbox" id="statutory-check" class="mt-0.5 accent-ashoka-blue w-4 h-4 cursor-pointer" onchange="window.loginPage.toggleCheck()"/>
             <label for="statutory-check" class="text-xs text-text-secondary cursor-pointer leading-relaxed">
               I confirm this is a <strong class="text-text-primary">Government-authorized device</strong> and understand this session will be audited under <strong class="text-text-primary">IT Act 2000, Sec 43A</strong>.
             </label>
@@ -127,8 +127,26 @@ render.afterRender = function() {
 
 // Expose page logic
 window.loginPage = {
+  cleanPhone(raw) {
+    let digits = (raw || '').replace(/\D/g, '');
+    if (digits.length === 12 && digits.startsWith('91')) {
+      digits = digits.slice(2);
+    }
+    return digits.slice(0, 10);
+  },
+
+  handlePaste(e) {
+    e.preventDefault();
+    const pasted = (e.clipboardData || window.clipboardData).getData('text');
+    const input = document.getElementById('phone-input');
+    if (input) {
+      input.value = this.cleanPhone(pasted);
+      this.validatePhone(input);
+    }
+  },
+
   validatePhone(input) {
-    const val = input.value.replace(/\D/g, '');
+    const val = this.cleanPhone(input.value);
     input.value = val;
     const btn = document.getElementById('otp-btn');
     const checked = document.getElementById('statutory-check')?.checked;
@@ -136,10 +154,10 @@ window.loginPage = {
 
     if (val.length === 10) {
       if (checkIcon) checkIcon.style.opacity = '1';
-      if (checked) btn.disabled = false;
+      if (checked && btn) btn.disabled = false;
     } else {
       if (checkIcon) checkIcon.style.opacity = '0';
-      btn.disabled = true;
+      if (btn) btn.disabled = true;
     }
   },
 
@@ -147,14 +165,22 @@ window.loginPage = {
     const phone = document.getElementById('phone-input')?.value || '';
     const checked = document.getElementById('statutory-check')?.checked;
     const btn = document.getElementById('otp-btn');
-    btn.disabled = !(phone.replace(/\D/g, '').length === 10 && checked);
+    if (btn) {
+      btn.disabled = !(this.cleanPhone(phone).length === 10 && checked);
+    }
   },
 
   async requestOtp() {
     const input = document.getElementById('phone-input');
-    const phone = input?.value.replace(/\D/g, '') || '';
+    const phone = this.cleanPhone(input?.value);
     if (phone.length !== 10) {
       showToast('Please enter a valid 10-digit mobile number.', 'error');
+      return;
+    }
+
+    const checked = document.getElementById('statutory-check')?.checked;
+    if (!checked) {
+      showToast('Please accept the statutory device authorization declaration.', 'error');
       return;
     }
 

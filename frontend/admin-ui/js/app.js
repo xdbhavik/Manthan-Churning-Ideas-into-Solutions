@@ -55,14 +55,17 @@ export function restoreSession() {
     const token = getAccessToken();
     const payload = decodeJwtPayload(token);
     const stored = getStoredUser();
-    const role = stored?.role || payload?.role || 'ADMIN';
+    const role = (stored?.role || payload?.role || 'ADMIN').toUpperCase();
     state.authenticated = true;
     state.user = {
-      name: stored?.email ? stored.email.split('@')[0].toUpperCase() : (role === 'ADMIN' ? 'Sovereign Administrator' : 'Reviewer Officer'),
+      name: stored?.name || (stored?.email ? stored.email.split('@')[0].toUpperCase() : (role === 'ADMIN' ? 'Sovereign Administrator' : 'Reviewer Officer')),
       email: stored?.email || payload?.sub || 'admin@sih26043.gov.in',
       role: role,
       phone: stored?.phone || payload?.phone || '',
     };
+  } else {
+    state.authenticated = false;
+    state.user = null;
   }
 }
 
@@ -105,7 +108,8 @@ export function showToast(message, type = 'info') {
 // ----- Shared Layout Components -----
 function renderHeader() {
   if (!state.user) return '';
-  const initials = state.user.name.split(' ').map(w => w[0]).join('').slice(0, 2);
+  const nameStr = state.user?.name || (state.user?.role === 'ADMIN' ? 'Sovereign Administrator' : 'Admin');
+  const initials = nameStr.split(' ').filter(Boolean).map(w => w[0]).join('').slice(0, 2).toUpperCase() || 'AD';
   return `
     <header class="fixed top-1 left-0 right-0 z-40 bg-surface-crisp shadow-sm border-b border-border-hairline h-16">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between">
@@ -257,9 +261,10 @@ function renderApp() {
 }
 
 // ----- Hash Router -----
-function handleRoute() {
+export function handleRoute() {
   restoreSession();
-  const hash = window.location.hash.replace('#/', '') || 'login';
+  const rawHash = window.location.hash || '';
+  const hash = rawHash.replace(/^#\/?/, '').trim() || 'login';
   state.currentPage = hash;
 
   const publicPages = ['login', 'otp', 'unauthorized'];
@@ -269,18 +274,27 @@ function handleRoute() {
     if (role !== 'ADMIN' && role !== 'REVIEWER') {
       if (hash !== 'unauthorized') {
         state.currentPage = 'unauthorized';
-        window.location.hash = '#/unauthorized';
+        if (window.location.hash !== '#/unauthorized') {
+          window.location.hash = '#/unauthorized';
+        }
+        renderApp();
         return;
       }
     } else if (hash === 'login' || hash === 'otp') {
       state.currentPage = 'registrations';
-      window.location.hash = '#/registrations';
+      if (window.location.hash !== '#/registrations') {
+        window.location.hash = '#/registrations';
+      }
+      renderApp();
       return;
     }
   } else {
     if (!publicPages.includes(hash)) {
       state.currentPage = 'login';
-      window.location.hash = '#/login';
+      if (window.location.hash !== '#/login') {
+        window.location.hash = '#/login';
+      }
+      renderApp();
       return;
     }
   }

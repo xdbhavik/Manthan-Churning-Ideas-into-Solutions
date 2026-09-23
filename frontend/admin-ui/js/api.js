@@ -82,13 +82,23 @@ async function ensureAuth() {
   if (!token) return;
   const payload = decodeJwtPayload(token);
   if (payload?.exp && Date.now() > payload.exp * 1000 - 60000) {
-    await refreshAccessToken();
+    const refreshed = await refreshAccessToken();
+    if (!refreshed) {
+      clearTokens();
+    }
   }
 }
 
 export async function apiRequest(endpoint, options = {}) {
-  await ensureAuth();
-  const token = getAccessToken();
+  const isPublicAuth = endpoint.startsWith('/auth/login') ||
+                       endpoint.startsWith('/auth/verify-otp') ||
+                       endpoint.startsWith('/auth/refresh');
+
+  if (!isPublicAuth) {
+    await ensureAuth();
+  }
+
+  const token = !isPublicAuth ? getAccessToken() : null;
   const headers = {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -121,10 +131,14 @@ export async function requestOtp(phone, email) {
 }
 
 export async function verifyOtp(challengeId, code) {
-  return apiRequest('/auth/verify-otp', {
+  const res = await apiRequest('/auth/verify-otp', {
     method: 'POST',
     body: JSON.stringify({ challengeId, code }),
   });
+  if (res && res.accessToken) {
+    setTokens(res.accessToken, res.refreshToken, res.user);
+  }
+  return res;
 }
 
 export async function logout() {
@@ -141,3 +155,4 @@ export async function logout() {
   }
   clearTokens();
 }
+
