@@ -1,17 +1,165 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Panel · SIH26043</title>
-    <meta name="description" content="Restricted administrative access portal for SIH26043 system management." />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SIH26043 Admin Panel — Sovereign Administrative Console</title>
+  <meta name="description" content="Administrative dashboard for SIH26043 project — Sovereign evaluation, registration verification, and audit management console." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'ashoka-blue': '#0A2540',
+            'gov-emerald': '#059669',
+            'saffron-accent': '#E05A10',
+            'institutional-navy': '#1E3A8A',
+            'primary': '#0A2540',
+            'primary-container': '#0F3460',
+            'on-primary': '#FFFFFF',
+            'on-primary-container': '#A0B4CC',
+            'secondary': '#3B82F6',
+            'secondary-container': '#DBEAFE',
+            'tertiary-fixed': '#34D399',
+            'background': '#F4F6F9',
+            'surface-crisp': '#FFFFFF',
+            'surface-subtle': '#F8FAFC',
+            'surface-muted': '#EFF2F5',
+            'surface-container': '#E8EDF3',
+            'surface-container-low': '#EDF1F5',
+            'surface-container-high': '#DDE4ED',
+            'surface-variant': '#94A3B8',
+            'on-surface': '#1E293B',
+            'on-surface-variant': '#475569',
+            'text-primary': '#0F172A',
+            'text-secondary': '#475569',
+            'text-muted': '#94A3B8',
+            'border-hairline': '#E2E8F0',
+            'border-strong': '#CBD5E1',
+            'error': '#DC2626',
+            'error-container': '#FEE2E2',
+            'on-error': '#FFFFFF',
+            'on-error-container': '#991B1B',
+            'status-submitted-bg': '#EFF6FF',
+            'status-submitted-text': '#1E40AF',
+            'status-submitted-border': '#BFDBFE',
+            'status-review-bg': '#FFFBEB',
+            'status-review-text': '#92400E',
+            'status-review-border': '#FDE68A',
+            'status-action-bg': '#FFF7ED',
+            'status-action-text': '#9A3412',
+            'status-action-border': '#FED7AA',
+            'status-approved-bg': '#ECFDF5',
+            'status-approved-text': '#065F46',
+            'status-approved-border': '#A7F3D0',
+          },
+          fontFamily: {
+            'headline-xl': ['Noto Sans', 'system-ui', 'sans-serif'],
+            'headline-lg': ['Noto Sans', 'system-ui', 'sans-serif'],
+            'headline-md': ['Noto Sans', 'system-ui', 'sans-serif'],
+            'headline-sm': ['Noto Sans', 'system-ui', 'sans-serif'],
+            'body-lg': ['Noto Sans', 'system-ui', 'sans-serif'],
+            'body-md': ['Noto Sans', 'system-ui', 'sans-serif'],
+            'body-sm': ['Noto Sans', 'system-ui', 'sans-serif'],
+            'label-lg': ['Noto Sans', 'system-ui', 'sans-serif'],
+            'label-md': ['Noto Sans', 'system-ui', 'sans-serif'],
+            'label-sm': ['Noto Sans', 'system-ui', 'sans-serif'],
+            'mono-code': ['JetBrains Mono', 'monospace'],
+          },
+          fontSize: {
+            'headline-xl': ['2rem', { lineHeight: '2.5rem', fontWeight: '700' }],
+            'headline-lg': ['1.5rem', { lineHeight: '2rem', fontWeight: '700' }],
+            'headline-md': ['1.25rem', { lineHeight: '1.75rem', fontWeight: '600' }],
+            'headline-sm': ['1rem', { lineHeight: '1.5rem', fontWeight: '600' }],
+            'body-lg': ['1rem', { lineHeight: '1.625rem', fontWeight: '400' }],
+            'body-md': ['0.875rem', { lineHeight: '1.375rem', fontWeight: '400' }],
+            'body-sm': ['0.8125rem', { lineHeight: '1.25rem', fontWeight: '400' }],
+            'label-lg': ['0.9375rem', { lineHeight: '1.375rem', fontWeight: '500' }],
+            'label-md': ['0.8125rem', { lineHeight: '1.125rem', fontWeight: '500' }],
+            'label-sm': ['0.6875rem', { lineHeight: '1rem', fontWeight: '500' }],
+          },
+          spacing: {
+            'space-2xs': '0.25rem',
+            'space-xs': '0.5rem',
+            'space-sm': '0.75rem',
+            'space-md': '1rem',
+            'space-lg': '1.5rem',
+            'space-xl': '2rem',
+            'space-2xl': '2.5rem',
+            'space-3xl': '3rem',
+            'gutter-mobile': '1rem',
+            'gutter-desktop': '1.5rem',
+          },
+          maxWidth: {
+            'form-max-width': '480px',
+            'container-max-width': '1320px',
+          },
+          borderRadius: {
+            DEFAULT: '0.5rem',
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- App Styles -->
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body class="bg-surface-subtle font-body-md text-body-md text-text-primary antialiased min-h-screen flex flex-col">
+
+  <!-- Top Tricolor Ribbon (matches Submitter/Reviewer portals) -->
+  <div class="w-full fixed top-0 left-0 h-1 flex z-50">
+    <div class="h-full flex-1 bg-saffron-accent"></div>
+    <div class="h-full flex-1 bg-surface-crisp"></div>
+    <div class="h-full flex-1 bg-gov-emerald"></div>
+  </div>
+
+  <!-- App Root -->
+  <div id="app-root">
+    <!-- Loading State -->
+    <div class="min-h-screen flex flex-col items-center justify-center gap-4">
+      <div class="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-lg bg-surface-container-low shadow-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="w-8 h-8" fill="none">
+          <circle cx="24" cy="24" r="22" fill="#0A2540" stroke="#E2E8F0" stroke-width="1.5"/>
+          <circle cx="24" cy="24" r="16" fill="#F8FAFC" stroke="#0A2540" stroke-width="1"/>
+          <circle cx="24" cy="24" r="11" stroke="#1E3A8A" stroke-width="1.2" fill="none"/>
+          <circle cx="24" cy="24" r="3" fill="#1E3A8A"/>
+          <line x1="24" y1="13" x2="24" y2="35" stroke="#1E3A8A" stroke-width="1"/>
+          <line x1="13" y1="24" x2="35" y2="24" stroke="#1E3A8A" stroke-width="1"/>
+          <line x1="16" y1="16" x2="32" y2="32" stroke="#1E3A8A" stroke-width="1"/>
+          <line x1="16" y1="32" x2="32" y2="16" stroke="#1E3A8A" stroke-width="1"/>
+        </svg>
+      </div>
+      <span class="text-sm text-text-muted">Initializing Administrative Console...</span>
+    </div>
+  </div>
+
+  <!-- App Core (ES Modules) -->
+  <script type="module">
+    // Import app core first (registers router, exposes globals)
+    import './js/app.js';
+
+    // Import all page modules (each self-registers via registerPage)
+    import './js/pages/login.js';
+    import './js/pages/otp.js';
+    import './js/pages/unauthorized.js';
+    import './js/pages/users.js';
+    import './js/pages/registrations.js';
+    import './js/pages/problems.js';
+    import './js/pages/evaluation.js';
+    import './js/pages/audit.js';
+
+    // Trigger initial route after all pages are registered
+    window.dispatchEvent(new Event('hashchange'));
+  </script>
+</body>
 </html>
