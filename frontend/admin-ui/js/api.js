@@ -156,3 +156,149 @@ export async function logout() {
   clearTokens();
 }
 
+// ============================================================
+// Reviewer & Registration Management
+// ============================================================
+export async function fetchRegistrations(status = null) {
+  const query = status && status !== 'ALL' ? `?status=${encodeURIComponent(status)}` : '';
+  return apiRequest(`/reviewer/registrations${query}`);
+}
+
+export async function assignRegistration(id) {
+  return apiRequest(`/reviewer/registrations/${id}/assign`, {
+    method: 'POST',
+  });
+}
+
+export async function approveRegistration(id, comment = null) {
+  return apiRequest(`/reviewer/registrations/${id}/approve`, {
+    method: 'POST',
+    body: JSON.stringify({ comment: comment || 'Statutory review verified and approved by Administrator.' }),
+  });
+}
+
+export async function rejectRegistration(id, comment) {
+  return apiRequest(`/reviewer/registrations/${id}/reject`, {
+    method: 'POST',
+    body: JSON.stringify({ comment }),
+  });
+}
+
+export async function requestActionRegistration(id, comment) {
+  return apiRequest(`/reviewer/registrations/${id}/request-action`, {
+    method: 'POST',
+    body: JSON.stringify({ comment }),
+  });
+}
+
+// ============================================================
+// Problem Statements
+// ============================================================
+export async function fetchProblems() {
+  return apiRequest('/problems');
+}
+
+export async function fetchProblem(id) {
+  return apiRequest(`/problems/${id}`);
+}
+
+export async function updateProblemStatus(id, status, expectedVersion = 1) {
+  return apiRequest(`/problems/${id}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status, expectedVersion }),
+  });
+}
+
+export async function fetchEvidence(problemId) {
+  return apiRequest(`/problems/${problemId}/evidence`);
+}
+
+// ============================================================
+// Evaluation Cycles
+// ============================================================
+export async function fetchEvaluationQueue(status = null, page = 0, size = 20) {
+  let query = `?page=${page}&size=${size}`;
+  if (status && status !== 'ALL') {
+    query += `&status=${encodeURIComponent(status)}`;
+  }
+  return apiRequest(`/evaluation/queue${query}`);
+}
+
+export async function fetchEvaluationCycle(cycleId) {
+  return apiRequest(`/evaluation/cycles/${cycleId}`);
+}
+
+export async function fetchEvaluationAggregation(cycleId) {
+  return apiRequest(`/evaluation/cycles/${cycleId}/aggregation`);
+}
+
+export async function fetchEvaluationHistory(cycleId) {
+  return apiRequest(`/evaluation/cycles/${cycleId}/history`);
+}
+
+export async function publishCycleToPortal(cycleId) {
+  return apiRequest(`/evaluation/cycles/${cycleId}/publish-to-portal`, {
+    method: 'POST',
+  });
+}
+
+export async function startEvaluation(problemId) {
+  return apiRequest(`/evaluation/problems/${problemId}/start`, {
+    method: 'POST',
+  });
+}
+
+export async function runAiAnalysis(cycleId) {
+  return apiRequest(`/evaluation/cycles/${cycleId}/analyze`, {
+    method: 'POST',
+  });
+}
+
+export async function routePools(cycleId) {
+  return apiRequest(`/evaluation/cycles/${cycleId}/route-pools`, {
+    method: 'POST',
+  });
+}
+
+export async function aggregateScores(cycleId) {
+  return apiRequest(`/evaluation/cycles/${cycleId}/aggregate`, {
+    method: 'POST',
+  });
+}
+
+export async function prioritizeScores(cycleId) {
+  return apiRequest(`/evaluation/cycles/${cycleId}/prioritize`, {
+    method: 'POST',
+  });
+}
+
+// ============================================================
+// Audit Ledger
+// ============================================================
+export async function fetchAuditByProblem(problemId) {
+  return apiRequest(`/audit/${problemId}`);
+}
+
+// ============================================================
+// User Administration & RBAC
+// ============================================================
+export async function lookupUser(userId) {
+  return apiRequest(`/users/${userId}`);
+}
+
+export async function changeUserRole(userId, role) {
+  return apiRequest(`/users/${userId}/role`, {
+    method: 'PATCH',
+    body: JSON.stringify({ role }),
+  });
+}
+
+export async function onboardEvaluator(phone) {
+  const cleanPhone = phone.replace(/\D/g, '');
+  return apiRequest('/users/evaluators', {
+    method: 'POST',
+    body: JSON.stringify({ phone: cleanPhone }),
+  });
+}
+
+
