@@ -688,9 +688,6 @@ async function handleLoginRequestOtp() {
     }
 
     let toastMsg = `Passcode dispatched via Gateway.`;
-    if (otpData.devOtp) {
-      toastMsg += ` (Dev OTP: ${otpData.devOtp})`;
-    }
     showToast(toastMsg);
 
     window.location.hash = '#/otp';
@@ -715,9 +712,8 @@ function initOtpInputs() {
 
   setTimeout(() => inputs[0].focus(), 100);
 
-  // Pre-fill dev OTP 123456 for convenience
-  const devOtp = ['1', '2', '3', '4', '5', '6'];
-  devOtp.forEach((d, i) => { if (inputs[i]) inputs[i].value = d; });
+  // Clear inputs on init
+  inputs.forEach(input => { input.value = ''; });
 
   inputs.forEach((input, index) => {
     input.addEventListener('input', (e) => {
@@ -793,7 +789,7 @@ async function handleResendOtp() {
     AppState.challengeId = otpData.challengeId;
     sessionStorage.setItem('auth_challenge_id', otpData.challengeId);
     startOtpTimer();
-    showToast(`New code dispatched. (Dev OTP: ${otpData.devOtp || '123456'})`);
+    showToast(`New verification code dispatched to your registered mobile.`);
   } catch (e) {
     showToast(`Resend failed: ${e.message}`);
   }
@@ -926,9 +922,6 @@ async function fetchRegistrationsQueue() {
               <button onclick="fetchRegistrationsQueue()" class="px-3 py-1.5 bg-institutional-navy text-on-primary rounded-lg text-xs font-semibold hover:bg-primary transition-all cursor-pointer">
                 Retry Connection
               </button>
-              <button onclick="seedSampleLiveRegistration()" class="px-3 py-1.5 bg-surface-subtle border border-border-hairline text-text-primary rounded-lg text-xs font-semibold hover:bg-surface-container transition-all cursor-pointer">
-                Seed Live Test Cases
-              </button>
             </div>
           </td>
         </tr>
@@ -1020,10 +1013,6 @@ function renderRegistrationTable() {
           <p class="text-xs text-text-muted mt-1">Database has no records matching the selected status filter.</p>
           <div class="mt-4 flex items-center justify-center gap-3">
             <button onclick="resetFilters()" class="text-xs text-institutional-navy hover:underline font-semibold cursor-pointer">Reset Filters</button>
-            <span class="text-border-strong">•</span>
-            <button onclick="seedSampleLiveRegistration()" class="px-3 py-1.5 bg-institutional-navy text-on-primary rounded text-xs font-semibold cursor-pointer shadow-sm hover:bg-primary transition-all">
-              Seed Sample Live Case
-            </button>
           </div>
         </td>
       </tr>
@@ -2248,63 +2237,7 @@ function renderMyReviewsWorkbench() {
 }
 
 // =============================================================================
-// 13. SEED LIVE SAMPLE REGISTRATION DIRECTLY INTO DATABASE VIA GATEWAY
-// =============================================================================
-async function seedSampleLiveRegistration() {
-  try {
-    showToast("Dispatching live registration to Gateway...");
 
-    let token = ApiClient.getAccessToken();
-    let authHeaders = {};
-    try {
-      const subLogin = await ApiClient.post('/auth/login', { phone: '9900000001' }, true);
-      const subVerify = await ApiClient.post('/auth/verify-otp', { challengeId: subLogin.challengeId, code: '123456' }, true);
-      authHeaders['Authorization'] = `Bearer ${subVerify.accessToken}`;
-    } catch (e) {
-      if (token) authHeaders['Authorization'] = `Bearer ${token}`;
-    }
-
-    const rnd = Math.floor(1000 + Math.random() * 9000);
-    const draft = await ApiClient.request('/registration', {
-      method: 'POST',
-      headers: authHeaders,
-      body: JSON.stringify({
-        sourceBucket: 'GOVT',
-        sourceType: 'PRI',
-        source: {
-          organizationName: `Panchayat Ward Office #${rnd}`,
-          pan: `AAATK${rnd}F`,
-          dossierId: `#PRI-${rnd}`,
-          subType: `LGD: ${240000 + rnd}`,
-          state: 'State Department',
-          district: 'District Administrative Office',
-          sarpanchName: `Sarpanch Representative ${rnd}`,
-          contactPersonName: `Nodal Officer ${rnd}`,
-          contactEmail: `officer.${rnd}@gov.in`,
-          contactPhone: `98${rnd}1234`,
-          bankAccount: `••••••••${rnd} (Public Sector Bank, IFSC: SBIN0001020)`,
-          documents: [
-            { name: 'Panchayat Resolution Form', file: `RESOLUTION-${rnd}.pdf`, status: 'Verified' },
-            { name: 'Gazette Authorization Record', file: `GAZETTE-${rnd}.pdf`, status: 'Pending Review' },
-            { name: 'Treasury Bank Mandate', file: `TREASURY-${rnd}.pdf`, status: 'Verified' }
-          ]
-        }
-      })
-    });
-
-    const regId = draft.registrationId;
-    await ApiClient.request(`/registration/${regId}/submit`, {
-      method: 'POST',
-      headers: authHeaders
-    });
-
-    showToast("Live case created and submitted! Reloading queue...", "success");
-    await fetchRegistrationsQueue();
-  } catch (err) {
-    const cleanMsg = extractBackendErrorMessage(err);
-    showToast(`Seeding notice: ${cleanMsg}`, "error");
-  }
-}
 
 // =============================================================================
 // 14. DOCUMENT PREVIEW MODAL
