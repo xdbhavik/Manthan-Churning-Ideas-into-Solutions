@@ -91,6 +91,19 @@ public class PublishedProblem {
     @Column(name = "access_universities", nullable = false)
     private List<String> accessUniversities = new ArrayList<>();
 
+    @Column(name = "velocity_index")
+    private Integer velocityIndex;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "velocity_history")
+    private List<Integer> velocityHistory;
+
+    @Column(name = "prize_pool")
+    private Integer prizePool;
+
+    @Column(name = "teams_active")
+    private Integer teamsActive;
+
     @Column(name = "published_at", nullable = false)
     private Instant publishedAt;
 

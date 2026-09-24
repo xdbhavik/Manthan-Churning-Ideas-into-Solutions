@@ -96,6 +96,10 @@ export interface PublishedProblem {
   accessRule: AccessRule | null;
   accessUniversities?: string[];
   publishedAt: string;
+  velocityIndex?: number | null;
+  velocityHistory?: number[] | null;
+  prizePool?: number | null;
+  teamsActive?: number | null;
 }
 
 // ---- Submission (portal-service) ----

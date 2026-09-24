@@ -21,6 +21,10 @@ public record PublishedProblemSummary(
         List<String> domains,
         int evidenceCount,
         String accessRule,
-        Instant publishedAt
+        Instant publishedAt,
+        Integer velocityIndex,
+        List<Integer> velocityHistory,
+        Integer prizePool,
+        Integer teamsActive
 ) {
 }

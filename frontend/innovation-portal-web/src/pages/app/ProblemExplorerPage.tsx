@@ -114,6 +114,43 @@ function ProblemCard({ problem }: { problem: any }) {
           </div>
         </div>
       </div>
+
+      {(problem.velocityIndex != null || problem.prizePool != null) && (
+        <div className="px-space-lg py-space-md bg-surface-container/30 border-t border-border-subtle flex flex-col gap-3">
+          {problem.accessRule === 'OPEN_TO_ALL' && problem.velocityIndex != null && (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-[14px]">trending_up</span>
+                <span className="font-label-mono-sm text-[11px] text-on-surface-variant font-bold tracking-widest uppercase">
+                  Velocity Index: {problem.velocityIndex}%
+                </span>
+              </div>
+              
+              {problem.velocityHistory && problem.velocityHistory.length > 0 && (
+                <div className="h-3 w-16">
+                  <svg viewBox="0 0 100 20" preserveAspectRatio="none" className="w-full h-full stroke-primary fill-none stroke-[2.5px] overflow-visible">
+                    <polyline points={problem.velocityHistory.map((v: number, i: number, arr: number[]) => `${(i / Math.max(1, arr.length - 1)) * 100},${20 - (v / 100) * 20}`).join(' ')} strokeLinecap="round" strokeLinejoin="round" />
+                    <circle cx="100" cy={20 - ((problem.velocityHistory[problem.velocityHistory.length - 1] || 0) / 100) * 20} r="2.5" className="fill-primary stroke-none" />
+                  </svg>
+                </div>
+              )}
+              
+              {problem.teamsActive != null && (
+                <span className="font-label-mono-sm text-[11px] text-on-surface font-bold tracking-widest uppercase">
+                  {problem.teamsActive} Teams Active
+                </span>
+              )}
+            </div>
+          )}
+          
+          {problem.prizePool != null && problem.prizePool > 0 && (
+            <div className="font-label-mono-sm text-[11px] text-on-surface-variant font-bold tracking-widest uppercase">
+              Prize Pool: ₹{problem.prizePool.toLocaleString('en-IN')}
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="px-space-lg py-space-sm bg-surface-container-low/60 border-t border-border-subtle flex items-center justify-between">
         <span className="font-body-sm text-body-sm text-on-surface-variant-weak flex items-center gap-1">
           <span className="material-symbols-outlined text-xs">schedule</span>

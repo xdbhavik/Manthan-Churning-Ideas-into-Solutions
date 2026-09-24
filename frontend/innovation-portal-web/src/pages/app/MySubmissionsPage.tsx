@@ -331,10 +331,7 @@ export default function MySubmissionsPage() {
           onChange={(tabId) => setActiveTab(tabId as TabId)}
           variant="pills"
         />
-        <div className="flex items-center gap-space-sm text-on-surface-variant-weak font-body-sm">
-          <span className="material-symbols-outlined text-[16px]">sync</span>
-          <span>Live — synced with backend</span>
-        </div>
+
       </motion.div>
 
       <motion.div

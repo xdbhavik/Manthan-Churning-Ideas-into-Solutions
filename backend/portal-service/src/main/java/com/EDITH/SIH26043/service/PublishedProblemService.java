@@ -94,6 +94,7 @@ public class PublishedProblemService {
     }
 
     private PublishedProblemSummary toSummary(PublishedProblem p) {
+        boolean isOpen = p.getAccessRule() == ProblemAccessRule.OPEN_TO_ALL;
         return new PublishedProblemSummary(
                 p.getProblemId(),
                 p.getTitle(),
@@ -106,10 +107,15 @@ public class PublishedProblemService {
                 p.getDomains(),
                 p.getEvidenceCount(),
                 p.getAccessRule() == null ? null : p.getAccessRule().name(),
-                p.getPublishedAt());
+                p.getPublishedAt(),
+                isOpen ? p.getVelocityIndex() : null,
+                isOpen ? p.getVelocityHistory() : null,
+                p.getPrizePool(),
+                isOpen ? p.getTeamsActive() : null);
     }
 
     private PublishedProblemDetail toDetail(PublishedProblem p) {
+        boolean isOpen = p.getAccessRule() == ProblemAccessRule.OPEN_TO_ALL;
         return new PublishedProblemDetail(
                 p.getProblemId(),
                 p.getTitle(),
@@ -124,7 +130,11 @@ public class PublishedProblemService {
                 p.getEvidenceCount(),
                 p.getAccessRule() == null ? null : p.getAccessRule().name(),
                 p.getAccessUniversities(),
-                p.getPublishedAt());
+                p.getPublishedAt(),
+                isOpen ? p.getVelocityIndex() : null,
+                isOpen ? p.getVelocityHistory() : null,
+                p.getPrizePool(),
+                isOpen ? p.getTeamsActive() : null);
     }
 
     private static <E extends Enum<E>> E enumOf(Class<E> type, String name) {

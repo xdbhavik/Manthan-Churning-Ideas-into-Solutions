@@ -23,9 +23,24 @@ export default function TeamsPage() {
             Manage your hackathon teams, view active members, and track your collaborative submissions.
           </p>
         </div>
-        <Button variant="primary" className="h-10 px-space-md font-headline-sm text-headline-sm shadow-sm">
+        <Button variant="primary" className="h-10 px-space-md font-headline-sm text-headline-sm shadow-sm" disabled title="Use 'Start Solution Draft' on a problem to join or create a team.">
           Join a Team
         </Button>
+      </motion.div>
+
+      <motion.div
+        className="bg-primary-container/20 border border-primary/20 rounded-xl p-space-md flex items-start gap-space-sm"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+      >
+        <span className="material-symbols-outlined text-primary text-[20px] mt-0.5">info</span>
+        <div>
+          <h4 className="font-headline-sm text-headline-sm text-on-surface">How Team Creation Works</h4>
+          <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+            There is no separate team registration step. A team is automatically created (or you join an existing one) when you select <strong>Start Solution Draft</strong> on a problem and add team members during the submission draft process.
+          </p>
+        </div>
       </motion.div>
 
       {isLoading ? (

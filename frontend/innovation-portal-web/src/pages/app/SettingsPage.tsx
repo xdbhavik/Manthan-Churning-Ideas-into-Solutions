@@ -152,16 +152,6 @@ export default function SettingsPage() {
                   <div className="w-4 h-4 bg-white rounded-full absolute right-1 top-1 shadow-sm"></div>
                 </div>
               </div>
-              
-              <div className="flex items-center justify-between py-space-sm border-t border-border-subtle">
-                <div>
-                  <h4 className="font-headline-sm text-headline-sm text-on-surface">Dark Mode</h4>
-                  <p className="font-body-sm text-body-sm text-on-surface-variant-weak">Toggle dark theme appearance.</p>
-                </div>
-                <div className="w-12 h-6 bg-surface-dim rounded-full relative cursor-pointer">
-                  <div className="w-4 h-4 bg-white rounded-full absolute left-1 top-1 shadow-sm"></div>
-                </div>
-              </div>
             </div>
           </Card>
         </motion.div>

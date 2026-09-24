@@ -22,6 +22,10 @@ public record PublishedProblemDetail(
         int evidenceCount,
         String accessRule,
         List<String> accessUniversities,
-        Instant publishedAt
+        Instant publishedAt,
+        Integer velocityIndex,
+        List<Integer> velocityHistory,
+        Integer prizePool,
+        Integer teamsActive
 ) {
 }
