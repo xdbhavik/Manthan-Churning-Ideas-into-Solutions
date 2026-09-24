@@ -89,10 +89,62 @@ async function ensureAuth() {
   }
 }
 
+// ============================================================
+// Humanized Error Interceptor
+// ============================================================
+function humanizeApiError(status, errorBody) {
+  // Try to extract a clean message from the error body
+  let msg = '';
+  if (typeof errorBody === 'string') {
+    msg = errorBody;
+  } else if (errorBody && typeof errorBody === 'object') {
+    // Prioritize human-readable fields
+    msg = errorBody.message || errorBody.error || errorBody.detail || errorBody.title || '';
+    // If the extracted message is still JSON-like, clean it
+    if (!msg && errorBody.errors && Array.isArray(errorBody.errors)) {
+      msg = errorBody.errors.map(e => e.defaultMessage || e.message || e.field).filter(Boolean).join(', ');
+    }
+  }
+
+  // Status-specific overrides for common API responses
+  switch (status) {
+    case 400:
+      if (msg.toLowerCase().includes('phone already registered') || msg.toLowerCase().includes('already exists')) {
+        return 'This phone number is already registered. Use the "Mutate Role" action on the existing user row to change their role.';
+      }
+      return msg || 'Invalid request. Please check your input and try again.';
+    case 401:
+      return 'Session expired or invalid. Please log in again.';
+    case 403:
+      return 'Administrative authorization required for this operation.';
+    case 404:
+      return msg || 'The requested resource was not found.';
+    case 409:
+      return msg || 'Action conflicted with current user state. Please refresh data and try again.';
+    case 422:
+      if (msg) {
+        // Extract field names from validation errors
+        return `Validation error: ${msg}`;
+      }
+      return 'Missing or invalid required fields. Please review your input.';
+    case 429:
+      return 'Too many requests. Please wait a moment before trying again.';
+    case 500:
+      return 'An internal server error occurred. Please try again later.';
+    case 502:
+    case 503:
+    case 504:
+      return 'The service is temporarily unavailable. Please try again in a few moments.';
+    default:
+      return msg || `Request failed (HTTP ${status}). Please try again.`;
+  }
+}
+
 export async function apiRequest(endpoint, options = {}) {
   const isPublicAuth = endpoint.startsWith('/auth/login') ||
                        endpoint.startsWith('/auth/verify-otp') ||
-                       endpoint.startsWith('/auth/refresh');
+                       endpoint.startsWith('/auth/refresh') ||
+                       endpoint.startsWith('/auth/register');
 
   if (!isPublicAuth) {
     await ensureAuth();
@@ -106,15 +158,16 @@ export async function apiRequest(endpoint, options = {}) {
   };
   const res = await fetch(`${getApiBase()}${endpoint}`, { ...options, headers });
   if (!res.ok) {
-    let errorMsg = '';
+    let errorBody = null;
     try {
-      const err = await res.json();
-      errorMsg = err.message || err.error || err.detail || JSON.stringify(err);
+      errorBody = await res.json();
     } catch {
-      errorMsg = res.statusText;
+      errorBody = res.statusText;
     }
-    const errObj = new Error(errorMsg || `API Error: ${res.status}`);
+    const humanMsg = humanizeApiError(res.status, errorBody);
+    const errObj = new Error(humanMsg);
     errObj.status = res.status;
+    errObj.rawBody = errorBody;
     throw errObj;
   }
   if (res.status === 204) return null;
@@ -280,7 +333,7 @@ export async function fetchAuditByProblem(problemId) {
 }
 
 // ============================================================
-// User Administration & RBAC
+// User Administration & RBAC (Enterprise)
 // ============================================================
 export async function lookupUser(userId) {
   return apiRequest(`/users/${userId}`);
@@ -301,4 +354,87 @@ export async function onboardEvaluator(phone) {
   });
 }
 
+export async function registerNewUser(phone, name, email, password) {
+  const cleanPhone = phone.replace(/\D/g, '');
+  return apiRequest('/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({
+      phone: cleanPhone,
+      name: name || undefined,
+      email: email || undefined,
+      password: password || undefined,
+    }),
+  });
+}
 
+export async function fetchAllUsers() {
+  // Try /users first, then /users/search as fallback
+  try {
+    return await apiRequest('/users');
+  } catch (err) {
+    if (err.status === 404 || err.status === 405) {
+      try {
+        return await apiRequest('/users/search');
+      } catch {
+        // Return null to signal endpoint not available
+        return null;
+      }
+    }
+    throw err;
+  }
+}
+
+export async function searchUserByPhone(phone) {
+  const cleanPhone = phone.replace(/\D/g, '');
+  return apiRequest(`/users/search?phone=${encodeURIComponent(cleanPhone)}`);
+}
+
+export async function resetUserPassword(userId, newPassword) {
+  // Try dedicated password-reset endpoint first, then fallback to credentials patch
+  try {
+    return await apiRequest(`/users/${userId}/password-reset`, {
+      method: 'POST',
+      body: JSON.stringify({ newPassword }),
+    });
+  } catch (err) {
+    if (err.status === 404 || err.status === 405) {
+      return await apiRequest(`/users/${userId}/credentials`, {
+        method: 'PATCH',
+        body: JSON.stringify({ newPassword }),
+      });
+    }
+    throw err;
+  }
+}
+
+export async function revokeUserSessions(userId) {
+  try {
+    return await apiRequest(`/users/${userId}/revoke-sessions`, {
+      method: 'POST',
+    });
+  } catch (err) {
+    if (err.status === 404 || err.status === 405) {
+      return await apiRequest('/auth/revoke', {
+        method: 'POST',
+        body: JSON.stringify({ userId }),
+      });
+    }
+    throw err;
+  }
+}
+
+export async function createEvaluatorProfile(evaluatorType, maxWorkload = 5, experienceYears = 0) {
+  return apiRequest('/evaluation/evaluator-profiles', {
+    method: 'POST',
+    body: JSON.stringify({
+      evaluatorType,
+      maxWorkload,
+      experienceYears,
+      active: true,
+    }),
+  });
+}
+
+export async function fetchSourceAccounts() {
+  return apiRequest('/source/accounts');
+}

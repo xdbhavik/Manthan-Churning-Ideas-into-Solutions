@@ -107,3 +107,304 @@ select {
   inset: 0;
   z-index: 90;
 }
+
+/* ============================================================
+   Enterprise User Management System – Component Styles
+   ============================================================ */
+
+/* Buttons */
+.um-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1.25rem;
+  white-space: nowrap;
+  border: none;
+}
+
+.um-btn-primary {
+  background: #1E3A8A;
+  color: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(30, 58, 138, 0.2);
+}
+.um-btn-primary:hover {
+  background: #0A2540;
+  box-shadow: 0 2px 6px rgba(30, 58, 138, 0.3);
+}
+.um-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.um-btn-outline {
+  background: #FFFFFF;
+  color: #475569;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.um-btn-outline:hover {
+  background: #F8FAFC;
+  color: #0A2540;
+  border-color: #CBD5E1;
+}
+
+/* Action buttons (table row actions) */
+.um-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: #94A3B8;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.um-action-btn:hover {
+  background: #F8FAFC;
+  color: #1E3A8A;
+  border-color: #E2E8F0;
+}
+
+/* Form Inputs */
+.um-form-label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #0F172A;
+}
+
+.um-form-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #E2E8F0;
+  background: #F8FAFC;
+  color: #0F172A;
+  font-size: 0.875rem;
+  transition: all 0.15s ease;
+}
+.um-form-input:focus {
+  outline: none;
+  background: #FFFFFF;
+  border-color: #1E3A8A;
+  box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.15);
+}
+
+/* Select Mini (pagination) */
+.um-select-mini {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  border: 1px solid #E2E8F0;
+  background: #FFFFFF;
+  color: #0F172A;
+  font-size: 0.75rem;
+  cursor: pointer;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+.um-select-mini:focus {
+  outline: none;
+  border-color: #1E3A8A;
+}
+
+/* Radio Tile */
+.um-radio-tile {
+  display: block;
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1.5px solid #E2E8F0;
+  background: #FFFFFF;
+  transition: all 0.15s ease;
+}
+.um-radio-tile:hover {
+  border-color: #CBD5E1;
+  background: #F8FAFC;
+}
+.um-radio-tile-active {
+  border-color: #1E3A8A !important;
+  background: #EFF6FF !important;
+  box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.1);
+}
+
+/* Filter Chips (KYC) */
+.um-filter-chip {
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  border: 1px solid #E2E8F0;
+  background: #FFFFFF;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.um-filter-chip:hover {
+  border-color: #CBD5E1;
+  background: #F8FAFC;
+}
+.um-filter-chip-active {
+  background: #1E3A8A !important;
+  color: #FFFFFF !important;
+  border-color: #1E3A8A !important;
+}
+
+/* Role Tabs */
+.um-role-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid #E2E8F0;
+  background: #FFFFFF;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.um-role-tab:hover {
+  border-color: #CBD5E1;
+  background: #F8FAFC;
+}
+.um-role-tab-active {
+  background: #0A2540 !important;
+  color: #FFFFFF !important;
+  border-color: #0A2540 !important;
+}
+.um-role-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  padding: 0 0.25rem;
+}
+.um-role-tab .um-role-tab-count {
+  background: rgba(0,0,0,0.08);
+  color: inherit;
+}
+.um-role-tab-active .um-role-tab-count {
+  background: rgba(255,255,255,0.2);
+  color: #FFFFFF;
+}
+
+/* Table Styles */
+.um-th {
+  padding: 0.75rem 1rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #475569;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  background: #F8FAFC;
+  z-index: 5;
+}
+
+.um-td {
+  padding: 0.75rem 1rem;
+  vertical-align: middle;
+}
+
+.um-table-row {
+  transition: background 0.1s ease;
+}
+.um-table-row:hover {
+  background: #F8FAFC;
+}
+.um-table-row:nth-child(even) {
+  background: rgba(248, 250, 252, 0.4);
+}
+.um-table-row:nth-child(even):hover {
+  background: #F1F5F9;
+}
+
+/* Pagination Buttons */
+.um-pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.375rem;
+  border: 1px solid #E2E8F0;
+  background: #FFFFFF;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.um-pagination-btn:hover:not(:disabled) {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+  color: #0A2540;
+}
+.um-pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Modal */
+.um-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: umFadeIn 0.15s ease-out;
+}
+
+.um-modal-panel {
+  background: #FFFFFF;
+  border-radius: 0.75rem;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  width: 100%;
+  padding: 1.5rem;
+  border: 1px solid #E2E8F0;
+  animation: umScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+@keyframes umFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes umScaleIn {
+  from { transform: scale(0.95) translateY(8px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* Drawer */
+.um-drawer-slide {
+  animation: umDrawerSlide 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes umDrawerSlide {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
