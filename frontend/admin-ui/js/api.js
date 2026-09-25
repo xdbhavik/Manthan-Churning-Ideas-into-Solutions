@@ -245,6 +245,77 @@ export async function requestActionRegistration(id, comment) {
 }
 
 // ============================================================
+// Registration Detail & History
+// ============================================================
+export async function fetchRegistrationDetail(id) {
+  try {
+    return await apiRequest(`/registration/${id}`);
+  } catch (err) {
+    if (err.status === 404) {
+      // Fallback: try reviewer endpoint
+      try {
+        return await apiRequest(`/reviewer/registrations/${id}`);
+      } catch {
+        return null;
+      }
+    }
+    throw err;
+  }
+}
+
+export async function fetchRegistrationHistory(id) {
+  try {
+    return await apiRequest(`/registration/${id}/history`);
+  } catch (err) {
+    if (err.status === 404) {
+      return [];
+    }
+    throw err;
+  }
+}
+
+// ============================================================
+// Source Identity Verification
+// ============================================================
+export async function fetchSources() {
+  try {
+    return await apiRequest('/sources');
+  } catch (err) {
+    if (err.status === 404 || err.status === 405) {
+      try {
+        return await apiRequest('/source/accounts');
+      } catch {
+        return null;
+      }
+    }
+    throw err;
+  }
+}
+
+export async function verifySource(sourceId, method, result, notes, evidenceUrl) {
+  return apiRequest(`/sources/${sourceId}/verify`, {
+    method: 'POST',
+    body: JSON.stringify({
+      method,
+      result,
+      notes: notes || undefined,
+      evidenceUrl: evidenceUrl || undefined,
+    }),
+  });
+}
+
+export async function fetchSourceVerificationHistory(sourceId) {
+  try {
+    return await apiRequest(`/sources/${sourceId}/verification-history`);
+  } catch (err) {
+    if (err.status === 404) {
+      return [];
+    }
+    throw err;
+  }
+}
+
+// ============================================================
 // Problem Statements
 // ============================================================
 export async function fetchProblems() {
