@@ -114,9 +114,9 @@ function renderHeader() {
     <header class="fixed top-1 left-0 right-0 z-40 bg-surface-crisp shadow-sm border-b border-border-hairline h-16">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between">
         <div class="flex items-center gap-3 cursor-pointer" onclick="window.adminApp.navigate('registrations')">
-          <!-- Ashoka Emblem -->
-          <div class="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-lg bg-surface-container-low shadow-sm border border-border-hairline/60">
-            ${ASHOKA_EMBLEM}
+          <!-- Logo -->
+          <div class="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-lg bg-surface-container-low shadow-sm border border-border-hairline/60 overflow-hidden">
+            <img src="/logo.png" alt="Portal logo" class="w-8 h-8 object-contain" />
           </div>
           <div class="flex flex-col">
             <div class="flex items-center gap-2">

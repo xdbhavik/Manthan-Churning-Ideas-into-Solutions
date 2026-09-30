@@ -29,7 +29,6 @@ export default function LoginPage() {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [needsRegister, setNeedsRegister] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(0);
 
   useEffect(() => {
@@ -47,20 +46,24 @@ export default function LoginPage() {
       setLoading(true);
       setError(null);
       try {
-        const res = registering
-          ? await authService.registerUser({ phone: phone.trim(), email: email.trim() || null })
-          : await authService.login({ phone: phone.trim(), email: email.trim() || null });
+        let res;
+        try {
+          res = registering
+            ? await authService.registerUser({ phone: phone.trim(), email: email.trim() || null })
+            : await authService.login({ phone: phone.trim(), email: email.trim() || null });
+        } catch (e: any) {
+          if (!registering && e?.response?.status === 404) {
+            res = await authService.registerUser({ phone: phone.trim(), email: email.trim() || null });
+            toast.notify('No existing account found. A new account has been created successfully.', 'success');
+          } else {
+            throw e;
+          }
+        }
         setChallenge(res);
         setSecondsLeft(secondsUntil(res.expiresAt));
         setStep('otp');
-        setNeedsRegister(false);
       } catch (e: any) {
-        if (!registering && e?.response?.status === 404) {
-          setNeedsRegister(true);
-          setError(null);
-        } else {
-          setError(getErrorMessage(e));
-        }
+        setError(getErrorMessage(e));
       } finally {
         setLoading(false);
       }
@@ -102,7 +105,7 @@ export default function LoginPage() {
   return (
     <div className="bg-surface-card rounded-2xl p-space-xl shadow-sm max-w-lg w-full mx-auto my-12">
       <div className="flex items-center gap-2 mb-6">
-        <img src="/logo.svg" alt="Portal logo" className="w-9 h-9" />
+        <img src="/logo.png" alt="Portal logo" className="w-9 h-9" />
         <div>
           <div className="font-headline font-bold text-on-surface">National Innovation Portal</div>
           <div className="text-xs text-on-surface-variant-weak">Participant sign in</div>
@@ -138,34 +141,19 @@ export default function LoginPage() {
               />
             </div>
 
-            {needsRegister && (
-              <div className="rounded-lg bg-state-review-bg border border-state-review-border px-3 py-2 text-sm text-state-review-text">
-                No account found for this phone. Create one below.
-              </div>
-            )}
             {error && (
               <div className="rounded-lg bg-state-returned-bg border border-state-returned-border px-3 py-2 text-sm text-state-returned-text">
                 {error}
               </div>
             )}
 
-            {needsRegister ? (
-              <button
-                onClick={() => startOtp(true)}
-                disabled={loading}
-                className="btn-primary w-full text-sm font-bold py-2.5 disabled:opacity-60"
-              >
-                {loading ? 'Creating account…' : 'Create account & send code'}
-              </button>
-            ) : (
-              <button
-                onClick={() => startOtp(false)}
-                disabled={loading}
-                className="btn-primary w-full text-sm font-bold py-2.5 disabled:opacity-60"
-              >
-                {loading ? 'Sending…' : 'Send code'}
-              </button>
-            )}
+            <button
+              onClick={() => startOtp(false)}
+              disabled={loading}
+              className="btn-primary w-full text-sm font-bold py-2.5 disabled:opacity-60"
+            >
+              {loading ? 'Sending…' : 'Send code'}
+            </button>
           </div>
         </div>
       ) : (
@@ -208,7 +196,7 @@ export default function LoginPage() {
       )}
 
       <div className="mt-8 pt-6 border-t border-border-subtle text-xs text-on-surface-variant-weak">
-        Secure OTP authentication · Government of India
+        Secure OTP authentication
       </div>
     </div>
   );

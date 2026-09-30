@@ -10,7 +10,7 @@
 [![License](https://img.shields.io/badge/Status-SIH%20Grand%20Finale%20Ready-success?style=for-the-badge)](#)
 
 <p align="center">
-  A state-of-the-art suite of 5 dedicated frontends tailored for the Ministry of Education & Government of India innovation workflow — featuring role-based workflows, real-time telemetry, automated rubric scoring, and institutional casing.
+  A state-of-the-art suite of 5 dedicated frontends tailored for the Ministry of Education innovation workflow — featuring role-based workflows, real-time telemetry, automated rubric scoring, and institutional casing.
 </p>
 
 ---

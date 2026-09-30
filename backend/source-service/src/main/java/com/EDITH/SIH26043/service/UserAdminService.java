@@ -4,6 +4,8 @@ import com.EDITH.SIH26043.entity.User;
 import com.EDITH.SIH26043.enums.UserRole;
 import com.EDITH.SIH26043.exception.ApiException;
 import com.EDITH.SIH26043.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +22,11 @@ public class UserAdminService {
 
     public UserAdminService(UserRepository userRepository) {
         this.userRepository = userRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<User> listAll(Pageable pageable) {
+        return userRepository.findAllByOrderByCreatedAtDesc(pageable);
     }
 
     @Transactional(readOnly = true)

@@ -17,6 +17,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,6 +48,22 @@ public class UserController {
     }
 
     public record RolePatchRequest(@NotNull UserRole role) {
+    }
+
+    @Operation(
+            summary = "📋 List all users (paged)",
+            description = """
+                    🔒 **ADMIN only** — returns a paginated list of all users, newest first.
+                    Supports `?page=0&size=50` query params (defaults: page=0, size=100).""")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Paged user list"),
+            @ApiResponse(responseCode = "403", description = "Not ADMIN")
+    })
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public Page<UserResponse> listAll(
+            @PageableDefault(size = 100) Pageable pageable) {
+        return userAdminService.listAll(pageable).map(UserResponse::from);
     }
 
     @Operation(

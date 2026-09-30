@@ -1,0 +1,67 @@
+3:40:10 pm [vite] Internal server error: C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\src\pages\auth\LoginPage.tsx: Identifier 'error' has already been declared. (32:9)
+
+  30 |   const [loading, setLoading] = useState(false);
+  31 |   const [error, setError] = useState<string | null>(null);
+> 32 |   const [error, setError] = useState<string | null>(null);
+     |          ^
+  33 |   const [secondsLeft, setSecondsLeft] = useState(0);
+  34 |
+  35 |   useEffect(() => {
+  Plugin: vite:react-babel
+  File: C:/Users/Bhavik/Documents/sih-round-2/v4/Manthan-Churning-Ideas-into-Solutions/frontend/innovation-portal-web/src/pages/auth/LoginPage.tsx:32:9
+  30 |    const [loading, setLoading] = useState(false);
+  31 |    const [error, setError] = useState<string | null>(null);
+  32 |    const [error, setError] = useState<string | null>(null);
+     |                                          ^
+  33 |    const [secondsLeft, setSecondsLeft] = useState(0);
+  34 |  
+      at constructor (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:369:19)
+      at TypeScriptParserMixin.raise (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:6622:19)
+      at TypeScriptScopeHandler.checkRedeclarationInScope (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:1623:19)
+      at TypeScriptScopeHandler.declareName (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:1589:12)
+      at TypeScriptScopeHandler.declareName (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:4898:11)
+      at TypeScriptParserMixin.declareNameFromIdentifier (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:7590:16)
+      at TypeScriptParserMixin.checkIdentifier (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:7586:12)
+      at TypeScriptParserMixin.checkLVal (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:7523:12)
+      at TypeScriptParserMixin.checkLVal (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:7563:16)
+      at TypeScriptParserMixin.parseVarId (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:13446:10)
+      at TypeScriptParserMixin.parseVarId (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:9775:11)
+      at TypeScriptParserMixin.parseVar (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:13417:12)
+      at TypeScriptParserMixin.parseVarStatement (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:13264:10)
+      at TypeScriptParserMixin.parseVarStatement (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:9431:31)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:12885:23)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:9531:18)
+      at TypeScriptParserMixin.parseStatementLike (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:12801:17)
+      at TypeScriptParserMixin.parseStatementListItem (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:12781:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:13350:61)
+      at TypeScriptParserMixin.parseBlockBody (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:13343:10)
+      at TypeScriptParserMixin.parseBlock (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:13331:10)
+      at TypeScriptParserMixin.parseFunctionBody (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:12134:24)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:12120:10)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:9195:18)
+      at C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:13479:12
+      at TypeScriptParserMixin.withSmartMixTopicForbiddingContext (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:12437:14)
+      at TypeScriptParserMixin.parseFunction (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:13478:10)
+      at TypeScriptParserMixin.parseExportDefaultExpression (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:13941:19)
+      at TypeScriptParserMixin.parseExportDefaultExpression (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:9425:18)
+      at TypeScriptParserMixin.parseExport (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:13862:25)
+      at TypeScriptParserMixin.parseExport (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:9408:20)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:12912:27)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:9531:18)
+      at TypeScriptParserMixin.parseStatementLike (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:12801:17)
+      at TypeScriptParserMixin.parseModuleItem (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:12778:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:13350:36)
+      at TypeScriptParserMixin.parseBlockBody (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:13343:10)
+      at TypeScriptParserMixin.parseProgram (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:12656:10)
+      at TypeScriptParserMixin.parseTopLevel (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:12646:25)
+      at TypeScriptParserMixin.parse (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:14522:25)
+      at TypeScriptParserMixin.parse (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:10149:18)
+      at parse (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\parser\lib\index.js:14556:38)
+      at parser (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\core\lib\parser\index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\core\lib\transformation\normalize-file.js:51:37)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\core\lib\transformation\index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (C:\Users\Bhavik\Documents\sih-round-2\v4\Manthan-Churning-Ideas-into-Solutions\frontend\innovation-portal-web\node_modules\@babel\core\lib\transform.js:22:33)
+      at transform.next (<anonymous>)

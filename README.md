@@ -3,7 +3,7 @@
 # 🇮🇳 SIH26043 · National Innovation Lifecycle Platform
 ### *Enterprise Microservices Architecture for Problem-to-Solution Orchestration*
 
-**Smart India Hackathon 2024 · Ministry of Education & AICTE · Government of India**
+**Smart India Hackathon 2024 · Ministry of Education & AICTE**
 
 [![Java 21](https://img.shields.io/badge/Java-21%20LTS-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://openjdk.org/)
 [![Spring Boot 3](https://img.shields.io/badge/Spring%20Boot-3.x%20%2F%204.x-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)

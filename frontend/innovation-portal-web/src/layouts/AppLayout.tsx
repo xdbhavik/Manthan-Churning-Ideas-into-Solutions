@@ -22,7 +22,7 @@ export default function AppLayout() {
         className="hidden lg:flex fixed inset-y-0 left-0 bg-surface-card border-r border-border-subtle flex-col z-40 overflow-hidden"
       >
         <div className="h-16 px-5 flex items-center gap-2.5 border-b border-border-subtle tricolor-border-top shrink-0">
-          <img src="/logo.svg" alt="Portal logo" className="w-8 h-8 shrink-0" />
+          <img src="/logo.png" alt="Portal logo" className="w-8 h-8 shrink-0" />
           {!isCollapsed && (
             <div className="leading-tight truncate">
               <div className="font-headline font-bold text-on-surface text-sm truncate">Innovation Portal</div>
@@ -56,7 +56,7 @@ export default function AppLayout() {
             >
               <div className="h-16 px-5 flex items-center justify-between border-b border-border-subtle shrink-0">
                 <div className="flex items-center gap-2.5">
-                  <img src="/logo.svg" alt="Portal logo" className="w-8 h-8 shrink-0" />
+                  <img src="/logo.png" alt="Portal logo" className="w-8 h-8 shrink-0" />
                   <div className="font-headline font-bold text-on-surface text-sm">Innovation Portal</div>
                 </div>
                 <button onClick={() => setSidebarOpen(false)} aria-label="Close menu" className="p-2 rounded-lg hover:bg-surface text-on-surface-variant-weak hover:text-on-surface">

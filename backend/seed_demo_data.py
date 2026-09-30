@@ -276,8 +276,15 @@ def seed_all():
     print("Seeded evaluation cycles into sih_eval.")
 
     # Evaluator profile ID
-    eval_profile_id = "f94d67f8-33d4-400f-82b7-c50bad7fdde5"
+    eval_profile_id = "de459150-5e08-4886-892e-2ce3fec658ac"
     eval_user_id = "44444444-4444-4444-8444-444444444444"
+
+    # Insert Evaluator Profile
+    run_psql("sih_eval", f"""
+        INSERT INTO evaluator_profile (profile_id, user_id, evaluator_type, full_name, experience_years)
+        VALUES ('{eval_profile_id}', '{eval_user_id}', 'HEI', 'Dr. Demo Evaluator', 10)
+        ON CONFLICT (user_id) DO NOTHING;
+    """)
 
     # Seed 3 Project Reviews for the evaluator
     reviews_data = [
