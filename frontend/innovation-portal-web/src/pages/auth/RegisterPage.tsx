@@ -19,6 +19,7 @@ export default function RegisterPage() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState(user?.email ?? '');
   const [phone, setPhone] = useState(user?.phone ?? '');
+  const [institutionName, setInstitutionName] = useState('');
   const [agree, setAgree] = useState(false);
   const [smsConsent, setSmsConsent] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -41,6 +42,7 @@ export default function RegisterPage() {
         fullName: fullName.trim(),
         email: email.trim() || undefined,
         phone: phone.trim() || undefined,
+        institutionName: institutionName.trim() || undefined,
       });
       toast.notify('Profile created', 'success');
       await queryClient.invalidateQueries({ queryKey: portalKeys.me });
@@ -201,19 +203,25 @@ export default function RegisterPage() {
               </p>
             </div>
 
-            {/* Field 4 (Autodetected derived view): College / Institution */}
-            <div className="bg-surface-container rounded-lg p-3 space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak uppercase">
-                  Auto-Detected Institution (via domain)
+            {/* Field 4: College / Institution */}
+            <div className="space-y-1.5">
+              <label className="font-headline-sm text-headline-sm text-on-surface" htmlFor="institutionName">
+                Institution Name <span className="text-error">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  className="w-full h-10 px-3 pr-10 rounded-lg bg-surface-canvas text-on-surface font-body-md text-body-md focus:bg-surface-card focus:outline-none transition-colors shadow-inner"
+                  id="institutionName"
+                  name="institutionName"
+                  required
+                  type="text"
+                  placeholder="e.g. COEP Technological University"
+                  value={institutionName}
+                  onChange={(e) => setInstitutionName(e.target.value)}
+                />
+                <span className="material-symbols-outlined absolute right-3 top-2.5 text-secondary text-body-lg">
+                  account_balance
                 </span>
-                <span className="font-label-mono-sm text-label-mono-sm text-secondary bg-surface-card px-1.5 py-0.5 rounded">
-                  AISHE: C-41593
-                </span>
-              </div>
-              <div className="flex items-center gap-2 font-headline-sm text-headline-sm text-on-surface">
-                <span className="material-symbols-outlined text-secondary">account_balance</span>
-                <span>COEP Technological University, Pune</span>
               </div>
             </div>
 

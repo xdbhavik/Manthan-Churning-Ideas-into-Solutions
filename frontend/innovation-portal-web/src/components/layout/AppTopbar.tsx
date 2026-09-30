@@ -20,9 +20,11 @@ export function AppTopbar({
   displayName: string;
   onOpenSidebar: () => void;
 }) {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  
+  const kycVerified = user?.kycStatus === 'VERIFIED';
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
 
   const toggleDarkMode = () => {
@@ -94,10 +96,25 @@ export function AppTopbar({
           </div>
         </div>
 
+        <Link
+          to="/app/profile"
+          className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ml-auto ${
+            kycVerified 
+              ? 'bg-state-accepted-bg text-state-accepted-text hover:bg-state-accepted-bg/80'
+              : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
+          }`}
+          title="KYC Status"
+        >
+          <span className="material-symbols-outlined text-[16px]">
+            {kycVerified ? 'verified_user' : 'gpp_maybe'}
+          </span>
+          <span>{kycVerified ? 'VERIFIED' : 'KYC PENDING'}</span>
+        </Link>
+
         <button
           onClick={toggleDarkMode}
           title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-          className="p-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors ml-auto"
+          className="p-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors sm:ml-2"
         >
           <span className="material-symbols-outlined text-[22px]">
             {isDark ? 'light_mode' : 'dark_mode'}

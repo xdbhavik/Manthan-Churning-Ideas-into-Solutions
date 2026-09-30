@@ -200,17 +200,18 @@ export default function CreateSubmissionPage() {
               </span>
             </div>
             <Input
-              label="GitHub Repository URL <span className='text-error'>*</span>"
+              label="GitHub Repository URL"
+              required
               value={githubUrl}
               onChange={(e) => setGithubUrl(e.target.value)}
               placeholder="https://github.com/team-edith/edgespectra-firmware"
-              leftIcon={<span className="material-symbols-outlined">account_tree</span>}
               helperText="Repository must be public or the evaluation bot invited"
             />
           <div className="grid grid-cols-1 md:grid-cols-12 gap-space-md items-end">
             <div className="md:col-span-7">
               <Select
-                label="Target Branch <span className='text-error'>*</span>"
+                label="Target Branch"
+                required
                 value={branch}
                 onChange={(e) => setBranch(e.target.value)}
                 options={[
@@ -219,8 +220,6 @@ export default function CreateSubmissionPage() {
                   { value: 'feature/as7262-driver', label: 'feature/as7262-driver' },
                   { value: 'release/v0.8.2', label: 'release/v0.8.2' },
                 ]}
-                leftIcon={<span className="material-symbols-outlined">fork_right</span>}
-                helperText="branch param"
               />
             </div>
             <div className="md:col-span-5">
@@ -250,12 +249,11 @@ export default function CreateSubmissionPage() {
             </span>
           </div>
           <Input
-            label="Pinned Commit SHA (7–64 alphanumeric characters) <span className='text-error'>*</span>"
+            label="Pinned Commit SHA (7–64 alphanumeric characters)"
+            required
             value={commitSha}
             onChange={(e) => setCommitSha(e.target.value)}
-            leftIcon={<span className="material-symbols-outlined">content_copy</span>}
             error={!commitValid && commitSha ? 'Invalid SHA format' : undefined}
-            helperText="commitSha [IMMUTABLE]"
           />
           <Card variant="outlined" className="p-space-md flex flex-col gap-space-sm">
             <div className="flex items-start justify-between gap-space-sm">

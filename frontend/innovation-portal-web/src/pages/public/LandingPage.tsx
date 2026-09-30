@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { LinkButton } from '../../components/ui';
 import { formatLocation } from '../../lib/formatters';
+import { useProblems } from '../../hooks/usePortalQueries';
 
 const METRICS = [
   { label: 'Active Challenges', value: '140+', variant: 'primary' as const },
@@ -84,43 +85,10 @@ const PROCESS_STEPS = [
   },
 ];
 
-const FEATURED_PROBLEMS = [
-  {
-    source: 'Ministry of Jal Shakti',
-    urgency: 'CRITICAL',
-    urgencyVariant: 'error' as const,
-    location: 'National River Basins',
-    published: '2 days ago',
-    title: 'Automated Micro-Pollutant Detection in Rural Water Inflows via Edge Spectroscopy',
-    domains: ['AI', 'IoT', 'Water Mgmt', 'Sensors'],
-    outcome: 'Real-time edge telemetry with <5% false alert rate and low-cost sensor schematics.',
-    files: '4 files (28MB)',
-  },
-  {
-    source: 'Dept of Agriculture',
-    urgency: 'HIGH',
-    urgencyVariant: 'review' as const,
-    location: 'Maharashtra & MP',
-    published: '3 days ago',
-    title: 'Decentralized Cold-Chain Telemetry and Spoilage Prediction for Perishable Produce',
-    domains: ['IoT', 'Supply Chain', 'Embedded'],
-    outcome: 'Predictive spoilage alert engine with sensor data pipeline and fallback SMS gateway.',
-    files: '3 files (14MB)',
-  },
-  {
-    source: 'Municipal Corporation',
-    urgency: 'NORMAL',
-    urgencyVariant: 'draft' as const,
-    location: 'Urban Smart Cities',
-    published: '5 days ago',
-    title: 'Dynamic EV Charging Load Balancer for Microgrids Under Peak Grid Stress',
-    domains: ['Clean Energy', 'Smart Grid', 'Optimization'],
-    outcome: 'Simulation testbed and firmware prototype demonstrating dynamic phase shedding.',
-    files: '6 files (42MB)',
-  },
-];
-
 export default function LandingPage() {
+  const { data: problems } = useProblems(true);
+  const featuredProblems = problems?.slice(0, 3) || [];
+
   return (
     <div className="page-transition">
       {/* HERO SECTION */}
@@ -433,9 +401,11 @@ export default function LandingPage() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
           >
-            {FEATURED_PROBLEMS.map((problem, idx) => (
+            {featuredProblems.map((problem, idx) => {
+              const urgencyVariant = problem.severity === 'CRITICAL' ? 'error' : problem.severity === 'HIGH' ? 'review' : 'draft';
+              return (
               <motion.div
-                key={problem.title}
+                key={problem.problemId}
                 className="bg-surface-canvas rounded-xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between overflow-hidden group"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -444,22 +414,22 @@ export default function LandingPage() {
                 <div className="p-6">
                   <div className="flex items-center justify-between gap-2 mb-4">
                     <span className="font-label-mono-sm text-label-mono-sm font-semibold text-primary px-2.5 py-1 rounded bg-primary-fixed uppercase tracking-wider truncate">
-                      {problem.source}
+                      {problem.sourceBucket || 'General'}
                     </span>
                     <span className={`font-label-mono-sm text-label-mono-sm px-2 py-0.5 rounded flex items-center gap-1 ${
-                      problem.urgencyVariant === 'error' ? 'bg-error-container text-error' :
-                      problem.urgencyVariant === 'review' ? 'bg-state-review-bg text-state-review-text' :
+                      urgencyVariant === 'error' ? 'bg-error-container text-error' :
+                      urgencyVariant === 'review' ? 'bg-state-review-bg text-state-review-text' :
                       'bg-state-draft-bg text-state-draft-text'
                     }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${problem.urgencyVariant === 'error' ? 'bg-error' : problem.urgencyVariant === 'review' ? 'bg-state-review-text' : 'bg-state-draft-text'}${problem.urgencyVariant === 'error' ? ' animate-ping' : ''}`} />
-                      {problem.urgency}
+                      <span className={`w-1.5 h-1.5 rounded-full ${urgencyVariant === 'error' ? 'bg-error' : urgencyVariant === 'review' ? 'bg-state-review-text' : 'bg-state-draft-text'}${urgencyVariant === 'error' ? ' animate-ping' : ''}`} />
+                      {problem.severity || 'NORMAL'}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-on-surface-variant font-label-mono-sm text-label-mono-sm mb-3">
                     <span className="material-symbols-outlined text-sm">pin_drop</span>
-                    <span>{problem.location}</span>
+                    <span>{problem.location || 'Pan India'}</span>
                     <span>•</span>
-                    <span>{problem.published}</span>
+                    <span>{problem.publishedAt ? new Date(problem.publishedAt).toLocaleDateString() : 'N/A'}</span>
                   </div>
                   <h3 className="font-headline-sm text-headline-sm text-on-surface mb-3 group-hover:text-primary transition-colors line-clamp-2">
                     {problem.title}
@@ -474,17 +444,17 @@ export default function LandingPage() {
                   <div className="bg-surface-card p-3 rounded-lg mb-4">
                     <div className="font-label-mono-sm text-label-mono-sm text-on-surface-variant uppercase mb-1">Target Outcome</div>
                     <p className="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">
-                      {problem.outcome}
+                      {problem.expectedOutcome || 'No specific outcome stated.'}
                     </p>
                   </div>
                 </div>
                 <div className="px-6 py-4 bg-surface-container-low flex items-center justify-between">
                   <div className="flex items-center gap-1 text-on-surface-variant font-label-mono-sm text-label-mono-sm">
                     <span className="material-symbols-outlined text-sm">attachment</span>
-                    <span>{problem.files}</span>
+                    <span>{problem.evidenceCount} files</span>
                   </div>
                   <LinkButton
-                    to="/problems"
+                    to={`/problems/${problem.problemId}`}
                     variant="ghost"
                     className="font-headline-sm text-headline-sm text-primary hover:text-primary-container flex items-center gap-1"
                   >
@@ -493,7 +463,7 @@ export default function LandingPage() {
                   </LinkButton>
                 </div>
               </motion.div>
-            ))}
+            )})}
           </motion.div>
         </div>
       </section>

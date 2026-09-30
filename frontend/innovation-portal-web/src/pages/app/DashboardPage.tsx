@@ -413,7 +413,7 @@ export default function DashboardPage() {
                     <span>PRIZE POOL: ₹1,00,000</span>
                   </div>
                   <LinkButton
-                    to={`/problems/${p.problemId}`}
+                    to={`/app/problems/${p.problemId}`}
                     className="inline-flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container-high text-primary font-headline-sm text-headline-sm transition-colors"
                   >
                     <span>Inspect Problem</span>

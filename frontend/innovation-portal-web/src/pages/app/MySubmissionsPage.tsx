@@ -16,8 +16,12 @@ const TAB_DEFS: { id: TabId; label: string; badgeVariant: 'neutral' | 'draft' | 
   { id: 'returned', label: 'Returned', badgeVariant: 'returned' },
   { id: 'accepted', label: 'Accepted', badgeVariant: 'accepted' },
 ] as const;
+import { useNavigate } from 'react-router-dom';
 
 function SubmissionCard({ submission, index }: { submission: Submission; index: number }) {
+  const navigate = useNavigate();
+  const navToDetail = () => navigate(`/app/submissions/${submission.submissionId}`);
+  
   const status = submission.status;
   const statusBg = status === 'RETURNED' ? 'bg-state-review-bg' : status === 'UNDER_REVIEW' || status === 'SUBMITTED' ? 'bg-state-submitted-bg' : status === 'DRAFT' ? 'bg-state-draft-bg' : 'bg-state-accepted-bg';
   const statusText = status === 'RETURNED' ? 'text-state-review-text' : status === 'UNDER_REVIEW' || status === 'SUBMITTED' ? 'text-state-submitted-text' : status === 'DRAFT' ? 'text-state-draft-text' : 'text-state-accepted-text';
@@ -57,7 +61,7 @@ function SubmissionCard({ submission, index }: { submission: Submission; index: 
           </span>
         </div>
         <div className="space-y-space-xs">
-          <h2 className="font-headline-lg text-headline-lg text-on-surface hover:text-primary transition-colors cursor-pointer">
+          <h2 onClick={navToDetail} className="font-headline-lg text-headline-lg text-on-surface hover:text-primary transition-colors cursor-pointer">
             {submission.title || 'Untitled submission'}
           </h2>
           <div className="flex items-center gap-space-xs text-on-surface-variant-weak font-body-md">
@@ -165,17 +169,17 @@ function SubmissionCard({ submission, index }: { submission: Submission; index: 
           <div className="flex items-center gap-space-sm">
             {status === 'RETURNED' && (
               <>
-                <Button variant="secondary" size="sm" className="px-space-md h-9 rounded-lg bg-surface-card hover:bg-surface-container-low text-on-surface font-headline-sm text-headline-sm transition-colors shadow-sm">
+                <Button variant="secondary" size="sm" onClick={navToDetail} className="px-space-md h-9 rounded-lg bg-surface-card hover:bg-surface-container-low text-on-surface font-headline-sm text-headline-sm transition-colors shadow-sm">
                   Inspect Feedback & Files
                 </Button>
-                <Button variant="destructive" size="sm" className="inline-flex items-center gap-space-xs px-space-md h-9 rounded-lg bg-state-review-text text-on-primary hover:opacity-90 font-headline-sm text-headline-sm shadow transition-all">
+                <Button variant="destructive" size="sm" onClick={navToDetail} className="inline-flex items-center gap-space-xs px-space-md h-9 rounded-lg bg-state-review-text text-on-primary hover:opacity-90 font-headline-sm text-headline-sm shadow transition-all">
                   <span>Edit & Resubmit Submission</span>
                   <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
                 </Button>
               </>
             )}
             {status === 'UNDER_REVIEW' && (
-              <Button variant="secondary" size="sm" className="px-space-md h-9 rounded-lg bg-surface-card hover:bg-surface-container-low text-on-surface font-headline-sm text-headline-sm transition-colors shadow-sm">
+              <Button variant="secondary" size="sm" onClick={navToDetail} className="px-space-md h-9 rounded-lg bg-surface-card hover:bg-surface-container-low text-on-surface font-headline-sm text-headline-sm transition-colors shadow-sm">
                 View Submission Dossier
               </Button>
             )}
@@ -184,7 +188,7 @@ function SubmissionCard({ submission, index }: { submission: Submission; index: 
                 <Button variant="destructive" size="sm" className="px-space-md h-9 rounded-lg bg-state-returned-bg text-state-returned-text hover:bg-state-returned-border/50 font-headline-sm text-headline-sm transition-colors">
                   Discard Draft
                 </Button>
-                <Button variant="primary" size="sm" className="inline-flex items-center gap-space-xs px-space-md h-9 rounded-lg bg-primary text-on-primary hover:bg-primary-container font-headline-sm text-headline-sm transition-all shadow-sm">
+                <Button variant="primary" size="sm" onClick={() => navigate(`/app/submissions/new?problemId=${sub.problem.problemId}`)} className="inline-flex items-center gap-space-xs px-space-md h-9 rounded-lg bg-primary text-on-primary hover:bg-primary-container font-headline-sm text-headline-sm transition-all shadow-sm">
                   <span>Resume Wizard</span>
                   <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
                 </Button>
@@ -196,7 +200,7 @@ function SubmissionCard({ submission, index }: { submission: Submission; index: 
                   <span className="material-symbols-outlined text-[16px]">military_tech</span>
                   <span>Certificate</span>
                 </Button>
-                <Button variant="primary" size="sm" className="inline-flex items-center gap-space-xs px-space-md h-9 rounded-lg bg-primary-container text-on-primary hover:bg-primary font-headline-sm text-headline-sm transition-all shadow-sm">
+                <Button variant="primary" size="sm" onClick={navToDetail} className="inline-flex items-center gap-space-xs px-space-md h-9 rounded-lg bg-primary-container text-on-primary hover:bg-primary font-headline-sm text-headline-sm transition-all shadow-sm">
                   <span>View Final Accepted Dossier</span>
                   <span className="material-symbols-outlined text-[18px]">launch</span>
                 </Button>
@@ -385,7 +389,7 @@ export default function MySubmissionsPage() {
           </div>
         </div>
         <div className="flex items-center gap-space-sm flex-shrink-0">
-          <Button variant="secondary" className="px-space-md h-9 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-headline-sm text-headline-sm transition-colors">
+          <Button variant="secondary" className="px-space-md h-9 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-headline-sm text-headline-sm transition-colors" onClick={() => window.open('/evaluation-matrix.pdf', '_blank')}>
             Evaluation Matrix
           </Button>
           <Button variant="primary" className="px-space-md h-9 rounded-lg bg-secondary text-on-secondary hover:opacity-90 font-headline-sm text-headline-sm transition-colors shadow-sm">

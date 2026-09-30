@@ -7,79 +7,6 @@ import {
 } from '../../services/evaluatorService';
 import type { AssignmentResponse } from '../../types';
 
-// Demonstration dossiers matching Stitch Screen 4 if live API has not yet assigned records
-const MOCK_ASSIGNMENTS: AssignmentResponse[] = [
-  {
-    assignmentId: 'ASN-9041-A2',
-    cycleId: 'CYC-2024-884',
-    problemId: 'PRB-IND-7714',
-    evaluatorProfileId: 'EVAL-PRF-9941-882B',
-    status: 'IN_PROGRESS',
-    assignedAt: '2024-10-20T10:00:00Z',
-    deadlineAt: '2024-10-28T23:59:59Z',
-    overdue: false,
-    problemTitle: 'IoT-Enabled Micro-Aquifer Contamination Early Warning Network',
-    urgency: 'HIGH',
-    criteriaCompleted: 4,
-    criteriaTotal: 5,
-  } as any,
-  {
-    assignmentId: 'ASN-9042-B1',
-    cycleId: 'CYC-2024-884',
-    problemId: 'PRB-IND-8821',
-    evaluatorProfileId: 'EVAL-PRF-9941-882B',
-    status: 'ASSIGNED',
-    assignedAt: '2024-10-22T08:30:00Z',
-    deadlineAt: '2024-10-24T18:00:00Z',
-    overdue: false,
-    problemTitle: 'Decentralized Solar-Powered Cold Storage for Agricultural Mandis',
-    urgency: 'NORMAL',
-    criteriaCompleted: 0,
-    criteriaTotal: 5,
-  } as any,
-  {
-    assignmentId: 'ASN-9039-C4',
-    cycleId: 'CYC-2024-881',
-    problemId: 'PRB-IND-6602',
-    evaluatorProfileId: 'EVAL-PRF-9941-882B',
-    status: 'SUBMITTED',
-    assignedAt: '2024-10-15T09:00:00Z',
-    deadlineAt: '2024-10-19T23:59:59Z',
-    overdue: false,
-    problemTitle: 'Autonomous AI Drone Swarm for Forest Fire Boundary Detection',
-    urgency: 'CRITICAL',
-    criteriaCompleted: 5,
-    criteriaTotal: 5,
-  } as any,
-  {
-    assignmentId: 'ASN-9038-D9',
-    cycleId: 'CYC-2024-880',
-    problemId: 'PRB-IND-5411',
-    evaluatorProfileId: 'EVAL-PRF-9941-882B',
-    status: 'SUBMITTED',
-    assignedAt: '2024-10-10T11:00:00Z',
-    deadlineAt: '2024-10-14T23:59:59Z',
-    overdue: false,
-    problemTitle: 'Low-Cost Biomedical Microfluidic Cartridge for Dengue Serotype Diagnostic',
-    urgency: 'NORMAL',
-    criteriaCompleted: 5,
-    criteriaTotal: 5,
-  } as any,
-  {
-    assignmentId: 'ASN-9022-X7',
-    cycleId: 'CYC-2024-875',
-    problemId: 'PRB-IND-4019',
-    evaluatorProfileId: 'EVAL-PRF-9941-882B',
-    status: 'EXPIRED',
-    assignedAt: '2024-10-01T09:00:00Z',
-    deadlineAt: '2024-10-05T23:59:59Z',
-    overdue: true,
-    problemTitle: 'Bilingual Speech Recognition Model for Grassroots Telemedicine Teleconsultation',
-    urgency: 'NORMAL',
-    criteriaCompleted: 1,
-    criteriaTotal: 5,
-  } as any,
-];
 
 export default function AssignmentsPage() {
   const navigate = useNavigate();
@@ -97,14 +24,9 @@ export default function AssignmentsPage() {
   const loadAssignments = useCallback(async () => {
     try {
       const data = await getMyAssignments();
-      if (data && data.length > 0) {
-        setAssignments(data);
-      } else {
-        // Fallback to high-fidelity mock data if no assignments are routed yet
-        setAssignments(MOCK_ASSIGNMENTS);
-      }
+      setAssignments(data || []);
     } catch {
-      setAssignments(MOCK_ASSIGNMENTS);
+      setAssignments([]);
     }
   }, []);
 
@@ -127,12 +49,7 @@ export default function AssignmentsPage() {
       setAcceptTarget(null);
       void loadAssignments();
     } catch {
-      // Simulate successful local update if backend has mock assignment
-      setAssignments((prev) =>
-        prev.map((a) => (a.assignmentId === acceptTarget.assignmentId ? { ...a, status: 'IN_PROGRESS' } : a))
-      );
-      setActionSuccess(`Assignment ${acceptTarget.assignmentId} accepted.`);
-      setAcceptTarget(null);
+      // ignore
     } finally {
       setActionLoading(false);
     }
@@ -148,12 +65,7 @@ export default function AssignmentsPage() {
       setDeclineReason('');
       void loadAssignments();
     } catch {
-      setAssignments((prev) =>
-        prev.map((a) => (a.assignmentId === declineTarget.assignmentId ? { ...a, status: 'DECLINED' } : a))
-      );
-      setActionSuccess(`Assignment ${declineTarget.assignmentId} marked as declined.`);
-      setDeclineTarget(null);
-      setDeclineReason('');
+      // ignore
     } finally {
       setActionLoading(false);
     }

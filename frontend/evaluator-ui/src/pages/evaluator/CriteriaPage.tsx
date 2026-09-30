@@ -2,54 +2,13 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { getMyCriteria } from '../../services/evaluatorService';
 import type { EvaluationCriteria } from '../../types';
 
-// Seeded defaults across all 5 pools as defined in the requirements
-const POOL_CRITERIA_MAP: Record<string, EvaluationCriteria[]> = {
-  HEI: [
-    { key: 'TECH_VALIDITY', label: 'Technical Validity', description: 'Rigor of the scientific foundation, correctness of engineering models, and empirical feasibility.', maxScore: 20, sortOrder: 1 },
-    { key: 'RESEARCH_POTENTIAL', label: 'Research Potential', description: 'Opportunities for publishable peer-reviewed work, doctoral dissertation support, and patentability.', maxScore: 20, sortOrder: 2 },
-    { key: 'INNOVATION_POTENTIAL', label: 'Innovation Potential', description: 'Novelty of methodology, disruptive application of foundational science, and defensible IP.', maxScore: 20, sortOrder: 3 },
-    { key: 'SCALABILITY', label: 'Scalability & Institutional Reach', description: 'Readiness for cross-institutional lab replication and large-scale deployment.', maxScore: 20, sortOrder: 4 },
-    { key: 'IMPLEMENTATION_FEASIBILITY', label: 'Implementation Feasibility', description: 'Resource pragmatism, student/faculty availability, and compute/equipment access.', maxScore: 20, sortOrder: 5 },
-  ],
-  GOVERNMENT: [
-    { key: 'POLICY_RELEVANCE', label: 'Policy Relevance', description: 'Alignment with national schemes (e.g. Jal Jeevan Mission, Digital India) and statutory objectives.', maxScore: 20, sortOrder: 1 },
-    { key: 'ADMIN_FEASIBILITY', label: 'Administrative Feasibility', description: 'Compatibility with current civil governance structures and line department operations.', maxScore: 20, sortOrder: 2 },
-    { key: 'IMPL_FEASIBILITY', label: 'Implementation Feasibility', description: 'Ease of execution by district collectors, block development officers, and field staff.', maxScore: 20, sortOrder: 3 },
-    { key: 'PUBLIC_IMPACT', label: 'Public Impact', description: 'Tangible welfare improvements, poverty alleviation, and public service delivery enhancements.', maxScore: 20, sortOrder: 4 },
-    { key: 'URGENCY', label: 'Urgency & Priority', description: 'Criticality of intervention for affected grassroots populations and disaster mitigation.', maxScore: 20, sortOrder: 5 },
-  ],
-  INDUSTRY: [
-    { key: 'TECH_FEASIBILITY', label: 'Technology Feasibility', description: 'Maturity of technology readiness level (TRL 6+), stack viability, and maintainability.', maxScore: 20, sortOrder: 1 },
-    { key: 'SCALABILITY', label: 'Commercial Scalability', description: 'Capacity to expand unit volume without linear degradation in unit economics.', maxScore: 20, sortOrder: 2 },
-    { key: 'INNOVATION', label: 'Innovation Potential', description: 'Competitive moat, technological differentiation, and intellectual property defense.', maxScore: 20, sortOrder: 3 },
-    { key: 'IMPL_COST', label: 'Implementation Cost & CAPEX', description: 'Total cost of ownership, operational expenditure profile, and capital payback period.', maxScore: 20, sortOrder: 4 },
-    { key: 'MARKET_POTENTIAL', label: 'Market Potential & TAM', description: 'Addressable domestic and export market size, customer acquisition viability, and revenue model.', maxScore: 20, sortOrder: 5 },
-  ],
-  CITIZEN: [
-    { key: 'ACCESSIBILITY', label: 'Citizen Usability & Inclusivity', description: 'Ease of adoption for non-technical citizens across vernacular languages and low-bandwidth areas.', maxScore: 25, sortOrder: 1 },
-    { key: 'CIVIC_VALUE', label: 'Grassroots Civic Value', description: 'Empowerment of marginalized communities, women self-help groups, and rural cooperatives.', maxScore: 25, sortOrder: 2 },
-    { key: 'COMMUNITY_SAFETY', label: 'Public Safety & Privacy', description: 'Protection of citizen biometric privacy, data sovereignty, and physical environment safety.', maxScore: 25, sortOrder: 3 },
-    { key: 'COST_AFFORDABILITY', label: 'Cost Affordability', description: 'Zero or minimal out-of-pocket burden on end consumers and low-income households.', maxScore: 25, sortOrder: 4 },
-  ],
-  COMMUNITY: [
-    { key: 'COMMUNITY_PARTICIPATION', label: 'Community Ownership & Participation', description: 'Extent of engagement by Gram Sabhas, Resident Welfare Associations, and local leaders.', maxScore: 25, sortOrder: 1 },
-    { key: 'LOCAL_RESOURCE_USE', label: 'Local Sourcing & Sustainability', description: 'Utilization of indigenous materials, circular bio-economy practices, and renewable energy.', maxScore: 25, sortOrder: 2 },
-    { key: 'SOCIAL_COHESION', label: 'Social Cohesion & Equity', description: 'Equitable benefit distribution without socioeconomic or gender discrimination.', maxScore: 25, sortOrder: 3 },
-    { key: 'LONG_TERM_SUSTAINABILITY', label: 'Long-Term Self-Sustenance', description: 'Community capacity to maintain and operate the intervention without indefinite external aid.', maxScore: 25, sortOrder: 4 },
-  ],
-};
+
 
 export default function CriteriaPage() {
   const [selectedPool, setSelectedPool] = useState<'HEI' | 'GOVERNMENT' | 'INDUSTRY' | 'CITIZEN' | 'COMMUNITY'>('HEI');
   const [criteria, setCriteria] = useState<EvaluationCriteria[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-  const [scores, setScores] = useState<Record<string, { score: number; comment: string }>>({
-    TECH_VALIDITY: { score: 18, comment: 'Strong theoretical formulation supported by peer-reviewed LoRaWAN aquifer studies.' },
-    RESEARCH_POTENTIAL: { score: 17, comment: 'Promising framework for edge telemetry and embedded microfluidic sensor analysis.' },
-    INNOVATION_POTENTIAL: { score: 19, comment: 'Novel hybrid solar battery-harvesting mechanism with ultra-low power consumption.' },
-    SCALABILITY: { score: 18, comment: 'Easily extensible across drought-prone rural clusters with standard mesh gateways.' },
-    IMPLEMENTATION_FEASIBILITY: { score: 18, comment: 'Components are readily procurable in Indian domestic supply chain.' },
-  });
+  const [scores, setScores] = useState<Record<string, { score: number; comment: string }>>({});
   const [savedNotice, setSavedNotice] = useState(false);
 
   const loadCriteria = useCallback(async () => {
@@ -58,25 +17,24 @@ export default function CriteriaPage() {
       if (data && data.length > 0) {
         setCriteria(data.slice().sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)));
       } else {
-        setCriteria(POOL_CRITERIA_MAP[selectedPool]);
+        setCriteria([]);
       }
     } catch {
-      // Fallback to seeded pool criteria
-      setCriteria(POOL_CRITERIA_MAP[selectedPool]);
+      setCriteria([]);
     }
-  }, [selectedPool]);
+  }, []);
 
   useEffect(() => {
     void loadCriteria();
   }, [loadCriteria]);
 
   const activeCriteriaList = useMemo(() => {
-    return criteria.length > 0 ? criteria : POOL_CRITERIA_MAP[selectedPool];
-  }, [criteria, selectedPool]);
+    return criteria;
+  }, [criteria]);
 
   const handlePoolChange = (pool: 'HEI' | 'GOVERNMENT' | 'INDUSTRY' | 'CITIZEN' | 'COMMUNITY') => {
     setSelectedPool(pool);
-    setCriteria(POOL_CRITERIA_MAP[pool]);
+    // In a real app we might re-fetch criteria based on pool here if needed
   };
 
   const handleScoreChange = (key: string, val: number) => {

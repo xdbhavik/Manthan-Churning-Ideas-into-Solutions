@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../app/providers/AuthProvider';
 
 const NAV_LINKS = [
   { to: '/problems', label: 'Problems' },
@@ -9,6 +10,7 @@ const NAV_LINKS = [
 
 export function MarketingNav() {
   const navigate = useNavigate();
+  const { authed } = useAuth();
   const [open, setOpen] = useState(false);
 
   const goToHash = (hash: string) => {
@@ -57,18 +59,29 @@ export function MarketingNav() {
         </nav>
 
         <div className="hidden md:flex items-center gap-2">
-          <Link
-            to="/login"
-            className="px-3 py-2 rounded-lg text-sm font-semibold text-navy-900 hover:bg-surface transition-colors"
-          >
-            Login
-          </Link>
-          <Link
-            to="/login"
-            className="btn-sheen px-4 py-2 rounded-lg text-sm font-bold text-white bg-navy-900 hover:bg-navy-700 transition-colors"
-          >
-            Join the Portal
-          </Link>
+          {authed ? (
+            <Link
+              to="/app/dashboard"
+              className="btn-sheen px-4 py-2 rounded-lg text-sm font-bold text-white bg-navy-900 hover:bg-navy-700 transition-colors"
+            >
+              Go to Dashboard
+            </Link>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="px-3 py-2 rounded-lg text-sm font-semibold text-navy-900 hover:bg-surface transition-colors"
+              >
+                Login
+              </Link>
+              <Link
+                to="/login"
+                className="btn-sheen px-4 py-2 rounded-lg text-sm font-bold text-white bg-navy-900 hover:bg-navy-700 transition-colors"
+              >
+                Join the Portal
+              </Link>
+            </>
+          )}
         </div>
 
         <button
@@ -103,12 +116,20 @@ export function MarketingNav() {
             )
           )}
           <div className="pt-2 flex gap-2">
-            <Link to="/login" onClick={() => setOpen(false)} className="flex-1 text-center px-3 py-2 rounded-lg text-sm font-semibold text-navy-900 bg-surface">
-              Login
-            </Link>
-            <Link to="/login" onClick={() => setOpen(false)} className="flex-1 text-center px-3 py-2 rounded-lg text-sm font-bold text-white bg-navy-900">
-              Join the Portal
-            </Link>
+            {authed ? (
+              <Link to="/app/dashboard" onClick={() => setOpen(false)} className="flex-1 text-center px-3 py-2 rounded-lg text-sm font-bold text-white bg-navy-900">
+                Go to Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link to="/login" onClick={() => setOpen(false)} className="flex-1 text-center px-3 py-2 rounded-lg text-sm font-semibold text-navy-900 bg-surface">
+                  Login
+                </Link>
+                <Link to="/login" onClick={() => setOpen(false)} className="flex-1 text-center px-3 py-2 rounded-lg text-sm font-bold text-white bg-navy-900">
+                  Join the Portal
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

@@ -59,7 +59,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             required={required}
             aria-invalid={!!error}
             aria-describedby={errorId || helperId}
-            className={`select-field ${leftIcon ? 'pl-9' : ''} ${error ? 'error' : ''}`}
+            className={`select-field ${leftIcon ? 'pl-10' : ''} ${error ? 'error' : ''}`}
             {...props}
           >
             {placeholder && (

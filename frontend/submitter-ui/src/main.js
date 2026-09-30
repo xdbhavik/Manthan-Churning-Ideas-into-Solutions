@@ -1697,6 +1697,9 @@ async function renderProblemFilingScreen() {
 
   // Load Domains taxonomy
   await loadProblemDomainsForFiling();
+  
+  // Auto-fill location if not already filled
+  fillDefaultLocation();
 
   // Load Universities list for Access Rule
   await loadUniversitiesForFiling();
@@ -1876,30 +1879,16 @@ function fillDefaultLocation() {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        if (latInput) latInput.value = pos.coords.latitude.toFixed(6);
-        if (lngInput) lngInput.value = pos.coords.longitude.toFixed(6);
+        if (latInput && !latInput.value) latInput.value = pos.coords.latitude.toFixed(6);
+        if (lngInput && !lngInput.value) lngInput.value = pos.coords.longitude.toFixed(6);
         toast('Detected device GPS coordinates!', 'success');
       },
       () => {
-        if (stateInput) stateInput.value = 'Bihar';
-        if (distInput) distInput.value = 'Patna';
-        if (blockInput) blockInput.value = 'Patna Sadar';
-        if (villageInput) villageInput.value = 'Ward 12';
-        if (pincodeInput) pincodeInput.value = '800001';
-        if (latInput) latInput.value = '25.594100';
-        if (lngInput) lngInput.value = '85.137600';
-        toast('Populated standard Bihar-Patna civic coordinates.', 'info');
+        toast('Could not detect location. Please enter manually.', 'warning');
       }
     );
   } else {
-    if (stateInput) stateInput.value = 'Bihar';
-    if (distInput) distInput.value = 'Patna';
-    if (blockInput) blockInput.value = 'Patna Sadar';
-    if (villageInput) villageInput.value = 'Ward 12';
-    if (pincodeInput) pincodeInput.value = '800001';
-    if (latInput) latInput.value = '25.594100';
-    if (lngInput) lngInput.value = '85.137600';
-    toast('Populated standard Bihar-Patna civic coordinates.', 'info');
+    toast('Geolocation is not supported by this browser.', 'error');
   }
 }
 

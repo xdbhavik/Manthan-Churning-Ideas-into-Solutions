@@ -39,31 +39,7 @@ let securityModalOpen = false;
 let securityModalUser = null;
 let securityTab = 0;
 
-// ============================================================
-// Seed Accounts (fallback when /users endpoint is unavailable)
-// ============================================================
-function getSeedAccounts() {
-  const token = getAccessToken();
-  const jwt = token ? decodeJwtPayload(token) : null;
-  const storedUser = getState()?.user;
-  const seeds = [];
 
-  // Add self (active session user)
-  if (jwt) {
-    seeds.push({
-      userId: jwt.sub || jwt.userId || '00000000-0000-0000-0000-000000000000',
-      phone: storedUser?.phone || jwt.phone || '',
-      email: storedUser?.email || jwt.email || '',
-      name: storedUser?.name || '',
-      role: (storedUser?.role || jwt.role || 'ADMIN').toUpperCase(),
-      kycStatus: 'VERIFIED',
-      createdAt: new Date().toISOString(),
-      linkedSourceId: null,
-      _source: 'session',
-    });
-  }
-  return seeds;
-}
 
 // ============================================================
 // Data Loading
@@ -75,19 +51,19 @@ async function loadUserDirectory() {
   try {
     const result = await fetchAllUsers();
     if (result === null) {
-      // Endpoint not available, use seed accounts
-      userDirectory = getSeedAccounts();
-      showToast('User list endpoint unavailable. Showing session and known accounts.', 'info');
+      // Endpoint not available, return empty
+      userDirectory = [];
+      showToast('User list endpoint unavailable.', 'error');
     } else if (Array.isArray(result)) {
       userDirectory = result.map(normalizeUser);
     } else if (result && result.content && Array.isArray(result.content)) {
       userDirectory = result.content.map(normalizeUser);
     } else {
-      userDirectory = getSeedAccounts();
+      userDirectory = [];
     }
   } catch (err) {
     console.error('Failed to load user directory:', err);
-    userDirectory = getSeedAccounts();
+    userDirectory = [];
     if (err.status !== 404 && err.status !== 405) {
       showToast(err.message || 'Failed to load user directory.', 'error');
     }

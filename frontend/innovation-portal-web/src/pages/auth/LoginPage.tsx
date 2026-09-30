@@ -54,9 +54,6 @@ export default function LoginPage() {
         setSecondsLeft(secondsUntil(res.expiresAt));
         setStep('otp');
         setNeedsRegister(false);
-        if (res.devOtp) {
-          toast.notify(`Dev OTP: ${res.devOtp}`, 'info');
-        }
       } catch (e: any) {
         if (!registering && e?.response?.status === 404) {
           setNeedsRegister(true);
@@ -181,12 +178,6 @@ export default function LoginPage() {
           <div className="mt-6">
             <OtpInput value={code} onChange={setCode} disabled={loading} />
           </div>
-
-          {challenge?.devOtp && (
-            <div className="mt-3 rounded-lg bg-state-submitted-bg border border-state-submitted-border px-3 py-2 text-xs text-state-submitted-text">
-              Dev mode — OTP: <span className="font-code font-bold">{challenge.devOtp}</span>
-            </div>
-          )}
           {error && (
             <div className="mt-3 rounded-lg bg-state-returned-bg border border-state-returned-border px-3 py-2 text-sm text-state-returned-text">
               {error}

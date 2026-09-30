@@ -8,13 +8,7 @@ interface DetailedAssignment extends AssignmentResponse {
   criteria?: EvaluationCriteria[];
 }
 
-const DEFAULT_CRITERIA: EvaluationCriteria[] = [
-  { key: 'POLICY_RELEVANCE', label: 'Policy Relevance & Priority', description: 'Alignment with national priority schemes and district-level statutory mandate.', maxScore: 20, sortOrder: 1 },
-  { key: 'ADMIN_FEASIBILITY', label: 'Administrative Feasibility', description: 'Viability of deployment within municipal panchayat frameworks and jurisdictional bylaws.', maxScore: 20, sortOrder: 2 },
-  { key: 'TECH_FEASIBILITY', label: 'Technical Soundness & Robustness', description: 'Hardware resilience of LoRaWAN probes, sensor calibration, and edge firmware integrity.', maxScore: 20, sortOrder: 3 },
-  { key: 'PUBLIC_IMPACT', label: 'Public Impact & Benefit', description: 'Quantifiable health improvements and mitigation of groundwater fluoride poisoning.', maxScore: 20, sortOrder: 4 },
-  { key: 'URGENCY', label: 'Urgency & Readiness', description: 'Urgency of mitigation in arid clusters and availability of field testing sites.', maxScore: 20, sortOrder: 5 },
-];
+
 
 export default function ScoringPage() {
   const { assignmentId } = useParams();
@@ -24,14 +18,8 @@ export default function ScoringPage() {
   const [problem, setProblem] = useState<ProblemResponse | null>(null);
 
   // Scores state
-  const [scores, setScores] = useState<Record<string, { score: number; comment: string }>>({
-    POLICY_RELEVANCE: { score: 18, comment: 'Directly aligns with National Ground Water Management Framework and Jal Jeevan Mission telemetry.' },
-    ADMIN_FEASIBILITY: { score: 17, comment: 'Panchayati Raj engineering staff can easily supervise routine maintenance.' },
-    TECH_FEASIBILITY: { score: 19, comment: 'LoRaWAN stack operates at low power with reliable telemetry range.' },
-    PUBLIC_IMPACT: { score: 18, comment: 'Protects critical drinking water sources for rural communities.' },
-    URGENCY: { score: 18, comment: 'High seasonal arsenic and fluoride seepage makes rapid deployment imperative.' },
-  });
-  const [overallFeedback, setOverallFeedback] = useState('Exemplary statutory submission addressing an acute environmental public health hazard. Recommended for phase 1 pilot deployment in Tamil Nadu drought clusters.');
+  const [scores, setScores] = useState<Record<string, { score: number; comment: string }>>({});
+  const [overallFeedback, setOverallFeedback] = useState('');
   const [recommendation, setRecommendation] = useState<'RECOMMENDED' | 'REJECTED' | 'NEEDS_REVISION'>('RECOMMENDED');
 
   // Modals
@@ -46,46 +34,13 @@ export default function ScoringPage() {
   const loadData = useCallback(async () => {
     if (!assignmentId) return;
     try {
-      let a: DetailedAssignment;
-      try {
-        a = (await getAssignment(assignmentId)) as DetailedAssignment;
-        setAssignment(a);
-      } catch {
-        // Fallback mock assignment if live record is not in database
-        a = {
-          assignmentId: assignmentId || 'ASN-9041-A2',
-          cycleId: 'CYC-2024-884',
-          problemId: 'PRB-IND-7714',
-          evaluatorProfileId: 'EVAL-PRF-9941-882B',
-          status: 'IN_PROGRESS',
-          assignedAt: '2024-10-20T10:00:00Z',
-          deadline: '2024-10-28T23:59:59Z',
-          deadlineAt: '2024-10-28T23:59:59Z',
-          overdue: false,
-          criteria: DEFAULT_CRITERIA,
-        };
-        setAssignment(a);
-      }
-
-      // Try load problem
-      try {
-        const p = await getProblem(a.problemId);
-        setProblem(p);
-      } catch {
-        setProblem({
-          problemId: a.problemId,
-          title: 'IoT-Enabled Micro-Aquifer Contamination Early Warning Network',
-          description:
-            'Deployment of solar-powered LoRaWAN sensor probes in community open-wells and boreholes across drought-prone rural clusters to trace heavy metal and fluoride infiltration in real time. Designed to bypass high-latency central laboratory testing cycles with edge-computed alerts delivered directly to District Water Commissioners and Panchayati Raj engineers.',
-          category: 'Environmental & Water Resources',
-          status: 'REGISTERED',
-          tags: ['Environmental Tech', 'IoT Sensing', 'Water Security', 'Edge Computing'],
-          submissionBucket: 'Gram Panchayat & Ground Water Board',
-          accessRule: 'Open to all universities and students',
-        } as any);
-      }
-    } catch {
-      // Fallback already assigned
+      const a = (await getAssignment(assignmentId)) as DetailedAssignment;
+      setAssignment(a);
+      
+      const p = await getProblem(a.problemId);
+      setProblem(p);
+    } catch (err) {
+      console.error(err);
     }
   }, [assignmentId]);
 
@@ -96,7 +51,7 @@ export default function ScoringPage() {
   const criteriaList = useMemo(() => {
     return (assignment?.criteria && assignment.criteria.length > 0
       ? assignment.criteria
-      : DEFAULT_CRITERIA
+      : []
     ).slice().sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
   }, [assignment]);
 
@@ -139,10 +94,7 @@ export default function ScoringPage() {
       setSubmitConfirm(false);
       setAssignment((prev) => (prev ? { ...prev, status: 'SUBMITTED' } : null));
     } catch (e) {
-      // Local demo fallback if backend rejected due to mock data
-      setSubmitSuccess(true);
-      setSubmitConfirm(false);
-      setAssignment((prev) => (prev ? { ...prev, status: 'SUBMITTED' } : null));
+      console.error(e);
     } finally {
       setSubmitting(false);
     }

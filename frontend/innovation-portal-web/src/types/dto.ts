@@ -66,6 +66,7 @@ export interface ParticipantRegisterRequest {
   fullName: string;
   email?: string;
   phone?: string;
+  institutionName?: string;
 }
 
 export interface ParticipantUpdateRequest {

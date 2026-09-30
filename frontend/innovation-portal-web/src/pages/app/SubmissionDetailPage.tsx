@@ -10,11 +10,7 @@ import { Button, LinkButton, Card, Tabs } from '../../components/ui';
 
 import { motion } from 'framer-motion';
 
-const checklistItemsData = [
-  { id: 'mod-check-1', label: 'LoRa Payload Specs', desc: 'Clarify LoRa packet payload compression spec and dropped frame fallbacks.', type: 'Spec Doc' },
-  { id: 'mod-check-2', label: 'Firmware Test Vectors', desc: 'Update test vector documentation and edge sample logs in Git repository.', type: 'Git /tests' },
-  { id: 'mod-check-3', label: 'Revised Architecture PDF', desc: 'Re-upload revised Technical Architecture PDF with annotated schematics (<50 MB).', type: 'Artifact' },
-] as const;
+
 
 export default function SubmissionDetailPage() {
   const { submissionId } = useParams<{ submissionId: string }>();
@@ -23,7 +19,6 @@ export default function SubmissionDetailPage() {
   const toast = useToast();
   const { data: submission, isLoading, isError, error, refetch } = useSubmission(submissionId, authed);
   const [activeTab, setActiveTab] = useState<'timeline' | 'files' | 'repo' | 'audit'>('timeline');
-  const [checklistProgress, setChecklistProgress] = useState<Record<string, boolean>>({});
 
   const submit = useMutation({
     mutationFn: () => portal.submitSubmission(submissionId!),
@@ -59,10 +54,7 @@ export default function SubmissionDetailPage() {
     );
   }
 
-  const getChecklistProgress = () => {
-    const checked = Object.values(checklistProgress).filter(Boolean).length;
-    return checked;
-  };
+
 
   return (
     <div className="w-full max-w-[1600px] mx-auto px-space-md sm:px-space-lg lg:px-space-xl py-space-lg space-y-space-lg">
@@ -122,26 +114,12 @@ export default function SubmissionDetailPage() {
             <div className="flex items-start gap-space-xs pt-space-xs">
               <span className="material-symbols-outlined text-on-surface-variant-weak text-[20px] shrink-0 mt-0.5">account_tree</span>
               <p className="font-body-md text-body-md text-on-surface-variant-weak">
-                <span className="font-headline-sm text-headline-sm text-on-surface">Problem Statement:</span>
-                Decentralized Cold-Chain Telemetry and Spoilage Prediction for Perishable Produce
-                <span className="inline-block mx-1.5 text-outline">•</span>
-                <span className="text-primary font-headline-sm text-headline-sm">Ministry of Agriculture & Farmers Welfare</span>
+                <span className="font-headline-sm text-headline-sm text-on-surface">Problem ID:</span>
+                {submission.problemId}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-space-md bg-surface-canvas p-space-md rounded-xl shrink-0">
-            <div className="relative w-16 h-16 flex items-center justify-center">
-              <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 36 36">
-                <path className="text-border-subtle" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="3.5" />
-                <path className="text-state-review-text" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeDasharray="72, 100" strokeLinecap="round" strokeWidth="3.5" />
-              </svg>
-              <span className="absolute font-headline-md text-headline-md text-on-surface">72%</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="font-headline-sm text-headline-sm text-on-surface">Review Stage 1</span>
-              <span className="font-body-sm text-body-sm text-on-surface-variant-weak">3 criteria pending rework</span>
-            </div>
-          </div>
+
         </div>
       </div>
 
@@ -197,49 +175,9 @@ export default function SubmissionDetailPage() {
               <span className="material-symbols-outlined text-on-surface-variant-weak text-[24px] shrink-0">format_quote</span>
               <div className="space-y-space-sm flex-1">
                 <p className="font-body-lg text-body-lg text-on-surface leading-relaxed">
-                  "The predictive thermal modeling and offline caching logic are well architected. However, the telemetry packet format documentation does not define the compression ratios or fallback behavior when the LoRa gateway drops packets. Please update the technical brief PDF and provide explicit test vectors in the pinned commit before resubmitting for final round scoring."
+                  {submission.decisionComment || 'No feedback provided.'}
                 </p>
-                <div className="flex items-center gap-space-md text-on-surface-variant-weak font-body-sm text-body-sm pt-space-xs">
-                  <span>Evaluator Rubric Score: <strong className="text-on-surface font-headline-sm">28 / 40</strong> (Pass threshold: 30)</span>
-                  <span>•</span>
-                  <span className="text-state-review-text font-headline-sm">Eligibility: Conditionally Active</span>
-                </div>
               </div>
-            </div>
-          </div>
-          <div className="space-y-space-md">
-            <div className="flex items-center justify-between">
-              <h3 className="font-headline-sm text-headline-sm text-on-surface uppercase tracking-wider flex items-center gap-space-xs">
-                <span className="material-symbols-outlined text-state-review-text text-[20px]">fact_check</span>
-                Checklist of Requested Modifications ({getChecklistProgress()}/3 Completed)
-              </h3>
-              <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">Mandatory for Final Acceptance</span>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-space-md">
-              {checklistItemsData.map((item) => (
-                <label
-                  key={item.id}
-                  className="group relative flex flex-col justify-between p-space-md rounded-xl bg-surface-canvas hover:bg-surface-container-low transition-colors cursor-pointer shadow-sm"
-                >
-                  <div className="flex items-start gap-space-sm">
-                    <input
-                      type="checkbox"
-                      id={item.id}
-                      checked={checklistProgress[item.id] || false}
-                      onChange={(e) => setChecklistProgress((_prev) => ({ ...checklistProgress, [item.id]: e.target.checked }))}
-                      className="mt-1 h-4 w-4 rounded text-primary focus:ring-primary"
-                    />
-                    <div className="space-y-1">
-                      <span className="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">{item.label}</span>
-                      <p className="font-body-sm text-body-sm text-on-surface-variant-weak">{item.desc}</p>
-                    </div>
-                  </div>
-                  <div className="mt-space-md pt-space-sm flex items-center justify-between font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">
-                    <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">{item.type === 'Spec Doc' ? 'description' : item.type === 'Git /tests' ? 'commit' : 'cloud_upload'}</span> {item.type}</span>
-                    <span className="text-state-review-text">Pending</span>
-                  </div>
-                </label>
-              ))}
             </div>
           </div>
         </div>
@@ -283,11 +221,9 @@ export default function SubmissionDetailPage() {
             <div className="relative pl-6 space-y-space-lg">
               <div className="absolute left-[11px] top-3 bottom-4 w-0.5 bg-border-subtle"></div>
               {[
-                { label: 'Draft Created', time: '10 Oct 2024 • 10:15 AM IST', desc: 'Repository initialized by Yogesh Ghule with baseline FreeRTOS firmware and prototype architecture docs.', completed: true, current: false },
-                { label: 'Submitted for Review', time: '11 Oct 2024 • 18:40 PM IST', desc: 'Formal submission lock engaged. Cryptographic hash stamped and payload forwarded to Ministry panel.', completed: true, current: false },
-                { label: 'Under Evaluation', time: '12 Oct 2024 • 11:20 AM IST', desc: 'Routed to Lead Evaluator #EV-402 (Dept of Agriculture). Hardware benchmarks and code tests initiated.', completed: true, current: false },
-                { label: 'Changes Requested / Returned', time: '14 Oct 2024 • 16:30 PM IST', desc: 'Evaluation report published with 3 requested items. Submission status converted to interactive editing state.', completed: true, current: true, status: 'returned' },
-                { label: 'Resubmission Pending Review Round 2', time: 'Scheduled Post-Upload', desc: 'Evaluation committee will re-convene within 24 hours of resubmission to verify requested changes.', completed: false, current: false },
+                { label: 'Draft Created', time: 'Unknown', desc: 'Repository initialized.', completed: true, current: false },
+                ...(submission.submittedAt ? [{ label: 'Submitted for Review', time: new Date(submission.submittedAt).toLocaleString(), desc: 'Formal submission lock engaged.', completed: true, current: false }] : []),
+                ...(submission.decidedAt ? [{ label: 'Decision Reached', time: new Date(submission.decidedAt).toLocaleString(), desc: 'Evaluator provided feedback.', completed: true, current: submission.status === 'RETURNED', status: submission.status === 'RETURNED' ? 'returned' : 'accepted' }] : []),
               ].map((node, idx) => (
                 <motion.div
                   key={idx}
@@ -333,32 +269,13 @@ export default function SubmissionDetailPage() {
             <div className="flex items-center justify-between">
               <h4 className="font-headline-sm text-headline-sm text-on-surface flex items-center gap-space-xs">
                 <span className="material-symbols-outlined text-primary text-[20px]">architecture</span>
-                System Architecture & Telemetry Matrix
+                System Summary
               </h4>
-              <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">v1.2-rc4</span>
             </div>
             <Card variant="outlined" className="p-space-md space-y-space-sm">
               <p className="font-body-md text-body-md text-on-surface">
-                The Sentinel node records ambient temp (-40°C to +85°C), RH (0-100%), volatile ethylene emissions, and multi-axis vibrational telemetry on a 30-second interval, cached in ferroelectric RAM (FRAM).
+                {submission.summary || 'No summary provided.'}
               </p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-space-sm pt-space-xs">
-                <Card variant="outlined" className="p-space-sm">
-                  <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak block">FREQUENCY</span>
-                  <span className="font-headline-sm text-headline-sm text-primary">868 MHz LoRa</span>
-                </Card>
-                <Card variant="outlined" className="p-space-sm">
-                  <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak block">PAYLOAD BUDGET</span>
-                  <span className="font-headline-sm text-headline-sm text-primary">51 Bytes/frame</span>
-                </Card>
-                <Card variant="outlined" className="p-space-sm">
-                  <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak block">OFFLINE BUFFER</span>
-                  <span className="font-headline-sm text-headline-sm text-primary">72 Hours Local</span>
-                </Card>
-                <Card variant="outlined" className="p-space-sm">
-                  <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak block">ENCRYPTION</span>
-                  <span className="font-headline-sm text-headline-sm text-primary">AES-128 GCM</span>
-                </Card>
-              </div>
             </Card>
           </Card>
         </div>
@@ -432,8 +349,8 @@ export default function SubmissionDetailPage() {
             <Card variant="outlined" className="p-space-md space-y-space-sm">
               <div className="flex items-center justify-between">
                 <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">GITHUB REPOSITORY</span>
-                <LinkButton to="https://github.com/cryotrackers/coldchain-telemetry" target="_blank" variant="ghost" size="sm" className="inline-flex items-center gap-1 font-label-mono-sm text-label-mono-sm text-primary hover:underline">
-                  cryotrackers/coldchain-telemetry
+                <LinkButton to={submission.githubUrl || '#'} target="_blank" variant="ghost" size="sm" className="inline-flex items-center gap-1 font-label-mono-sm text-label-mono-sm text-primary hover:underline">
+                  {submission.githubUrl || 'N/A'}
                   <span className="material-symbols-outlined text-[14px]">open_in_new</span>
                 </LinkButton>
               </div>
@@ -441,8 +358,8 @@ export default function SubmissionDetailPage() {
                 <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">PINNED AUDIT COMMIT</span>
                 <div className="inline-flex items-center gap-space-xs bg-surface-card px-2.5 py-1 rounded font-label-mono-sm text-label-mono-sm text-on-surface shadow-xs">
                   <span className="material-symbols-outlined text-[14px] text-on-surface-variant-weak">commit</span>
-                  <span className="font-bold">{submission.commitSha?.slice(0, 7) || '7b29ec4'}</span>
-                  <Button variant="ghost" size="sm" className="text-on-surface-variant-weak hover:text-on-surface transition-colors" onClick={() => navigator.clipboard.writeText(submission.commitSha || '7b29ec4')}>
+                  <span className="font-bold">{submission.commitSha?.slice(0, 7) || 'None'}</span>
+                  <Button variant="ghost" size="sm" className="text-on-surface-variant-weak hover:text-on-surface transition-colors" onClick={() => navigator.clipboard.writeText(submission.commitSha || '')}>
                     <span className="material-symbols-outlined text-[14px]">content_copy</span>
                   </Button>
                 </div>
@@ -474,41 +391,20 @@ export default function SubmissionDetailPage() {
               <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">3 Members</span>
             </div>
             <div className="space-y-space-sm">
-              <div className="flex items-center justify-between p-space-sm rounded-lg bg-surface-canvas">
-                <div className="flex items-center gap-space-sm min-w-0">
-                  <img alt="Yogesh Ghule" className="w-8 h-8 rounded-full object-cover shrink-0" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXE1lY36f_erOMfcaU3wYiYE6m2bxHeOoQU2dT83Vohp-XhnVz9wDh05qGQipkJnQ8zv0wzEi9L4I3PAiqEJM4DpJiCDDXcLUsBEXzYTgCJ5QHRWKOs_sblF1iStKoywU9xfYRiRwrnJjnARUhhT3Gt0-RRcvmTGGfTlrFqmUVyxRM4myDtzWNTmDo4T2Mr_gUR767YxQZ-zdFGlGHAJZxdlURPBijpOnnycmmdCr1s865Q8oWLP9nmg" />
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-headline-sm text-headline-sm text-on-surface truncate">Yogesh Ghule</span>
-                      <span className="px-1.5 py-0.5 rounded bg-surface-container text-primary font-label-mono-sm text-[10px]">YOU</span>
+              {submission.team?.members.map(member => (
+                <div key={member.participantId} className="flex items-center justify-between p-space-sm rounded-lg bg-surface-canvas">
+                  <div className="flex items-center gap-space-sm min-w-0">
+                    <div className="w-8 h-8 rounded-full bg-surface-container text-on-surface flex items-center justify-center font-headline-sm text-headline-sm shrink-0">
+                      {member.fullName?.charAt(0).toUpperCase()}
                     </div>
-                    <span className="font-body-sm text-body-sm text-on-surface-variant-weak">Team Lead & Embedded Arch</span>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-headline-sm text-headline-sm text-on-surface truncate">{member.fullName}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <span className="font-label-mono-sm text-label-mono-sm text-state-accepted-text flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-state-accepted-text"></span> Active
-                </span>
-              </div>
-              <div className="flex items-center justify-between p-space-sm rounded-lg bg-surface-canvas">
-                <div className="flex items-center gap-space-sm min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-secondary-container text-on-secondary flex items-center justify-center font-headline-sm text-headline-sm shrink-0">RS</div>
-                  <div className="min-w-0">
-                    <span className="font-headline-sm text-headline-sm text-on-surface truncate block">Rahul Sharma</span>
-                    <span className="font-body-sm text-body-sm text-on-surface-variant-weak">Firmware & LoRa Developer</span>
-                  </div>
-                </div>
-                <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">Verified</span>
-              </div>
-              <div className="flex items-center justify-between p-space-sm rounded-lg bg-surface-canvas">
-                <div className="flex items-center gap-space-sm min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-headline-sm text-headline-sm shrink-0">AP</div>
-                  <div className="min-w-0">
-                    <span className="font-headline-sm text-headline-sm text-on-surface truncate block">Amit Patel</span>
-                    <span className="font-body-sm text-body-sm text-on-surface-variant-weak">ML Spoilage Model Specialist</span>
-                  </div>
-                </div>
-                <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">Verified</span>
-              </div>
+              ))}
             </div>
           </Card>
         </div>
