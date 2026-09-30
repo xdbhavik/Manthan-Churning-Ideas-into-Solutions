@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a2540" />
+    <meta name="description" content="Choose a workspace in the SIH national innovation lifecycle platform." />
+    <title>SIH | Workspace directory</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="tricolor-rule" aria-hidden="true"><span></span><span></span><span></span></div>
+
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="SIH workspace directory home">
+        <img src="/logo.png" alt="SIH" class="brand-logo" />
+        <span class="brand-copy">
+          <strong>SIH<span>26043</span></strong>
+          <small>National innovation lifecycle</small>
+        </span>
+      </a>
+      <div class="header-actions">
+        <span class="directory-label"><span class="live-dot"></span> Workspace directory</span>
+        <button class="settings-button" id="open-settings" type="button" aria-haspopup="dialog" aria-controls="link-dialog">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/><path d="m19.4 13.5 1.1.9-1.5 2.6-1.4-.5a7.7 7.7 0 0 1-1.7 1l-.2 1.5h-3l-.2-1.5a7.7 7.7 0 0 1-1.7-1l-1.4.5-1.5-2.6 1.1-.9a7.4 7.4 0 0 1 0-2l-1.1-.9 1.5-2.6 1.4.5a7.7 7.7 0 0 1 1.7-1l.2-1.5h3l.2 1.5a7.7 7.7 0 0 1 1.7 1l1.4-.5 1.5 2.6-1.1.9a7.4 7.4 0 0 1 0 2Z"/></svg>
+          <span>Link settings</span>
+        </button>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="eyebrow-mark"></span> Smart India innovation platform</p>
+          <h1 id="hero-title">One mission.<br /><span>Five workspaces.</span></h1>
+          <p class="hero-description">A connected journey from national challenges to evaluated ideas. Choose the workspace that matches your role.</p>
+          <a class="hero-link" href="#workspaces">
+            Explore workspaces
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12M10 4l6 6-6 6" /></svg>
+          </a>
+        </div>
+
+        <div class="journey-panel" aria-label="Innovation lifecycle: publish, review, evaluate, submit">
+          <div class="journey-heading"><span>THE LIFECYCLE</span><span>01 — 04</span></div>
+          <div class="journey-steps">
+            <div class="journey-step"><span class="step-number">01</span><span>Publish a challenge</span><span class="step-marker saffron"></span></div>
+            <div class="journey-step"><span class="step-number">02</span><span>Review with context</span><span class="step-marker blue"></span></div>
+            <div class="journey-step"><span class="step-number">03</span><span>Evaluate with expertise</span><span class="step-marker green"></span></div>
+            <div class="journey-step"><span class="step-number">04</span><span>Submit a solution</span><span class="step-marker white"></span></div>
+          </div>
+          <div class="journey-footer"><span>Connected by one platform</span><span class="journey-line"></span></div>
+        </div>
+        <div class="hero-index" aria-hidden="true">IN / 26</div>
+      </section>
+
+      <section class="workspace-section" id="workspaces" aria-labelledby="workspace-title">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Choose your workspace</p>
+            <h2 id="workspace-title">Continue to a portal</h2>
+          </div>
+          <p class="section-note"><span id="portal-count">05</span> role-based workspaces<br />One shared innovation lifecycle</p>
+        </div>
+
+        <div class="workspace-grid" id="workspace-grid" aria-live="polite"></div>
+      </section>
+
+      <section class="infrastructure" aria-label="Platform infrastructure">
+        <div class="infra-title"><span class="infra-bar"></span><span>Platform infrastructure</span></div>
+        <div class="infra-item"><span class="infra-label">API gateway</span><code id="gateway-address">:8090</code></div>
+        <div class="infra-item"><span class="infra-label">Service registry</span><code id="registry-address">:8761</code></div>
+        <p class="infra-caption">Shared services power every workspace.</p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>SIH26043 <span class="footer-divider">/</span> National innovation lifecycle platform</span>
+      <a href="#top">Back to top <span aria-hidden="true">&uarr;</span></a>
+    </footer>
+
+    <dialog class="link-dialog" id="link-dialog" aria-labelledby="dialog-title">
+      <form id="link-form">
+        <div class="dialog-heading">
+          <div>
+            <p class="section-kicker">Workspace directory</p>
+            <h2 id="dialog-title">Portal link settings</h2>
+          </div>
+          <button class="dialog-close" id="close-settings" type="button" aria-label="Close settings">&times;</button>
+        </div>
+        <p class="dialog-description">Set the address for each portal. These choices are saved in this browser only.</p>
+        <div class="link-fields" id="link-fields"></div>
+        <div class="dialog-actions">
+          <button class="reset-button" id="reset-links" type="button">Use local defaults</button>
+          <div class="dialog-actions-right">
+            <button class="cancel-button" id="cancel-settings" type="button">Cancel</button>
+            <button class="save-button" type="submit">Save links</button>
+          </div>
+        </div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
