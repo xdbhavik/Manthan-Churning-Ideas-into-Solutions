@@ -26,10 +26,13 @@ export default function Header() {
           <div className="w-8 h-8 rounded bg-ashoka-blue text-on-primary flex items-center justify-center font-bold text-sm shadow-sm">
             IE
           </div>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-space-sm">
-            <span className="font-headline-sm text-headline-sm text-ashoka-blue tracking-tight">
-              National Evaluation Service
-            </span>
+          <div className="flex items-center gap-space-sm">
+            <div className="flex flex-col">
+              <span className="font-headline-sm text-headline-sm text-ashoka-blue tracking-tight">
+                Manthan Evaluation Service
+              </span>
+              <span className="font-body-sm text-[10px] text-text-muted">Churning Ideas into Solutions</span>
+            </div>
             <span className="font-mono-code text-[11px] px-space-xs py-0.5 rounded bg-surface-muted text-text-secondary border border-border-hairline uppercase tracking-wider">
               OFFICIAL // SECURE
             </span>

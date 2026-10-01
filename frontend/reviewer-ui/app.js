@@ -1,6 +1,6 @@
 /**
  * =============================================================================
- * SIH26043 REVIEWER PORTAL — LIVE BACKEND GATEWAY INTEGRATION
+ * MANTHAN REVIEWER PORTAL — LIVE BACKEND GATEWAY INTEGRATION
  * Core Single-Page Application Client Logic
  * 
  * Target Gateway: http://localhost:8090 (Central Reverse Proxy)
@@ -461,7 +461,7 @@ function handleRoute() {
 
   if (routePath.startsWith('#/detail')) {
     document.getElementById('screen-detail').classList.add('active');
-    document.title = "SIH26043 — Registration Detail & Statutory Review";
+    document.title = "Manthan — Registration Detail & Statutory Review";
     const parts = routePath.split('/');
     const regId = parts[2];
     if (regId) {
@@ -471,7 +471,7 @@ function handleRoute() {
     }
   } else if (routePath === '#/dashboard') {
     document.getElementById('screen-dashboard').classList.add('active');
-    document.title = "SIH26043 — Registration Review Queue";
+    document.title = "Manthan — Registration Review Queue";
     const dLink = document.getElementById('nav-link-dashboard');
     if (dLink) dLink.className = "nav-link px-3 py-1.5 transition-colors flex items-center bg-primary-container text-on-primary font-medium text-xs sm:text-sm rounded-lg";
 
@@ -485,24 +485,24 @@ function handleRoute() {
     fetchRegistrationsQueue();
   } else if (routePath === '#/problem-queue' || routePath === '#/source-verification') {
     document.getElementById('screen-problem-queue').classList.add('active');
-    document.title = "SIH26043 — Source Identity Verification Console";
+    document.title = "Manthan — Source Identity Verification Console";
     const pqLink = document.getElementById('nav-link-problem-queue');
     if (pqLink) pqLink.className = "nav-link px-3 py-1.5 transition-colors flex items-center bg-primary-container text-on-primary font-medium text-xs sm:text-sm rounded-lg";
     fetchProblemQueue();
   } else if (routePath === '#/my-reviews') {
     document.getElementById('screen-my-reviews').classList.add('active');
-    document.title = "SIH26043 — Officer Caseload Workbench";
+    document.title = "Manthan — Officer Caseload Workbench";
     const mrLink = document.getElementById('nav-link-my-reviews');
     if (mrLink) mrLink.className = "nav-link px-3 py-1.5 transition-colors flex items-center bg-primary-container text-on-primary font-medium text-xs sm:text-sm rounded-lg";
     renderMyReviewsWorkbench();
   } else if (routePath === '#/access-denied') {
     document.getElementById('screen-access-denied').classList.add('active');
-    document.title = "SIH26043 — 403 Access Denied: Reviewer Clearance Required";
+    document.title = "Manthan — 403 Access Denied: Reviewer Clearance Required";
     const dm = document.getElementById('denied-user-mobile');
     if (dm) dm.textContent = user ? (user.mobile || user.id) : 'Unassigned';
   } else if (routePath === '#/otp') {
     document.getElementById('screen-otp').classList.add('active');
-    document.title = "SIH26043 — Two-Factor OTP Verification";
+    document.title = "Manthan — Two-Factor OTP Verification";
     initOtpInputs();
     startOtpTimer();
     const otpCells = document.querySelectorAll('.otp-cell');
@@ -510,7 +510,7 @@ function handleRoute() {
     setTimeout(() => { if (otpCells[0]) otpCells[0].focus(); }, 150);
   } else {
     document.getElementById('screen-login').classList.add('active');
-    document.title = "SIH26043 — Sign in to Reviewer Portal";
+    document.title = "Manthan — Sign in to Reviewer Portal";
     initMobileInput();
     checkGatewayStatus();
   }

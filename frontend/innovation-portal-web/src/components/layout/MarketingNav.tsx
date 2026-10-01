@@ -28,7 +28,8 @@ export function MarketingNav() {
         <Link to="/" className="flex items-center gap-2.5">
           <img src="/logo.png" alt="Portal logo" className="w-8 h-8" />
           <div className="leading-tight">
-            <div className="font-headline font-bold text-navy-900 text-sm">National Innovation Portal</div>
+            <div className="font-headline font-bold text-navy-900 text-sm">Manthan</div>
+            <div className="text-[10px] text-muted">Churning Ideas into Solutions</div>
           </div>
         </Link>
 

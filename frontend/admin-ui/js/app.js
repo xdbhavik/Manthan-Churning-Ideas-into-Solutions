@@ -120,10 +120,10 @@ function renderHeader() {
           </div>
           <div class="flex flex-col">
             <div class="flex items-center gap-2">
-              <span class="font-bold text-ashoka-blue tracking-tight text-base sm:text-lg leading-tight">SIH26043 Admin Panel</span>
+              <span class="font-bold text-ashoka-blue tracking-tight text-base sm:text-lg leading-tight">Manthan Admin Panel</span>
               <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-status-submitted-bg text-status-submitted-text uppercase leading-none">Gov.in</span>
             </div>
-            <span class="text-xs text-text-muted hidden sm:inline leading-tight">Sovereign Administrative Console | प्रशासनिक नियंत्रण पैनल</span>
+            <span class="text-xs text-text-muted hidden sm:inline leading-tight">Churning Ideas into Solutions | प्रशासनिक नियंत्रण पैनल</span>
           </div>
         </div>
 
