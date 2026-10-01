@@ -14,6 +14,7 @@ import {
   requestOtp,
   decodeJwtPayload,
   getAccessToken,
+  searchUserByPhone,
 } from '../api.js';
 
 // ============================================================
@@ -1189,7 +1190,18 @@ window.usersPage = {
         const password = accessMethod === 'password' ? document.getElementById('prov-password')?.value : undefined;
 
         const res = await registerNewUser(phone, name, email, password);
-        const newUserId = res.userId || res.id || res.user?.userId;
+        let newUserId = res.userId || res.id || res.user?.userId;
+
+        // If register API doesn't return ID (OtpResponse), look it up by phone
+        if (!newUserId) {
+          try {
+            const searchRes = await searchUserByPhone(phone);
+            newUserId = searchRes.userId || searchRes.id || searchRes.uuid;
+          } catch (searchErr) {
+            console.warn('Could not retrieve new user ID for role elevation:', searchErr);
+          }
+        }
+        
         showToast(`User registered! User ID: ${newUserId || 'Created'}`, 'success');
 
         // If REVIEWER or ADMIN, chain role elevation

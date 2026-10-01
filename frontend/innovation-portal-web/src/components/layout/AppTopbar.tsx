@@ -24,7 +24,7 @@ export function AppTopbar({
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   
-  const kycVerified = user?.kycStatus === 'VERIFIED';
+
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
 
   const toggleDarkMode = () => {
@@ -98,17 +98,13 @@ export function AppTopbar({
 
         <Link
           to="/app/profile"
-          className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ml-auto ${
-            kycVerified 
-              ? 'bg-state-accepted-bg text-state-accepted-text hover:bg-state-accepted-bg/80'
-              : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
-          }`}
-          title="KYC Status"
+          className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ml-auto bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
+          title="Participant Profile"
         >
           <span className="material-symbols-outlined text-[16px]">
-            {kycVerified ? 'verified_user' : 'gpp_maybe'}
+            school
           </span>
-          <span>{kycVerified ? 'VERIFIED' : 'KYC PENDING'}</span>
+          <span>PARTICIPANT</span>
         </Link>
 
         <button

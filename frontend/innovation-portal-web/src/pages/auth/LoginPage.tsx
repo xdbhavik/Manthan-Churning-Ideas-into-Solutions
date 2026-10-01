@@ -19,7 +19,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const redirect = params.get('redirect') ?? '/app/dashboard';
-  const { verifyOtp } = useAuth();
+  const { verifyOtp, completeLogin } = useAuth();
   const toast = useToast();
 
   const [step, setStep] = useState<Step>('phone');
@@ -80,14 +80,18 @@ export default function LoginPage() {
     setError(null);
     try {
       const res = await verifyOtp(challenge.challengeId, code);
+      // Temporarily write session to local storage for portal.me() to have tokens for the API call
       setSession(res.accessToken, res.refreshToken, res.user);
       try {
         await portal.me();
+        completeLogin(res);
         navigate(redirect, { replace: true });
       } catch (meErr: any) {
         if (meErr?.response?.status === 404) {
+          completeLogin(res);
           navigate('/register', { replace: true });
         } else {
+          completeLogin(res);
           navigate(redirect, { replace: true });
         }
       }
@@ -96,7 +100,7 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
-  }, [challenge, code, verifyOtp, navigate, redirect]);
+  }, [challenge, code, verifyOtp, completeLogin, navigate, redirect]);
 
   const resend = () => {
     startOtp(false);

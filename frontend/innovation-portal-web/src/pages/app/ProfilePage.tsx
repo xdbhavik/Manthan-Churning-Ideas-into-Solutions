@@ -44,7 +44,7 @@ export default function ProfilePage() {
   }), [submissions]);
 
   const displayName = participant?.fullName || user?.phone || 'Participant';
-  const kycVerified = user?.kycStatus === 'VERIFIED';
+
 
   const updateMutation = useMutation({
     mutationFn: updateMe,
@@ -85,22 +85,9 @@ export default function ProfilePage() {
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-space-lg">
           <div className="flex flex-col gap-space-xs max-w-2xl">
             <div className="flex items-center gap-space-sm">
-              <span className={`px-space-sm py-0.5 rounded-full font-label-mono-sm text-label-mono-sm flex items-center gap-1.5 shadow-sm ${
-                kycVerified 
-                  ? 'bg-state-accepted-bg text-state-accepted-text' 
-                  : 'bg-surface-container text-on-surface-variant'
-              }`}>
-                {kycVerified ? (
-                  <>
-                    <span className="w-2 h-2 rounded-full bg-state-accepted-text animate-pulse"></span>
-                    VERIFIED PROFILE
-                  </>
-                ) : (
-                  <>
-                    <span className="w-2 h-2 rounded-full bg-on-surface-variant-weak"></span>
-                    KYC PENDING
-                  </>
-                )}
+              <span className="px-space-sm py-0.5 rounded-full font-label-mono-sm text-label-mono-sm flex items-center gap-1.5 shadow-sm bg-state-accepted-bg text-state-accepted-text">
+                <span className="w-2 h-2 rounded-full bg-state-accepted-text animate-pulse"></span>
+                ACTIVE PARTICIPANT
               </span>
             </div>
             <h1 className="font-display-lg text-display-lg text-on-primary tracking-tight">

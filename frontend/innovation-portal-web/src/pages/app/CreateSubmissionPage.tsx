@@ -319,13 +319,28 @@ export default function CreateSubmissionPage() {
                   <div className="w-8 h-8 rounded bg-surface-card flex items-center justify-center text-primary shrink-0 shadow-sm">
                     <span className="material-symbols-outlined text-[18px]">{idx === 0 ? 'memory' : 'hub'}</span>
                   </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="font-headline-sm text-[13px] text-on-surface truncate">{link.label}</span>
-                    <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak truncate">{link.url}</span>
+                  <div className="flex flex-col gap-space-xs w-full">
+                    <Input
+                      placeholder="Resource Title (e.g. System Architecture)"
+                      value={link.label}
+                      onChange={(e) => {
+                        const newLinks = [...links];
+                        newLinks[idx].label = e.target.value;
+                        setLinks(newLinks);
+                      }}
+                    />
+                    <Input
+                      placeholder="Resource URL (e.g. https://...)"
+                      value={link.url}
+                      onChange={(e) => {
+                        const newLinks = [...links];
+                        newLinks[idx].url = e.target.value;
+                        setLinks(newLinks);
+                      }}
+                    />
                   </div>
                 </div>
                 <div className="flex items-center gap-space-xs shrink-0 self-end md:self-auto">
-                  <span className="px-2 py-0.5 rounded bg-surface-card text-on-surface-variant-weak font-label-mono-sm text-label-mono-sm">{idx === 0 ? 'SCHEMATIC' : 'DIAGRAM'}</span>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -339,6 +354,7 @@ export default function CreateSubmissionPage() {
             ))}
             <Button
               variant="secondary"
+              onClick={() => setLinks([...links, { label: '', url: '' }])}
               className="w-full py-2.5 px-space-md rounded-lg bg-surface-container-low hover:bg-surface-container text-primary font-headline-sm text-[13px] flex items-center justify-center gap-space-xs transition-colors"
             >
               <span className="material-symbols-outlined text-[18px]">add_circle</span>

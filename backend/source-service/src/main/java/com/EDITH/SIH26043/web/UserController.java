@@ -128,4 +128,22 @@ public class UserController {
     public EvaluatorOnboardResponse createEvaluator(@Valid @RequestBody OtpRequest req) {
         return authService.onboardEvaluator(req);
     }
+
+    @Operation(
+            summary = "🔍 Search user by phone",
+            description = "🔒 **ADMIN only** — look up a user by their registered phone number.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "User profile"),
+            @ApiResponse(responseCode = "400", description = "Phone parameter missing"),
+            @ApiResponse(responseCode = "403", description = "Not ADMIN"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+    })
+    @GetMapping("/search")
+    @PreAuthorize("hasRole('ADMIN')")
+    public UserResponse searchByPhone(@Parameter(description = "Phone number") @org.springframework.web.bind.annotation.RequestParam(required = false) String phone) {
+        if (phone == null || phone.isBlank()) {
+            throw new com.EDITH.SIH26043.exception.ApiException(HttpStatus.BAD_REQUEST, "Phone parameter is required");
+        }
+        return UserResponse.from(userAdminService.findByPhone(phone));
+    }
 }

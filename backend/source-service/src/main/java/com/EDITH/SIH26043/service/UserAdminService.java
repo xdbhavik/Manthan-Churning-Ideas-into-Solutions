@@ -42,4 +42,10 @@ public class UserAdminService {
         u.setRole(role);
         return userRepository.save(u);
     }
+
+    @Transactional(readOnly = true)
+    public User findByPhone(String phone) {
+        return userRepository.findByPhone(phone)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"));
+    }
 }

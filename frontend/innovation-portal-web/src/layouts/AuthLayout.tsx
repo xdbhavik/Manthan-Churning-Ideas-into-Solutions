@@ -1,11 +1,13 @@
+import { useState } from 'react';
 import { Link, Outlet, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../app/providers/AuthProvider';
 
 export default function AuthLayout() {
   const { authed } = useAuth();
   const location = useLocation();
+  const [initialAuthed] = useState(authed);
 
-  if (authed) {
+  if (initialAuthed) {
     const from = location.state?.from?.pathname || '/app/dashboard';
     return <Navigate to={from} replace />;
   }

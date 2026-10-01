@@ -11,6 +11,7 @@ export interface AuthContextValue {
   role: string | null;
   login: (phone: string, email?: string) => Promise<{ challengeId: string }>;
   verifyOtp: (challengeId: string, code: string) => Promise<VerifyOtpResponse>;
+  completeLogin: (res: VerifyOtpResponse) => void;
   register: (fullName: string, email: string, phone: string) => Promise<void>;
   logout: () => void;
 }
@@ -29,11 +30,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const verifyOtp = useCallback(async (challengeId: string, code: string) => {
     const res = await authService.verifyOtp({ challengeId, code });
+    // Tokens are now set by the caller (LoginPage) to allow intermediate API calls (like portal.me for KYC)
+    // before triggering the global React auth state update and layout redirects.
+    return res;
+  }, []);
+
+  const completeLogin = useCallback((res: VerifyOtpResponse) => {
     setTokens(res.accessToken, res.refreshToken);
     setAuthed(true);
     setUser(res.user);
     setRole(res.user.role);
-    return res;
   }, []);
 
   const register = useCallback(async (_fullName: string, email: string, phone: string) => {
@@ -62,8 +68,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ authed, user, role, login, verifyOtp, register, logout }),
-    [authed, user, role, login, verifyOtp, register, logout]
+    () => ({ authed, user, role, login, verifyOtp, completeLogin, register, logout }),
+    [authed, user, role, login, verifyOtp, completeLogin, register, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
