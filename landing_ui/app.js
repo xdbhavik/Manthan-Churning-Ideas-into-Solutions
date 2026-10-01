@@ -1,11 +1,11 @@
 const portalDefinitions = [
   {
-    id: "innovation",
-    title: "Innovation Portal",
-    role: "Innovators and institutions",
-    description: "Explore national challenges, discover published problems, and build a solution dossier.",
-    port: 3004,
-    tone: "featured",
+    id: "submitter",
+    title: "Submitter Hub",
+    role: "Problem sources",
+    description: "Draft challenge statements, attach supporting evidence, and track submitted problems.",
+    port: 5174,
+    tone: "submit",
   },
   {
     id: "reviewer",
@@ -24,12 +24,12 @@ const portalDefinitions = [
     tone: "evaluate",
   },
   {
-    id: "submitter",
-    title: "Submitter Hub",
-    role: "Problem sources",
-    description: "Draft challenge statements, attach supporting evidence, and track submitted problems.",
-    port: 5174,
-    tone: "submit",
+    id: "innovation",
+    title: "Innovation Portal",
+    role: "Innovators and institutions",
+    description: "Explore national challenges, discover published problems, and build a solution dossier.",
+    port: 3004,
+    tone: "featured",
   },
   {
     id: "admin",
@@ -41,13 +41,7 @@ const portalDefinitions = [
   },
 ];
 
-const storageKey = "sih26043.portalUrls";
 const grid = document.querySelector("#workspace-grid");
-const dialog = document.querySelector("#link-dialog");
-const fields = document.querySelector("#link-fields");
-const form = document.querySelector("#link-form");
-const toast = document.querySelector("#toast");
-let toastTimer;
 
 function currentHost() {
   return window.location.hostname || "localhost";
@@ -56,18 +50,6 @@ function currentHost() {
 function defaultUrl(port) {
   const protocol = window.location.protocol === "https:" ? "https:" : "http:";
   return `${protocol}//${currentHost()}:${port}/`;
-}
-
-function readOverrides() {
-  try {
-    return JSON.parse(window.localStorage.getItem(storageKey) || "{}");
-  } catch {
-    return {};
-  }
-}
-
-function portalUrl(portal, overrides = readOverrides()) {
-  return overrides[portal.id] || defaultUrl(portal.port);
 }
 
 function escapeHtml(value) {
@@ -80,19 +62,9 @@ function escapeHtml(value) {
   })[character]);
 }
 
-function displayAddress(value) {
-  try {
-    const url = new URL(value);
-    return `${url.host}${url.pathname === "/" ? "" : url.pathname}`;
-  } catch {
-    return value;
-  }
-}
-
 function renderPortals() {
-  const overrides = readOverrides();
   grid.innerHTML = portalDefinitions.map((portal, index) => {
-    const url = portalUrl(portal, overrides);
+    const url = defaultUrl(portal.port);
     return `
       <a class="portal-card portal-card--${portal.tone}" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" style="--delay:${index * 55}ms">
         <div class="card-topline">
@@ -105,57 +77,12 @@ function renderPortals() {
         </div>
         <p class="card-description">${escapeHtml(portal.description)}</p>
         <div class="card-bottom">
-          <span class="card-url">${escapeHtml(displayAddress(url))}</span>
           <span class="card-open">Open workspace</span>
         </div>
       </a>
     `;
   }).join("");
   document.querySelector("#portal-count").textContent = String(portalDefinitions.length).padStart(2, "0");
-  document.querySelector("#gateway-address").textContent = `${currentHost()}:8090`;
-  document.querySelector("#registry-address").textContent = `${currentHost()}:8761`;
 }
-
-function renderSettings() {
-  const overrides = readOverrides();
-  fields.innerHTML = portalDefinitions.map((portal) => `
-    <div class="link-field">
-      <label for="portal-${portal.id}">${escapeHtml(portal.title)} <span>default :${portal.port}</span></label>
-      <input id="portal-${portal.id}" name="${portal.id}" type="url" value="${escapeHtml(portalUrl(portal, overrides))}" required />
-    </div>
-  `).join("");
-}
-
-function showToast(message) {
-  window.clearTimeout(toastTimer);
-  toast.textContent = message;
-  toast.classList.add("is-visible");
-  toastTimer = window.setTimeout(() => toast.classList.remove("is-visible"), 2600);
-}
-
-document.querySelector("#open-settings").addEventListener("click", () => {
-  renderSettings();
-  dialog.showModal();
-});
-
-document.querySelector("#close-settings").addEventListener("click", () => dialog.close());
-document.querySelector("#cancel-settings").addEventListener("click", () => dialog.close());
-
-document.querySelector("#reset-links").addEventListener("click", () => {
-  window.localStorage.removeItem(storageKey);
-  renderSettings();
-  renderPortals();
-  showToast("Portal links restored to local defaults.");
-});
-
-form.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const values = new FormData(form);
-  const overrides = Object.fromEntries(portalDefinitions.map((portal) => [portal.id, values.get(portal.id).trim()]));
-  window.localStorage.setItem(storageKey, JSON.stringify(overrides));
-  renderPortals();
-  dialog.close();
-  showToast("Portal links saved in this browser.");
-});
 
 renderPortals();
