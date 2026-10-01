@@ -109,10 +109,10 @@ export default function LoginPage() {
   return (
     <div className="bg-surface-card rounded-2xl p-space-xl shadow-sm max-w-lg w-full mx-auto my-12">
       <div className="flex items-center gap-2 mb-6">
-        <img src="/logo.png" alt="Portal logo" className="w-9 h-9" />
+        <img src="/logo.png" alt="Manthan" className="w-9 h-9" />
         <div>
-          <div className="font-headline font-bold text-on-surface">National Innovation Portal</div>
-          <div className="text-xs text-on-surface-variant-weak">Participant sign in</div>
+          <div className="font-headline font-bold text-on-surface">Manthan</div>
+          <div className="text-xs text-on-surface-variant-weak">Churning Ideas into Solutions</div>
         </div>
       </div>
 

@@ -6,11 +6,14 @@ export function Footer() {
           <div className="max-w-sm">
             <div className="flex items-center gap-2.5">
               <img src="/logo.png" alt="Portal logo" className="w-8 h-8" />
-              <div className="font-headline font-bold text-navy-900">National Innovation Portal</div>
+              <div>
+                <div className="font-headline font-bold text-navy-900">Manthan</div>
+                <div className="text-xs text-muted">Churning Ideas into Solutions</div>
+              </div>
             </div>
             <p className="mt-3 text-sm text-muted">
-              Smart India Hackathon. Browse national problem statements, form
-              teams, and submit solutions for evaluation.
+              Browse national problem statements, form teams, and submit
+              solutions for evaluation.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-8 text-sm">
@@ -34,7 +37,7 @@ export function Footer() {
         </div>
         <div className="tricolor-stripe-animated h-1 rounded-full mt-8 mb-6" />
         <div className="text-xs text-muted">
-          © {new Date().getFullYear()} National Innovation Portal. All rights reserved.
+          © {new Date().getFullYear()} Manthan. All rights reserved.
         </div>
       </div>
     </footer>

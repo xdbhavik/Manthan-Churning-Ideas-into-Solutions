@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a2540" />
+    <meta name="description" content="Choose a workspace in Manthan, churning ideas into solutions." />
+    <title>Manthan | Workspace Directory</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="tricolor-rule" aria-hidden="true"><span></span><span></span><span></span></div>
+
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="Manthan workspace directory home">
+        <img src="/logo.png" alt="Manthan" class="brand-logo" />
+        <span class="brand-copy">
+          <strong>Manthan</strong>
+          <small>Churning Ideas into Solutions</small>
+        </span>
+      </a>
+      <div class="header-actions">
+        <span class="directory-label"><span class="live-dot"></span> Workspace directory</span>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="eyebrow-mark"></span> Churning Ideas into Solutions</p>
+          <h1 id="hero-title">One mission.<br /><span>Five workspaces.</span></h1>
+          <p class="hero-description">A connected journey from national challenges to evaluated ideas. Choose the workspace that matches your role.</p>
+          <a class="hero-link" href="#workspaces">
+            Explore workspaces
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12M10 4l6 6-6 6" /></svg>
+          </a>
+        </div>
+
+        <div class="journey-panel" aria-label="Innovation lifecycle: publish, review, evaluate, submit">
+          <div class="journey-heading"><span>THE LIFECYCLE</span><span>01 — 04</span></div>
+          <div class="journey-steps">
+            <div class="journey-step"><span class="step-number">01</span><span>Publish a challenge</span><span class="step-marker saffron"></span></div>
+            <div class="journey-step"><span class="step-number">02</span><span>Review with context</span><span class="step-marker blue"></span></div>
+            <div class="journey-step"><span class="step-number">03</span><span>Evaluate with expertise</span><span class="step-marker green"></span></div>
+            <div class="journey-step"><span class="step-number">04</span><span>Submit a solution</span><span class="step-marker white"></span></div>
+          </div>
+          <div class="journey-footer"><span>Connected by one platform</span><span class="journey-line"></span></div>
+        </div>
+        <div class="hero-index" aria-hidden="true">IN / 26</div>
+      </section>
+
+      <section class="workspace-section" id="workspaces" aria-labelledby="workspace-title">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Choose your workspace</p>
+            <h2 id="workspace-title">Continue to a portal</h2>
+          </div>
+          <p class="section-note"><span id="portal-count">05</span> role-based workspaces<br />One shared innovation lifecycle</p>
+        </div>
+
+        <div class="workspace-grid" id="workspace-grid" aria-live="polite"></div>
+      </section>
+
+    </main>
+
+    <footer class="site-footer">
+      <span>Project: Manthan <span class="footer-divider">/</span> Churning Ideas into Solutions</span>
+      <a href="mailto:themanthanedu@gmail.com">themanthanedu@gmail.com</a>
+    </footer>
+  </body>
+</html>
