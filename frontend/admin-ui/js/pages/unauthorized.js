@@ -62,7 +62,7 @@ function render() {
             <p class="font-body-lg text-body-lg text-text-secondary mt-space-sm max-w-xl mx-auto">
               Your authenticated identity has been verified, but the decoded JWT role does not meet the minimum threshold
               (<code class="font-mono-code text-ashoka-blue bg-surface-subtle px-1 py-0.5 rounded text-body-md">ADMIN</code> or
-              <code class="font-mono-code text-ashoka-blue bg-surface-subtle px-1 py-0.5 rounded text-body-md">REVIEWER</code>)
+              <code class="font-mono-code text-ashoka-blue bg-surface-subtle px-1 py-0.5 rounded text-body-md">KYC AGENT (internal role: REVIEWER)</code>)
               required for administrative panel access.
             </p>
           </div>

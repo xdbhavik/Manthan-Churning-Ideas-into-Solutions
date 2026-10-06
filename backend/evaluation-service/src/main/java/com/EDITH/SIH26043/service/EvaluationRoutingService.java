@@ -167,6 +167,103 @@ public class EvaluationRoutingService {
                 chosen.getProfileId(), pool.name(), comment);
     }
 
+    /** ADMIN-directed handoff for a submitted government problem. */
+    @Transactional
+    public RouteOutcomeResponse routeGovernmentProblemTo(UUID problemId, UUID evaluatorUserId,
+                                                          UUID actorUserId,
+                                                          String ipAddress) {
+        ProblemContextResponse problem = problemGateway.fetch(problemId);
+        if (!"GOVT".equals(problem.sourceBucket()) || !"SUBMITTED".equals(problem.status())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "Only submitted GOVT problems can be assigned through this operation");
+        }
+        EvaluationCycle cycle = cycleRepository.findByProblemId(problemId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND,
+                        "No evaluation cycle exists for problem " + problemId));
+        if (!ROUTABLE_STATUSES.contains(cycle.getStatus())) {
+            throw new ApiException(HttpStatus.CONFLICT,
+                    "Problem " + problemId + " is already in cycle state " + cycle.getStatus());
+        }
+
+        EvaluatorProfile target = profileRepository.findByUserId(evaluatorUserId).stream()
+                .filter(p -> p.getEvaluatorType() == EvaluatorType.GOVERNMENT
+                        && p.isActive() && !p.isSystem())
+                .findFirst()
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND,
+                        "Active human GOVERNMENT evaluator profile not found for user " + evaluatorUserId));
+
+        List<EvaluationAssignment> cycleAssignments = assignmentRepository.findByCycleId(cycle.getCycleId());
+        Map<UUID, EvaluatorProfile> profiles = profileRepository.findAllById(cycleAssignments.stream()
+                .map(EvaluationAssignment::getEvaluatorProfileId).toList()).stream()
+                .collect(Collectors.toMap(EvaluatorProfile::getProfileId, p -> p));
+        EvaluationAssignment governmentAssignment = cycleAssignments.stream()
+                .filter(a -> profiles.containsKey(a.getEvaluatorProfileId()))
+                .filter(a -> profiles.get(a.getEvaluatorProfileId()).getEvaluatorType()
+                        == EvaluatorType.GOVERNMENT)
+                .findFirst().orElse(null);
+
+        if (governmentAssignment != null && governmentAssignment.getEvaluatorProfileId()
+                .equals(target.getProfileId())) {
+            return new RouteOutcomeResponse(true, governmentAssignment.getAssignmentId(),
+                    target.getProfileId(), EvaluatorType.GOVERNMENT.name(),
+                    "Already assigned to the requested government evaluator");
+        }
+        if (governmentAssignment != null
+                && governmentAssignment.getStatus() != AssignmentStatus.ASSIGNED) {
+            throw new ApiException(HttpStatus.CONFLICT,
+                    "Existing government assignment is " + governmentAssignment.getStatus()
+                            + "; only unaccepted assignments can be transferred safely");
+        }
+        boolean targetAlreadyOnCycle = cycleAssignments.stream()
+                .anyMatch(a -> a.getEvaluatorProfileId().equals(target.getProfileId()));
+        if (targetAlreadyOnCycle && (governmentAssignment == null
+                || !governmentAssignment.getEvaluatorProfileId().equals(target.getProfileId()))) {
+            throw new ApiException(HttpStatus.CONFLICT,
+                    "Target evaluator already has an assignment on this cycle");
+        }
+
+        Instant now = Instant.now();
+        long targetOpen = assignmentRepository.countByEvaluatorProfileIdAndStatusIn(
+                target.getProfileId(), OPEN_STATUSES);
+        if (targetOpen >= target.getMaxWorkload()) {
+            target.setMaxWorkload(Math.toIntExact(targetOpen + 1));
+            profileRepository.save(target);
+        }
+
+        UUID previousProfileId = governmentAssignment == null
+                ? null : governmentAssignment.getEvaluatorProfileId();
+        if (governmentAssignment == null) {
+            governmentAssignment = saveAssignment(cycle.getCycleId(), target, actorUserId, now);
+        } else {
+            governmentAssignment.setEvaluatorProfileId(target.getProfileId());
+            governmentAssignment.setAssignedByUserId(actorUserId);
+            governmentAssignment.setAssignedAt(now);
+            governmentAssignment.setDeadline(now.plus(deadlineDays, ChronoUnit.DAYS));
+            governmentAssignment = assignmentRepository.save(governmentAssignment);
+        }
+
+        if (cycle.getStatus() == EvaluationStatus.ROUTING) {
+            statusService.transition(cycle.getCycleId(), EvaluationStatus.EVALUATION_IN_PROGRESS,
+                    actorUserId, "Government assignment directed to evaluator profile " + target.getProfileId());
+        }
+        Map<String, Object> before = new HashMap<>();
+        before.put("cycleId", cycle.getCycleId());
+        before.put("assignmentId", governmentAssignment.getAssignmentId());
+        before.put("profileId", previousProfileId);
+        Map<String, Object> after = snapshot(cycle.getCycleId(), governmentAssignment,
+                EvaluatorType.GOVERNMENT);
+        after.put("handler", HANDLER_HUMAN);
+        after.put("mode", poolModeService.modeOf(EvaluatorType.GOVERNMENT).name());
+        after.put("directedByAdmin", true);
+        auditService.record("PROBLEM", problemId, AuditAction.EVALUATION_ASSIGNED,
+                actorUserId, before, after, ipAddress);
+
+        return new RouteOutcomeResponse(true, governmentAssignment.getAssignmentId(),
+                target.getProfileId(), EvaluatorType.GOVERNMENT.name(),
+                previousProfileId == null ? "Assigned directly to requested government evaluator"
+                        : "Pending government assignment transferred to requested evaluator");
+    }
+
     // ---------------------------------------------------------------------------
     // multi-pool routing (all five pools; the AUTO/MANUAL switch applies here)
     // ---------------------------------------------------------------------------
@@ -206,11 +303,10 @@ public class EvaluationRoutingService {
         // Phase 1 — decide every pool's handler, asking the AI to score the AUTO ones.
         // Doing the model call here (before any assignment exists) is what makes the
         // degradation path clean: a failed AI pool simply falls through to a human.
-        List<PoolPlan> plans = new ArrayList<>(EvaluatorType.values().length);
-        for (EvaluatorType pool : EvaluatorType.values()) {
-            plans.add(planFor(cycle, problem, pool, alreadyAssigned, poolsAlreadyAssigned,
-                    actorUserId, ipAddress));
-        }
+        EvaluatorType targetPool = poolFor(problem.sourceBucket());
+        List<PoolPlan> plans = new ArrayList<>(1);
+        plans.add(planFor(cycle, problem, targetPool, alreadyAssigned, poolsAlreadyAssigned,
+                actorUserId, ipAddress));
 
         // Phase 2 — persist the assignments, then move the cycle once.
         Instant now = Instant.now();
@@ -251,23 +347,38 @@ public class EvaluationRoutingService {
                     card.provider(), card.model(), actorUserId, ipAddress));
         }
 
-        List<RouteAllOutcomeResponse.PoolRoutingOutcome> outcomes = new ArrayList<>(planned.size());
+        List<RouteAllOutcomeResponse.PoolRoutingOutcome> outcomes =
+                new ArrayList<>(EvaluatorType.values().length);
+
+        RouteAllOutcomeResponse.PoolRoutingOutcome targetPoolOutcome = null;
         for (PlannedAssignment pa : planned) {
             PoolPlan plan = pa.plan();
             EvaluationAssignment assignment = pa.assignment();
             if (assignment == null) {
-                outcomes.add(new RouteAllOutcomeResponse.PoolRoutingOutcome(
+                targetPoolOutcome = new RouteAllOutcomeResponse.PoolRoutingOutcome(
                         plan.pool().name(), plan.mode().name(), HANDLER_NONE, false,
-                        null, null, null, null, plan.reason()));
+                        null, null, null, null, plan.reason());
                 continue;
             }
             AssignmentOutcomeResponse outcome = submitted.get(plan.pool());
-            outcomes.add(new RouteAllOutcomeResponse.PoolRoutingOutcome(
+            targetPoolOutcome = new RouteAllOutcomeResponse.PoolRoutingOutcome(
                     plan.pool().name(), plan.mode().name(), plan.handler(), true,
                     assignment.getAssignmentId(), plan.profile().getProfileId(),
                     outcome == null ? assignment.getStatus().name() : outcome.status().name(),
                     plan.isAi() ? ScoreSource.AI.name() : null,
-                    plan.reason()));
+                    plan.reason());
+        }
+
+        for (EvaluatorType pool : EvaluatorType.values()) {
+            if (pool.equals(targetPool)) {
+                outcomes.add(targetPoolOutcome);
+            } else {
+                outcomes.add(new RouteAllOutcomeResponse.PoolRoutingOutcome(
+                        pool.name(), poolModeService.modeOf(pool).name(), HANDLER_NONE, false,
+                        null, null, null, null,
+                        "Not applicable per source bucket routing rules - problem belongs to "
+                                + problem.sourceBucket() + " pool"));
+            }
         }
 
         // Phase 3 can complete the cycle outright: submitting the last scorecard runs the
@@ -283,7 +394,8 @@ public class EvaluationRoutingService {
         String cycleStatus = finalStatus.name();
         String message = created == 0
                 ? "No pool could be routed; the cycle stays " + entryStatus
-                : created + " of " + EvaluatorType.values().length + " pools routed";
+                : "1 of " + EvaluatorType.values().length + " pools routed (source bucket: "
+                        + problem.sourceBucket() + ")";
         return new RouteAllOutcomeResponse(cycleId, cycleStatus, (int) created, message, outcomes);
     }
 

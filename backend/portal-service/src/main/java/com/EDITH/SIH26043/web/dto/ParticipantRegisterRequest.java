@@ -14,6 +14,10 @@ public record ParticipantRegisterRequest(
         @Size(max = 150)
         String fullName,
 
+        @NotBlank(message = "institutionName is required")
+        @Size(max = 255)
+        String institutionName,
+
         @Email
         @Size(max = 255)
         String email,

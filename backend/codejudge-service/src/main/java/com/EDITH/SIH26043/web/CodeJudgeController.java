@@ -50,7 +50,7 @@ public class CodeJudgeController {
             description = """
                     Registers the repository at an exact `commitSha` and queues an evaluation.
                     Returns immediately with `{evaluationId, status: QUEUED}` — the pipeline
-                    (clone → scan → security → AI advisory → scoring → report) runs on the
+                    (clone → scan → security → scoring → report) runs on the
                     worker, so a long evaluation never blocks the request. `commitSha` is
                     mandatory: a moving branch head must not change what was judged.""")
     @ResponseStatus(HttpStatus.ACCEPTED)

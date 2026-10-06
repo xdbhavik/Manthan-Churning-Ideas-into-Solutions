@@ -2,8 +2,11 @@ package com.EDITH.SIH26043.client;
 
 import com.EDITH.SIH26043.internal.ProblemContextResponse;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.HttpExchange;
+import org.springframework.web.service.annotation.PostExchange;
 
 import java.util.UUID;
 
@@ -19,4 +22,11 @@ public interface ProblemContextApi {
 
     @GetExchange("/internal/problems/{id}")
     ProblemContextResponse getProblem(@PathVariable("id") UUID id);
+
+    @PostExchange("/internal/problems/{id}/reject")
+    void rejectProblem(@PathVariable("id") UUID id,
+                       @RequestHeader("X-Internal-Service-Key") String serviceKey,
+                       @RequestBody ProblemRejectionRequest request);
+
+    record ProblemRejectionRequest(UUID evaluatorUserId, String reason) { }
 }

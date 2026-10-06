@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>SIH26043 — Reviewer Case Management & Statutory Verification Portal</title>
+  <title>SIH26043 — KYC Agent Case Management & Statutory Verification Portal</title>
   
   <!-- Fonts & Icons -->
   <link href="https://fonts.googleapis.com" rel="preconnect"/>
@@ -215,7 +215,7 @@
         </div>
         <div class="flex flex-col">
           <div class="flex items-center gap-2">
-            <span class="font-bold text-ashoka-blue tracking-tight text-base sm:text-lg leading-tight">Reviewer Case Management Portal</span>
+            <span class="font-bold text-ashoka-blue tracking-tight text-base sm:text-lg leading-tight">KYC Agent Case Management Portal</span>
             <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-status-submitted-bg text-status-submitted-text uppercase leading-none">Gov.in</span>
           </div>
           <span class="text-xs text-text-muted hidden sm:inline leading-tight">Statutory Review &amp; Verification Authority | सांविधानिक समीक्षा प्राधिकरण</span>
@@ -265,7 +265,7 @@
                   <span class="material-symbols-outlined text-[20px]">person</span>
                 </div>
                 <div class="flex flex-col min-w-0">
-                  <span class="font-headline-sm text-sm sm:text-headline-sm text-text-primary truncate font-bold" id="dropdown-user-name">Reviewer Officer</span>
+              <span class="font-headline-sm text-sm sm:text-headline-sm text-text-primary truncate font-bold" id="dropdown-user-name">KYC Agent</span>
                   <span class="font-mono-code text-[11px] text-text-muted uppercase" id="dropdown-user-id">ROLE_REVIEWER</span>
                 </div>
               </div>
@@ -275,7 +275,7 @@
                   Active Session
                 </span>
                 <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary-container/20 text-primary font-label-sm text-[10px] uppercase tracking-wider font-bold" id="dropdown-role-badge">
-                  Reviewer Level 2
+                  KYC Agent Level 2
                 </span>
               </div>
             </div>
@@ -335,8 +335,8 @@
             <span class="material-symbols-outlined text-ashoka-blue text-xl">shield_person</span>
             <span class="text-xs font-bold uppercase tracking-wider text-saffron-accent">Statutory SSO Gateway</span>
           </div>
-          <h1 class="text-2xl font-bold text-ashoka-blue mb-1">Sign in to Reviewer Portal</h1>
-          <p class="text-sm text-text-secondary">Passwordless OTP login for Authorized Reviewers &amp; Nodal Officers</p>
+          <h1 class="text-2xl font-bold text-ashoka-blue mb-1">Sign in to KYC Agent Portal</h1>
+          <p class="text-sm text-text-secondary">Passwordless OTP login for authorized KYC agents and nodal officers</p>
         </div>
 
         <form onsubmit="event.preventDefault(); handleLoginRequestOtp();" class="flex flex-col gap-4">
@@ -419,7 +419,7 @@
             <span class="material-symbols-outlined text-ashoka-blue text-xl">verified_user</span>
             <span class="text-xs font-bold uppercase tracking-wider text-institutional-navy">Two-Factor Authentication</span>
           </div>
-          <h1 class="text-2xl font-bold text-ashoka-blue mb-1">Verify Reviewer Identity</h1>
+          <h1 class="text-2xl font-bold text-ashoka-blue mb-1">Verify KYC Agent Identity</h1>
           <div class="flex flex-wrap items-center justify-center sm:justify-start gap-1 text-sm text-text-secondary">
             <span>Enter 6-digit OTP code sent to</span>
             <span class="font-mono text-text-primary font-bold" id="otp-mobile-label">+91 ----------</span>
@@ -489,7 +489,7 @@
           </div>
           <div>
             <span class="font-mono text-[11px] text-status-action-text uppercase font-bold tracking-wider block">Error 403 • Forbidden</span>
-            <h1 class="text-xl font-bold text-on-surface leading-tight">Reviewer Clearance Required</h1>
+            <h1 class="text-xl font-bold text-on-surface leading-tight">KYC Agent Clearance Required</h1>
           </div>
         </div>
 
@@ -505,7 +505,7 @@
           </div>
           <div class="flex items-center justify-between">
             <span class="text-text-muted">Required Role:</span>
-            <span class="px-2 py-0.5 rounded-full bg-status-review-bg text-status-review-text font-bold text-[10px] uppercase">REVIEWER</span>
+            <span class="px-2 py-0.5 rounded-full bg-status-review-bg text-status-review-text font-bold text-[10px] uppercase">KYC AGENT</span>
           </div>
           <div class="flex items-center justify-between pt-1 border-t border-border-hairline/80 font-mono text-[11px]">
             <span class="text-text-muted">Audit Code:</span>
@@ -1031,7 +1031,7 @@
                   <div class="flex flex-col gap-1.5">
                     <div class="flex items-center justify-between">
                       <label class="font-label-md text-xs sm:text-label-md text-text-primary font-semibold flex items-center gap-1" for="reviewer-remarks">
-                        Reviewer Comment / Official Order
+                        KYC Agent Comment / Official Order
                         <span class="text-saffron-accent font-bold" id="mandatory-asterisk">*</span>
                       </label>
                       <span class="font-mono-code text-[10px] sm:text-[11px] text-text-muted" id="char-counter">0 / 1000 chars</span>
@@ -1043,7 +1043,7 @@
                   <!-- Statutory Compliance Checkbox -->
                   <div class="p-3 rounded-lg bg-surface-subtle flex items-start gap-2.5 sm:gap-space-sm border border-border-hairline">
                     <input checked="" class="mt-0.5 w-4 h-4 rounded text-institutional-navy focus:ring-institutional-navy cursor-pointer" id="statutory-checkbox" onchange="evaluateSubmitReadiness()" type="checkbox"/>
-                    <label class="font-body-sm text-xs sm:text-body-sm text-text-secondary select-none cursor-pointer leading-relaxed" for="statutory-checkbox">I, <strong class="text-text-primary" id="attest-officer-name">Reviewer Officer</strong>, hereby attest that this administrative review is rendered in accordance with statutory guidelines.</label>
+                    <label class="font-body-sm text-xs sm:text-body-sm text-text-secondary select-none cursor-pointer leading-relaxed" for="statutory-checkbox">I, <strong class="text-text-primary" id="attest-officer-name">KYC Agent</strong>, hereby attest that this administrative review is rendered in accordance with statutory guidelines.</label>
                   </div>
 
                   <!-- Execution Action Button -->
@@ -1369,7 +1369,7 @@
             <div class="flex items-center gap-2 self-start md:self-auto bg-surface-crisp p-2.5 rounded-xl shadow-sm border border-border-hairline">
               <div class="w-8 h-8 rounded-full bg-institutional-navy text-on-primary flex items-center justify-center font-bold text-xs" id="workbench-avatar">RO</div>
               <div class="flex flex-col text-xs">
-                <span class="font-bold text-ashoka-blue" id="workbench-officer-name">Reviewer Officer</span>
+                <span class="font-bold text-ashoka-blue" id="workbench-officer-name">KYC Agent</span>
                 <span class="font-mono text-text-muted text-[10px]" id="workbench-officer-role">ROLE_REVIEWER</span>
               </div>
             </div>
@@ -1620,7 +1620,7 @@
           <div class="p-3 rounded-lg bg-surface-subtle flex items-start gap-2 border border-border-hairline">
             <input type="checkbox" id="src-verify-attest" onchange="evaluateSourceVerifyReadiness()" checked class="mt-0.5 rounded text-institutional-navy focus:ring-institutional-navy cursor-pointer">
             <label for="src-verify-attest" class="text-xs text-text-secondary select-none cursor-pointer">
-              I, <strong class="text-text-primary" id="src-verify-officer-name">Reviewer Officer</strong>, certify under statutory authority that the identity credentials for this organization have been evaluated against verified official records and documented evidence.
+              I, <strong class="text-text-primary" id="src-verify-officer-name">KYC Agent</strong>, certify under statutory authority that the identity credentials for this organization have been evaluated against verified official records and documented evidence.
             </label>
           </div>
         </div>

@@ -59,20 +59,6 @@ app:
   # unreachable the intake simply proceeds without it (see ProblemContextGateway).
   problem-service:
     base-url: ${PROBLEM_SERVICE_URL:http://problem-service}
-  llm:
-    # OpenAI-compatible local model, shared convention with evaluation-service.
-    # CodeJudge uses it for an ADVISORY assessment only — it never contributes to
-    # final_score. Empty key → the ai_evaluation row is recorded UNAVAILABLE and
-    # the pipeline completes on deterministic evidence.
-    # NOTE: inside docker the host is reached as host.docker.internal, so
-    # docker-compose overrides base-url accordingly.
-    openai:
-      api-key: ${OPENAI_API_KEY:}
-      base-url: ${OPENAI_BASE_URL:http://localhost:20128/v1}
-      model: ${OPENAI_MODEL:agentrouter/deepseek-v4-flash}
-      max-tokens: 8192
-      timeout-seconds: 60
-      temperature: 0.2
 
 eureka:
   client:

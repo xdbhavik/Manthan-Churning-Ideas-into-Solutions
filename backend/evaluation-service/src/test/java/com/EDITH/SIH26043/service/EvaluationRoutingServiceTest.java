@@ -283,16 +283,12 @@ class EvaluationRoutingServiceTest {
     // ------------------------------------------------------------- five-pool pass
 
     @Test
-    void autoPoolIsScoredByItsSystemProfileAndManualPoolGoesToAHuman() {
+    void autoPoolMatchingTheProblemSourceIsScoredWithoutRoutingToOtherPools() {
         givenCycle(EvaluationStatus.ROUTING);
         givenProblem("GOVT");
         EvaluatorProfile ai = systemProfile(EvaluatorType.GOVERNMENT);
         when(profileRepository.findByEvaluatorTypeAndActiveIsTrue(EvaluatorType.GOVERNMENT))
                 .thenReturn(List.of(ai));
-        EvaluatorProfile industryHuman = activeProfile(EvaluatorType.INDUSTRY, 5);
-        when(profileRepository.findByEvaluatorTypeAndActiveIsTrue(EvaluatorType.INDUSTRY))
-                .thenReturn(List.of(industryHuman));
-        givenOpenLoad(industryHuman.getProfileId(), 0);
         givenMode(EvaluatorType.GOVERNMENT, EvaluationMode.AUTO);
         givenAiScores(EvaluatorType.GOVERNMENT);
         givenSystemSubmitSucceeds();
@@ -300,7 +296,7 @@ class EvaluationRoutingServiceTest {
 
         RouteAllOutcomeResponse outcome = service.routeAllPools(cycleId, actor, "127.0.0.1");
 
-        assertThat(outcome.assignmentsCreated()).isEqualTo(2);
+        assertThat(outcome.assignmentsCreated()).isEqualTo(1);
         assertThat(outcome.cycleStatus()).isEqualTo(EvaluationStatus.EVALUATION_IN_PROGRESS.name());
 
         RouteAllOutcomeResponse.PoolRoutingOutcome govt = pool(outcome, "GOVERNMENT");
@@ -311,15 +307,8 @@ class EvaluationRoutingServiceTest {
         assertThat(govt.assignmentStatus()).isEqualTo("SUBMITTED");
         assertThat(govt.profileId()).isEqualTo(ai.getProfileId());
 
-        RouteAllOutcomeResponse.PoolRoutingOutcome industry = pool(outcome, "INDUSTRY");
-        assertThat(industry.handler()).isEqualTo("HUMAN");
-        assertThat(industry.mode()).isEqualTo("MANUAL");
-        assertThat(industry.routed()).isTrue();
-        assertThat(industry.scoreSource()).isNull();
-        assertThat(industry.assignmentStatus()).isEqualTo("ASSIGNED");
-        assertThat(industry.profileId()).isEqualTo(industryHuman.getProfileId());
-
-        // The two pools with nobody configured are reported, not silently dropped.
+        // The source bucket is GOVT, so an eligible INDUSTRY evaluator is ignored.
+        assertThat(pool(outcome, "INDUSTRY").routed()).isFalse();
         assertThat(pool(outcome, "HEI").routed()).isFalse();
         assertThat(pool(outcome, "CITIZEN").handler()).isEqualTo("NONE");
 
@@ -381,9 +370,9 @@ class EvaluationRoutingServiceTest {
     }
 
     @Test
-    void aSkippedPoolDoesNotStopTheOthersAndTheCycleStillAdvances() {
+    void routesOnlyToThePoolMatchingTheProblemSourceBucket() {
         givenCycle(EvaluationStatus.ROUTING);
-        givenProblem("GOVT");
+        givenProblem("HEI");
         EvaluatorProfile hei = activeProfile(EvaluatorType.HEI, 5);
         when(profileRepository.findByEvaluatorTypeAndActiveIsTrue(EvaluatorType.HEI))
                 .thenReturn(List.of(hei));
@@ -429,13 +418,12 @@ class EvaluationRoutingServiceTest {
 
         RouteAllOutcomeResponse outcome = service.routeAllPools(cycleId, actor, "127.0.0.1");
 
-        // The pool that already reported in is untouched — re-assigning would violate
-        // UNIQUE (cycle_id, evaluator_profile_id).
+        // A GOVT problem routes only to GOVERNMENT; other pools stay untouched.
         RouteAllOutcomeResponse.PoolRoutingOutcome govt = pool(outcome, "GOVERNMENT");
         assertThat(govt.routed()).isFalse();
         assertThat(govt.reason()).contains("already has an assignment");
-        assertThat(pool(outcome, "HEI").routed()).isTrue();
-        assertThat(outcome.assignmentsCreated()).isEqualTo(1);
+        assertThat(pool(outcome, "HEI").routed()).isFalse();
+        assertThat(outcome.assignmentsCreated()).isZero();
         // Already EVALUATION_IN_PROGRESS: the repair pass must not re-transition.
         verify(statusService, never()).transition(any(), any(), any(), anyString());
     }

@@ -28,7 +28,8 @@ public record MyAssignmentResponse(
         boolean overdue,
         int criteriaTotal,
         int criteriaScored,
-        EvaluationStatus cycleStatus
+        EvaluationStatus cycleStatus,
+        boolean directGovernmentDecision
 ) {
 
     /**
@@ -39,6 +40,7 @@ public record MyAssignmentResponse(
      */
     public MyAssignmentResponse withCriteriaScored(int scored) {
         return new MyAssignmentResponse(assignmentId, cycleId, problemId, status,
-                assignedAt, deadline, submittedAt, overdue, criteriaTotal, scored, cycleStatus);
+                assignedAt, deadline, submittedAt, overdue, criteriaTotal, scored, cycleStatus,
+                directGovernmentDecision);
     }
 }

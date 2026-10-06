@@ -76,7 +76,10 @@ public class ProblemClientConfig {
             String serviceId = request.getURI().getHost();
             ServiceInstance instance = loadBalancer.choose(serviceId);
             if (instance == null) {
-                throw new IOException("No live instances available for service " + serviceId);
+                // Compose DNS can resolve the service name before Eureka has finished
+                // registering it (notably just after a stack restart). Let the original
+                // service URL fall through in that short window.
+                return execution.execute(request, body);
             }
             URI rewritten = loadBalancer.reconstructURI(instance, request.getURI());
             return execution.execute(new HttpRequest() {

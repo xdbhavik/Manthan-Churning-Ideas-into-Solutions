@@ -37,7 +37,7 @@ const VALUE_CARDS = [
     title: 'Deploy for Impact',
     description:
       'Advance solutions through structured, multi-tier evaluation rounds with consistent reviewers directly toward institutional acceptance and field pilot deployment.',
-    linkLabel: 'Reviewer governance',
+    linkLabel: 'KYC Agent governance',
     linkIcon: 'north_east',
     iconColor: 'accepted',
     linkColor: 'accepted',

@@ -20,7 +20,7 @@ import java.util.UUID;
  * report stage finishes, FAILED (with the failing stage + reason) otherwise.
  *
  * <p>Stage order in this deployment:
- * {@code CLONING → SCANNING → SECURITY_SCANNING → AI_ANALYSIS → SCORING →
+ * {@code CLONING → SCANNING → SECURITY_SCANNING → SCORING →
  * REPORT_GENERATION → COMPLETED}. The sandboxed BUILDING/RUNNING/TESTING stages
  * are deliberately absent while {@code app.codejudge.sandbox-enabled=false} — the
  * categories they would feed are reported {@code NOT_EVALUATED} rather than
@@ -40,14 +40,13 @@ public class EvaluationPipeline {
     public EvaluationPipeline(CloneStage cloneStage,
                               ScanStage scanStage,
                               SecurityScanStage securityScanStage,
-                              AiStage aiStage,
                               ScoringStage scoringStage,
                               ReportStage reportStage,
                               StageMachine stageMachine,
                               EvaluationRepository evaluationRepository,
                               JobQueueService jobQueueService,
                               CodeJudgeProperties props) {
-        this.stages = List.of(cloneStage, scanStage, securityScanStage, aiStage, scoringStage, reportStage);
+        this.stages = List.of(cloneStage, scanStage, securityScanStage, scoringStage, reportStage);
         this.stageMachine = stageMachine;
         this.evaluationRepository = evaluationRepository;
         this.jobQueueService = jobQueueService;

@@ -71,6 +71,11 @@ public class Submission {
     @Column(name = "links", nullable = false)
     private List<Map<String, String>> links = new ArrayList<>();
 
+    /** Structured solution, implementation, and demo details supplied in the portal form. */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "project_details", nullable = false)
+    private Map<String, Object> projectDetails = Map.of();
+
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "status", nullable = false, columnDefinition = "submission_status")
     private SubmissionStatus status = SubmissionStatus.DRAFT;

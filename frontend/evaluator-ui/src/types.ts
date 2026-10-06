@@ -62,13 +62,14 @@ export interface EvaluationCriteria {
 }
 
 // Assignments
-export type AssignmentStatus = 'ASSIGNED' | 'IN_PROGRESS' | 'SUBMITTED' | 'DECLINED' | 'EXPIRED' | 'REVIEWED';
+export type AssignmentStatus = 'ASSIGNED' | 'IN_PROGRESS' | 'ACCEPTED' | 'SUBMITTED' | 'DECLINED' | 'EXPIRED' | 'REVIEWED' | 'REJECTED';
 export interface AssignmentResponse {
   assignmentId: string;
   cycleId: string;
   problemId: string;
   evaluatorProfileId: string;
   status: AssignmentStatus;
+  directGovernmentDecision?: boolean;
   cycleStatus?: string;
   assignedAt: string;
   deadline?: string;
@@ -186,6 +187,62 @@ export interface ProblemResponse {
   accessRule?: string;
   accessUniversities?: string[];
   evidenceCount?: number;
+  sourceId?: string;
+  sourceAccountId?: string | null;
+  locationId?: string | null;
+  existingIntervention?: string | null;
+  submittedAt?: string;
+  updatedAt?: string;
+  submittedByUserId?: string | null;
+  version?: number;
+  metadata?: Record<string, unknown> | null;
+  location?: string | null;
+}
+
+export interface ProblemEvidenceResponse {
+  evidenceId: string;
+  problemId: string;
+  evidenceType: string;
+  fileUrl: string;
+  fileHash: string;
+  metadata: Record<string, unknown> | null;
+  capturedAt: string | null;
+  uploadedByUserId: string | null;
+}
+
+export interface AssignmentDetailResponse {
+  assignment: AssignmentResponse;
+  feedback: string | null;
+  recommendation: string | null;
+  problem: {
+    problemId: string;
+    status: string | null;
+    title: string;
+    description: string;
+    sourceBucket: string | null;
+    subEntityType: string | null;
+    urgency: string | null;
+    severity: string | null;
+    affectedPopulation: number | null;
+    expectedOutcome: string | null;
+    existingIntervention: string | null;
+    location: string | null;
+    domains: string[];
+    evidenceCount: number;
+    accessRule: string | null;
+    accessUniversities: string[];
+  } | null;
+  analysis: Record<string, unknown> | null;
+  criteria: Array<{
+    criterionId: string;
+    criterionKey: string;
+    criterionLabel: string;
+    description: string;
+    maxScore: number;
+    sortOrder: number;
+    myScore: number | null;
+    myComment: string | null;
+  }>;
 }
 
 // AI Analysis

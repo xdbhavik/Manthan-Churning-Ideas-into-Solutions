@@ -30,7 +30,6 @@ class EvaluationPipelineTest {
     private final CloneStage cloneStage = mock(CloneStage.class);
     private final ScanStage scanStage = mock(ScanStage.class);
     private final SecurityScanStage securityScanStage = mock(SecurityScanStage.class);
-    private final AiStage aiStage = mock(AiStage.class);
     private final ScoringStage scoringStage = mock(ScoringStage.class);
     private final ReportStage reportStage = mock(ReportStage.class);
     private final StageMachine stageMachine = mock(StageMachine.class);
@@ -39,7 +38,7 @@ class EvaluationPipelineTest {
     private final CodeJudgeProperties props = new CodeJudgeProperties();
 
     private final EvaluationPipeline pipeline = new EvaluationPipeline(
-            cloneStage, scanStage, securityScanStage, aiStage, scoringStage, reportStage,
+            cloneStage, scanStage, securityScanStage, scoringStage, reportStage,
             stageMachine, evaluationRepository, jobQueueService, props);
 
     private final UUID evaluationId = UUID.randomUUID();
@@ -53,11 +52,10 @@ class EvaluationPipelineTest {
         pipeline.run(evaluationId);
 
         var inOrder = org.mockito.Mockito.inOrder(
-                cloneStage, scanStage, securityScanStage, aiStage, scoringStage, reportStage);
+                cloneStage, scanStage, securityScanStage, scoringStage, reportStage);
         inOrder.verify(cloneStage).execute(org.mockito.ArgumentMatchers.any());
         inOrder.verify(scanStage).execute(org.mockito.ArgumentMatchers.any());
         inOrder.verify(securityScanStage).execute(org.mockito.ArgumentMatchers.any());
-        inOrder.verify(aiStage).execute(org.mockito.ArgumentMatchers.any());
         inOrder.verify(scoringStage).execute(org.mockito.ArgumentMatchers.any());
         inOrder.verify(reportStage).execute(org.mockito.ArgumentMatchers.any());
         verify(jobQueueService).markDone(evaluationId);
@@ -143,7 +141,6 @@ class EvaluationPipelineTest {
                 EvaluationStatus.CLONING,
                 EvaluationStatus.SCANNING,
                 EvaluationStatus.SECURITY_SCANNING,
-                EvaluationStatus.AI_ANALYSIS,
                 EvaluationStatus.SCORING,
                 EvaluationStatus.REPORT_GENERATION);
         assertThat(pipeline.stageOrder()).doesNotContain(
@@ -162,7 +159,6 @@ class EvaluationPipelineTest {
         when(cloneStage.status()).thenReturn(EvaluationStatus.CLONING);
         when(scanStage.status()).thenReturn(EvaluationStatus.SCANNING);
         when(securityScanStage.status()).thenReturn(EvaluationStatus.SECURITY_SCANNING);
-        when(aiStage.status()).thenReturn(EvaluationStatus.AI_ANALYSIS);
         when(scoringStage.status()).thenReturn(EvaluationStatus.SCORING);
         when(reportStage.status()).thenReturn(EvaluationStatus.REPORT_GENERATION);
     }

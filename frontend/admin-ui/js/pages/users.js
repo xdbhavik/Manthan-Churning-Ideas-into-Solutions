@@ -19,7 +19,7 @@ let showOnboardModal = false;
 // Quick-select preset identities from the active system
 const KNOWN_PRESETS = [
   { label: 'Admin (Self)', id: '11111111-1111-4111-8111-111111111111', role: 'ADMIN' },
-  { label: 'Reviewer Officer', id: '22222222-2222-4222-8222-222222222222', role: 'REVIEWER' },
+  { label: 'KYC Agent', id: '22222222-2222-4222-8222-222222222222', role: 'REVIEWER' },
   { label: 'Submitter Nodal', id: '33333333-3333-4333-8333-333333333333', role: 'SUBMITTER' },
   { label: 'Evaluator Lead', id: '44444444-4444-4444-8444-444444444444', role: 'EVALUATOR' },
 ];
@@ -142,7 +142,7 @@ function render() {
                     <div class="flex flex-wrap items-center gap-space-sm">
                       <span class="font-headline-md text-headline-md text-ashoka-blue font-bold">${u.email ? u.email.split('@')[0].toUpperCase() : 'REGISTERED OFFICER'}</span>
                       <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full ${getRoleColor(u.role).badge} font-label-sm text-label-sm font-bold uppercase tracking-wider">
-                        ${u.role}
+                        ${getRoleLabel(u.role)}
                       </span>
                       <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${u.kycStatus === 'VERIFIED' ? 'bg-status-approved-bg text-status-approved-text' : 'bg-status-review-bg text-status-review-text'} font-label-sm text-label-sm font-bold">
                         <span class="material-symbols-outlined text-[12px]">${u.kycStatus === 'VERIFIED' ? 'verified' : 'pending'}</span>
@@ -173,7 +173,7 @@ function render() {
                   </div>
                   <div>
                     <span class="font-label-sm text-label-sm text-text-muted uppercase">Assigned Authority Role</span>
-                    <p class="font-mono-code text-body-md text-ashoka-blue font-bold mt-0.5">${u.role}</p>
+                    <p class="font-mono-code text-body-md text-ashoka-blue font-bold mt-0.5">${getRoleLabel(u.role)}</p>
                   </div>
                   <div>
                     <span class="font-label-sm text-label-sm text-text-muted uppercase">KYC Verification State</span>
@@ -213,7 +213,7 @@ function render() {
                 <div>
                   <span class="font-label-sm text-label-sm text-text-muted uppercase block">Current Role</span>
                   <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full ${getRoleColor(u.role).badge} font-label-md text-label-md font-bold uppercase mt-1">
-                    ${u.role}
+                    ${getRoleLabel(u.role)}
                   </span>
                 </div>
                 <span class="material-symbols-outlined text-[24px] text-text-muted hidden sm:inline">arrow_forward</span>
@@ -221,7 +221,7 @@ function render() {
                   <span class="font-label-sm text-label-sm text-text-muted uppercase block">Proposed New Role</span>
                   <select id="new-role-select" class="mt-1 px-3 py-1.5 rounded-lg bg-surface-crisp text-text-primary font-label-md text-label-md focus:outline-none focus:ring-2 focus:ring-ashoka-blue shadow-sm border border-border-hairline">
                     <option value="SUBMITTER" ${u.role === 'SUBMITTER' ? 'selected' : ''}>SUBMITTER</option>
-                    <option value="REVIEWER" ${u.role === 'REVIEWER' ? 'selected' : ''}>REVIEWER</option>
+                    <option value="REVIEWER" ${u.role === 'REVIEWER' ? 'selected' : ''}>KYC AGENT</option>
                     <option value="EVALUATOR" ${u.role === 'EVALUATOR' ? 'selected' : ''}>EVALUATOR</option>
                     <option value="ADMIN" ${u.role === 'ADMIN' ? 'selected' : ''}>ADMIN</option>
                   </select>
@@ -270,8 +270,8 @@ function render() {
           <div class="p-space-md bg-surface-subtle rounded-lg border border-border-hairline">
             <p class="font-body-md text-body-md text-text-primary leading-relaxed">
               You are about to change the role of user <strong class="font-mono-code text-xs">${u?.userId || ''}</strong> from
-              <span class="font-mono-code text-ashoka-blue font-bold">${u?.role || ''}</span> to
-              <span id="modal-new-role" class="font-mono-code text-saffron-accent font-bold">REVIEWER</span>.
+              <span class="font-mono-code text-ashoka-blue font-bold">${getRoleLabel(u?.role)}</span> to
+              <span id="modal-new-role" class="font-mono-code text-saffron-accent font-bold">KYC AGENT</span>.
             </p>
           </div>
 
@@ -362,6 +362,10 @@ function getRoleIcon(role) {
   }
 }
 
+function getRoleLabel(role) {
+  return role === 'REVIEWER' ? 'KYC AGENT' : (role || '');
+}
+
 function getRoleColor(role) {
   switch (role) {
     case 'ADMIN': return { iconBg: 'bg-ashoka-blue', badge: 'bg-ashoka-blue text-on-primary' };
@@ -374,7 +378,7 @@ function getRoleColor(role) {
 function getClearanceTier(role) {
   switch (role) {
     case 'ADMIN': return 'Tier 1 • Sovereign Root';
-    case 'REVIEWER': return 'Tier 2 • Review Officer';
+    case 'REVIEWER': return 'Tier 2 • KYC Agent';
     case 'EVALUATOR': return 'Tier 3 • Technical Panel';
     default: return 'Tier 4 • Submitter Node';
   }
@@ -427,7 +431,7 @@ window.usersPage = {
     const modal = document.getElementById('confirm-modal');
     const newRole = document.getElementById('new-role-select')?.value;
     const modalRole = document.getElementById('modal-new-role');
-    if (modalRole) modalRole.textContent = newRole;
+    if (modalRole) modalRole.textContent = getRoleLabel(newRole);
     if (modal) modal.classList.remove('hidden');
   },
 

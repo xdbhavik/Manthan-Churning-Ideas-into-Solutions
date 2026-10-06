@@ -1,7 +1,10 @@
 package com.EDITH.SIH26043.service;
 
 import com.EDITH.SIH26043.enums.KycStatus;
+import com.EDITH.SIH26043.client.GovernmentSubmissionGateway;
 import com.EDITH.SIH26043.enums.ProblemAccessRule;
+import com.EDITH.SIH26043.enums.SourceBucket;
+import com.EDITH.SIH26043.entity.Problem;
 import com.EDITH.SIH26043.enums.Urgency;
 import com.EDITH.SIH26043.enums.UserRole;
 import com.EDITH.SIH26043.exception.ApiException;
@@ -34,9 +37,10 @@ class ProblemSubmissionServiceTest {
     private final ProblemCollectionEngine engine = mock(ProblemCollectionEngine.class);
     private final AutoUniversitySelectionService autoSelection =
             mock(AutoUniversitySelectionService.class);
+    private final GovernmentSubmissionGateway governmentSubmissionGateway = mock(GovernmentSubmissionGateway.class);
 
     private final ProblemSubmissionService service =
-            new ProblemSubmissionService(engine, autoSelection);
+            new ProblemSubmissionService(engine, autoSelection, governmentSubmissionGateway);
 
     private final AuthUser me = new AuthUser(UUID.randomUUID(), "9900000001",
             UserRole.SUBMITTER, KycStatus.UNVERIFIED);
@@ -64,6 +68,19 @@ class ProblemSubmissionServiceTest {
 
         verify(engine).receiveSubmission(req, me, "10.0.0.1", null);
         verifyNoInteractions(autoSelection);
+    }
+
+    @Test
+    void governmentProblemIsSentForDirectEvaluatorAssignment() {
+        ProblemSubmitRequest req = request(null, null);
+        Problem created = new Problem();
+        created.setProblemId(UUID.randomUUID());
+        created.setSourceBucket(SourceBucket.GOVT);
+        when(engine.receiveSubmission(req, me, "10.0.0.1", null)).thenReturn(created);
+
+        service.submit(req, me, "10.0.0.1");
+
+        verify(governmentSubmissionGateway).assign(created.getProblemId(), me.getUserId());
     }
 
     @Test

@@ -17,6 +17,7 @@ export default function RegisterPage() {
   const toast = useToast();
 
   const [fullName, setFullName] = useState('');
+  const [institutionName, setInstitutionName] = useState('');
   const [email, setEmail] = useState(user?.email ?? '');
   const [phone, setPhone] = useState(user?.phone ?? '');
   const [agree, setAgree] = useState(false);
@@ -31,6 +32,10 @@ export default function RegisterPage() {
       setError('Enter your full name.');
       return;
     }
+    if (!institutionName.trim()) {
+      setError('Enter your college or institution name.');
+      return;
+    }
     if (!agree) {
       setError('Please accept the participation terms.');
       return;
@@ -39,6 +44,7 @@ export default function RegisterPage() {
     try {
       await portal.registerStudent({
         fullName: fullName.trim(),
+        institutionName: institutionName.trim(),
         email: email.trim() || undefined,
         phone: phone.trim() || undefined,
       });
@@ -201,20 +207,29 @@ export default function RegisterPage() {
               </p>
             </div>
 
-            {/* Field 4 (Autodetected derived view): College / Institution */}
-            <div className="bg-surface-container rounded-lg p-3 space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak uppercase">
-                  Auto-Detected Institution (via domain)
-                </span>
-                <span className="font-label-mono-sm text-label-mono-sm text-secondary bg-surface-card px-1.5 py-0.5 rounded">
-                  AISHE: C-41593
-                </span>
+            {/* Field 3: Manually entered college / institution */}
+            <div className="space-y-1.5">
+              <label className="font-headline-sm text-headline-sm text-on-surface" htmlFor="institutionName">
+                College / Institution <span className="text-error">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  className="w-full h-10 px-3 pr-10 rounded-lg bg-surface-canvas text-on-surface font-body-md text-body-md focus:bg-surface-card focus:outline-none transition-colors shadow-inner border border-transparent focus:border-border-subtle"
+                  id="institutionName"
+                  name="institutionName"
+                  autoComplete="organization"
+                  required
+                  type="text"
+                  maxLength={255}
+                  placeholder="Enter your college or university name"
+                  value={institutionName}
+                  onChange={(e) => setInstitutionName(e.target.value)}
+                />
+                <span className="material-symbols-outlined absolute right-3 top-2.5 text-secondary text-body-lg">account_balance</span>
               </div>
-              <div className="flex items-center gap-2 font-headline-sm text-headline-sm text-on-surface">
-                <span className="material-symbols-outlined text-secondary">account_balance</span>
-                <span>COEP Technological University, Pune</span>
-              </div>
+              <p className="font-body-sm text-body-sm text-on-surface-variant-weak">
+                Enter your institution name as you want it shown on your participant profile.
+              </p>
             </div>
 
             {/* Field 3: Mobile Phone Number */}

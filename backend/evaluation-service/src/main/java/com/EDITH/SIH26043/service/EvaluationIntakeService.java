@@ -78,6 +78,54 @@ public class EvaluationIntakeService {
         return cycle;
     }
 
+    /** Opens a direct routing cycle for an approved government source account's new submission. */
+    @Transactional
+    public UUID startGovernmentSubmission(UUID problemId, UUID submitterUserId) {
+        ProblemContextResponse problem = problemGateway.fetch(problemId);
+        if (!"GOVT".equals(problem.sourceBucket()) || !"SUBMITTED".equals(problem.status())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "Direct government routing requires a newly submitted GOVT problem");
+        }
+        return startSubmittedProblem(problem, submitterUserId);
+    }
+
+    /** Opens an idempotent routing cycle for any newly submitted source type. */
+    @Transactional
+    public UUID startSubmittedProblem(UUID problemId, UUID submitterUserId) {
+        ProblemContextResponse problem = problemGateway.fetch(problemId);
+        if (!"SUBMITTED".equals(problem.status())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "Automatic submission routing requires a newly submitted problem");
+        }
+        return startSubmittedProblem(problem, submitterUserId);
+    }
+
+    private UUID startSubmittedProblem(ProblemContextResponse problem, UUID submitterUserId) {
+        UUID problemId = problem.problemId();
+        EvaluationCycle cycle = cycleRepository.findByProblemId(problemId).orElse(null);
+        if (cycle != null) {
+            return cycle.getCycleId();
+        }
+        cycle = new EvaluationCycle();
+        cycle.setProblemId(problemId);
+        cycle.setStatus(EvaluationStatus.ROUTING);
+        cycle.setTriggerMethod("SUBMISSION");
+        cycle.setTriggeredByUserId(submitterUserId);
+        cycle.setStartedAt(Instant.now());
+        cycle = cycleRepository.save(cycle);
+        EvaluationStatusHistory history = new EvaluationStatusHistory();
+        history.setCycleId(cycle.getCycleId());
+        history.setFromStatus(null);
+        history.setToStatus(EvaluationStatus.ROUTING);
+        history.setChangedByUserId(submitterUserId);
+        history.setComment("Problem submitted; evaluator assignment started for its source pool");
+        history.setChangedAt(cycle.getStartedAt());
+        historyRepository.save(history);
+        auditService.record("PROBLEM", problemId, AuditAction.EVALUATION_STARTED,
+                submitterUserId, null, snapshot(cycle), "internal");
+        return cycle.getCycleId();
+    }
+
     private void appendInitialHistory(EvaluationCycle cycle, UUID actorUserId) {
         EvaluationStatusHistory history = new EvaluationStatusHistory();
         history.setCycleId(cycle.getCycleId());

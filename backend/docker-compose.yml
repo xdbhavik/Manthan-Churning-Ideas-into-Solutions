@@ -98,6 +98,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-sih}
       JWT_SECRET: ${JWT_SECRET:-local-dev-only-secret-key-min-32-bytes-change-me!!}
       MOCK_OTP_CODE: ${MOCK_OTP_CODE:-123456}
+      OTP_RATE_LIMIT_ENABLED: ${OTP_RATE_LIMIT_ENABLED:-false}
       IDENTITY_PEPPER: ${IDENTITY_PEPPER:-local-dev-only-identity-pepper-change-me}
       EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
     ports:
@@ -123,6 +124,7 @@ services:
       DB_USERNAME: ${DB_USERNAME:-sih}
       DB_PASSWORD: ${DB_PASSWORD:-sih}
       JWT_SECRET: ${JWT_SECRET:-local-dev-only-secret-key-min-32-bytes-change-me!!}
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-local-dev-internal-service-key}
       EVIDENCE_STORAGE_DIR: /data/evidence
       # Local OpenAI-compatible LLM, used only to resolve a problem's domains for
       # the AUTO_SELECTED_UNIVERSITIES access rule. host.docker.internal reaches the
@@ -162,6 +164,7 @@ services:
       DB_USERNAME: ${DB_USERNAME:-sih}
       DB_PASSWORD: ${DB_PASSWORD:-sih}
       JWT_SECRET: ${JWT_SECRET:-local-dev-only-secret-key-min-32-bytes-change-me!!}
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-local-dev-internal-service-key}
       # Local OpenAI-compatible LLM (agentrouter on the host). host.docker.internal
       # reaches the host from inside the container; a bare localhost would target
       # the container itself and fail.

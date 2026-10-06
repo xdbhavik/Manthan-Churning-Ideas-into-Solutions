@@ -6,8 +6,10 @@ package com.EDITH.SIH26043.enums;
 public enum AssignmentStatus {
     ASSIGNED,
     IN_PROGRESS,
+    ACCEPTED,
     SUBMITTED,
     DECLINED,
     EXPIRED,
-    REVIEWED
+    REVIEWED,
+    REJECTED
 }

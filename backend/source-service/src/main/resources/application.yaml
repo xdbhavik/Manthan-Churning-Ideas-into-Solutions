@@ -34,6 +34,7 @@ app:
     ttl-minutes: 5
     max-attempts: 3
     max-requests-per-phone-per-hour: 5
+    rate-limit-enabled: ${OTP_RATE_LIMIT_ENABLED:false}
     # Fixed OTP used when the prod profile is NOT active (demo/testing).
     # Leave empty to fall back to a random code; ignored when prod is active.
     mock-code: ${MOCK_OTP_CODE:}

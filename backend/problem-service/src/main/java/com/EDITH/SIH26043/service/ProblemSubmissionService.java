@@ -1,6 +1,7 @@
 package com.EDITH.SIH26043.service;
 
 import com.EDITH.SIH26043.entity.Problem;
+import com.EDITH.SIH26043.client.GovernmentSubmissionGateway;
 import com.EDITH.SIH26043.enums.ProblemAccessRule;
 import com.EDITH.SIH26043.security.AuthUser;
 import com.EDITH.SIH26043.web.dto.ProblemSubmitRequest;
@@ -28,11 +29,14 @@ public class ProblemSubmissionService {
 
     private final ProblemCollectionEngine engine;
     private final AutoUniversitySelectionService autoSelection;
+    private final GovernmentSubmissionGateway governmentSubmissionGateway;
 
     public ProblemSubmissionService(ProblemCollectionEngine engine,
-                                    AutoUniversitySelectionService autoSelection) {
+                                    AutoUniversitySelectionService autoSelection,
+                                    GovernmentSubmissionGateway governmentSubmissionGateway) {
         this.engine = engine;
         this.autoSelection = autoSelection;
+        this.governmentSubmissionGateway = governmentSubmissionGateway;
     }
 
     public Problem submit(ProblemSubmitRequest req, AuthUser submitter, String ip) {
@@ -43,6 +47,10 @@ public class ProblemSubmissionService {
             resolvedUniversities = autoSelection.resolve(
                     req.title(), req.description(), req.domainIds());
         }
-        return engine.receiveSubmission(req, submitter, ip, resolvedUniversities);
+        Problem created = engine.receiveSubmission(req, submitter, ip, resolvedUniversities);
+        if (created != null) {
+            governmentSubmissionGateway.assign(created.getProblemId(), submitter.getUserId());
+        }
+        return created;
     }
 }

@@ -54,7 +54,7 @@ export default function Header() {
             rel="noreferrer"
             className="px-space-sm py-1 rounded text-text-secondary hover:text-ashoka-blue font-label-md text-label-md transition-colors"
           >
-            Reviewer
+            KYC Agent
           </a>
           <span className="px-space-sm py-1 rounded bg-ashoka-blue text-on-primary font-bold text-label-md shadow-xs">
             Evaluator

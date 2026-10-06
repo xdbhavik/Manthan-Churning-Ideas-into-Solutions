@@ -10,6 +10,7 @@ import com.EDITH.SIH26043.enums.Urgency;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /** Canonical problem view used in API responses. */
@@ -33,7 +34,8 @@ public record ProblemResponse(
         UUID submittedByUserId,
         ProblemAccessRule accessRule,
         List<String> accessUniversities,
-        int version
+        int version,
+        Map<String, Object> metadata
 ) {
 
     public static ProblemResponse from(Problem p) {
@@ -46,6 +48,7 @@ public record ProblemResponse(
                 p.getSubmittedAt(), p.getUpdatedAt(), p.getSubmittedByUserId(),
                 p.getAccessRule() == null ? ProblemAccessRule.OPEN_TO_ALL : p.getAccessRule(),
                 p.getAccessUniversities() == null ? List.of() : p.getAccessUniversities(),
-                p.getVersion() == null ? 1 : p.getVersion());
+                p.getVersion() == null ? 1 : p.getVersion(),
+                p.getMetadata() == null ? Map.of() : p.getMetadata());
     }
 }

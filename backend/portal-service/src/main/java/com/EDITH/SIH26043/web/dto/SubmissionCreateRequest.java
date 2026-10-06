@@ -44,6 +44,17 @@ public record SubmissionCreateRequest(
         @Size(max = 150)
         String teamName,
 
-        List<UUID> memberUserIds
+        List<UUID> memberUserIds,
+
+        Map<String, Object> projectDetails,
+
+        UUID teamId
 ) {
+    public SubmissionCreateRequest(UUID problemId, String title, String summary,
+                                  String githubUrl, String commitSha, String branch,
+                                  List<Map<String, String>> links, String teamName,
+                                  List<UUID> memberUserIds) {
+        this(problemId, title, summary, githubUrl, commitSha, branch, links, teamName,
+                memberUserIds, null, null);
+    }
 }

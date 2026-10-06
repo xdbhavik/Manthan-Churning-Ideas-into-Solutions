@@ -64,8 +64,14 @@ export interface Participant {
 
 export interface ParticipantRegisterRequest {
   fullName: string;
+  institutionName: string;
   email?: string;
   phone?: string;
+}
+
+export interface ParticipantSearchResult {
+  participantId: string;
+  fullName: string;
 }
 
 export interface ParticipantUpdateRequest {
@@ -140,6 +146,7 @@ export interface Submission {
   commitSha: string | null;
   branch: string | null;
   links: SubmissionLink[];
+  projectDetails: Record<string, unknown>;
   status: SubmissionStatus;
   reviewRound: number;
   reviewerUserId: string | null;
@@ -160,6 +167,32 @@ export interface SubmissionCreateRequest {
   links?: SubmissionLink[];
   teamName?: string;
   memberUserIds?: string[];
+  teamId?: string;
+  projectDetails?: Record<string, unknown>;
+}
+
+export interface TeamOverview {
+  teamId: string;
+  name: string;
+  problemId: string;
+  problemTitle: string;
+  callerRole: string;
+  createdAt: string;
+  members: TeamMemberBrief[];
+}
+
+export interface TeamInvitation {
+  invitationId: string;
+  teamId: string;
+  teamName: string;
+  problemId: string;
+  problemTitle: string;
+  inviterName: string;
+  inviteeName: string;
+  status: 'PENDING' | 'ACCEPTED' | 'DECLINED';
+  direction: 'RECEIVED' | 'SENT';
+  createdAt: string;
+  respondedAt: string | null;
 }
 
 export interface SubmissionMetaRequest {
@@ -169,6 +202,7 @@ export interface SubmissionMetaRequest {
   commitSha?: string;
   branch?: string;
   links?: SubmissionLink[];
+  projectDetails?: Record<string, unknown>;
 }
 
 export interface PageResponse<T> {

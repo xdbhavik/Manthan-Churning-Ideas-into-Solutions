@@ -3,6 +3,7 @@ package com.EDITH.SIH26043.client;
 import com.EDITH.SIH26043.exception.ApiException;
 import com.EDITH.SIH26043.internal.ProblemContextResponse;
 import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
@@ -23,6 +24,8 @@ import java.util.UUID;
 public class ProblemContextGateway {
 
     private final ProblemContextApi api;
+    @Value("${app.internal.service-key:local-dev-internal-service-key}")
+    private String serviceKey;
 
     public ProblemContextGateway(ProblemContextApi api) {
         this.api = api;
@@ -42,6 +45,19 @@ public class ProblemContextGateway {
         } catch (RestClientException e) {
             throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE,
                     "Problem service unreachable; cannot fetch problem " + problemId);
+        }
+    }
+
+    public void reject(UUID problemId, UUID evaluatorUserId, String reason) {
+        try {
+            api.rejectProblem(problemId, serviceKey,
+                    new ProblemContextApi.ProblemRejectionRequest(evaluatorUserId, reason));
+        } catch (HttpStatusCodeException e) {
+            throw new ApiException(HttpStatus.BAD_GATEWAY,
+                    "Problem service rejected the evaluator decision (" + e.getStatusCode().value() + ")");
+        } catch (RestClientException e) {
+            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "Problem service unreachable; rejection was not recorded");
         }
     }
 }

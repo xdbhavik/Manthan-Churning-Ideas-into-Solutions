@@ -58,7 +58,7 @@ export function restoreSession() {
     const role = (stored?.role || payload?.role || 'ADMIN').toUpperCase();
     state.authenticated = true;
     state.user = {
-      name: stored?.name || (stored?.email ? stored.email.split('@')[0].toUpperCase() : (role === 'ADMIN' ? 'Sovereign Administrator' : 'Reviewer Officer')),
+      name: stored?.name || (stored?.email ? stored.email.split('@')[0].toUpperCase() : (role === 'ADMIN' ? 'Sovereign Administrator' : 'KYC Agent')),
       email: stored?.email || payload?.sub || 'admin@sih26043.gov.in',
       role: role,
       phone: stored?.phone || payload?.phone || '',
@@ -136,7 +136,7 @@ function renderHeader() {
                 ${initials}
               </div>
               <div class="flex flex-col text-left hidden sm:flex">
-                <span class="text-xs font-bold text-ashoka-blue leading-tight">${state.user.role}</span>
+                <span class="text-xs font-bold text-ashoka-blue leading-tight">${state.user.role === 'REVIEWER' ? 'KYC AGENT' : state.user.role}</span>
                 <span class="text-[10px] text-text-muted leading-none font-mono-code">${state.user.phone}</span>
               </div>
               <span class="material-symbols-outlined text-text-muted text-[18px] transition-transform" id="header-dropdown-arrow">expand_more</span>

@@ -433,7 +433,7 @@ function handleRoute() {
   // Update Global Header with authentic user info
   if (hasToken && isAuthorized) {
     if (navMenu) navMenu.classList.remove('hidden');
-    const displayName = user.name || (user.email ? user.email.split('@')[0].toUpperCase() : 'Reviewer Officer');
+    const displayName = user.name || (user.email ? user.email.split('@')[0].toUpperCase() : 'KYC Agent');
     const displaySub = user.mobile || user.id || 'ROLE_REVIEWER';
 
     if (officerName) officerName.textContent = displayName;
@@ -445,7 +445,7 @@ function handleRoute() {
     const dropdownRole = document.getElementById('dropdown-role-badge');
     if (dropdownName) dropdownName.textContent = displayName;
     if (dropdownId) dropdownId.textContent = displaySub;
-    if (dropdownRole) dropdownRole.textContent = user.role || "REVIEWER";
+    if (dropdownRole) dropdownRole.textContent = user.role === 'REVIEWER' ? 'KYC AGENT' : (user.role || 'KYC AGENT');
   } else {
     if (navMenu) navMenu.classList.add('hidden');
     if (officerName) officerName.textContent = "Unauthenticated";
@@ -497,7 +497,7 @@ function handleRoute() {
     renderMyReviewsWorkbench();
   } else if (routePath === '#/access-denied') {
     document.getElementById('screen-access-denied').classList.add('active');
-    document.title = "SIH26043 — 403 Access Denied: Reviewer Clearance Required";
+    document.title = "SIH26043 — 403 Access Denied: KYC Agent Clearance Required";
     const dm = document.getElementById('denied-user-mobile');
     if (dm) dm.textContent = user ? (user.mobile || user.id) : 'Unassigned';
   } else if (routePath === '#/otp') {
@@ -510,7 +510,7 @@ function handleRoute() {
     setTimeout(() => { if (otpCells[0]) otpCells[0].focus(); }, 150);
   } else {
     document.getElementById('screen-login').classList.add('active');
-    document.title = "SIH26043 — Sign in to Reviewer Portal";
+    document.title = "SIH26043 — Sign in to KYC Agent Portal";
     initMobileInput();
     checkGatewayStatus();
   }
@@ -829,7 +829,7 @@ async function handleVerification() {
     const user = data.user || {};
     AppState.authenticatedUser = {
       mobile: user.phone ? ('+91 ' + user.phone) : (sessionStorage.getItem('auth_phone') ? '+91 ' + sessionStorage.getItem('auth_phone') : ''),
-      name: user.role === 'ADMIN' ? 'System Administrator' : (user.email ? user.email.split('@')[0].toUpperCase() : 'Reviewer Officer'),
+      name: user.role === 'ADMIN' ? 'System Administrator' : (user.email ? user.email.split('@')[0].toUpperCase() : 'KYC Agent'),
       id: user.userId,
       role: user.role,
       kycStatus: user.kycStatus
@@ -1370,7 +1370,7 @@ function renderRegistrationDetailView(reg, history) {
   // Update Attestation statement with logged in officer name
   const attestName = document.getElementById('attest-officer-name');
   if (attestName && AppState.authenticatedUser) {
-    attestName.textContent = AppState.authenticatedUser.name || "Reviewer Officer";
+    attestName.textContent = AppState.authenticatedUser.name || "KYC Agent";
   }
 
   // Update Hint with real recipient
@@ -1876,7 +1876,7 @@ function openProblemModal(sourceId) {
   // Update Attestation Officer Name
   const officerNameEl = document.getElementById('src-verify-officer-name');
   if (officerNameEl && AppState.authenticatedUser) {
-    officerNameEl.textContent = AppState.authenticatedUser.name || 'Reviewer Officer';
+    officerNameEl.textContent = AppState.authenticatedUser.name || 'KYC Agent';
   }
 
   // Reset form inputs
@@ -2025,7 +2025,7 @@ async function executeSourceVerification() {
       notes: notes || 'Statutory review check executed.',
       evidenceUrl: evidenceUrl,
       verifiedAt: (backendRecord && backendRecord.verifiedAt) || new Date().toISOString(),
-      reviewerName: AppState.authenticatedUser?.name || 'Reviewer Officer'
+      reviewerName: AppState.authenticatedUser?.name || 'KYC Agent'
     };
 
     history.push(newEvent);
@@ -2113,7 +2113,7 @@ function renderSourceVerificationHistory(sourceId) {
         </div>
         ${ev.notes ? `<p class="text-text-primary text-xs mt-1 font-body-sm">${ev.notes}</p>` : ''}
         <div class="flex items-center justify-between text-[11px] text-text-muted pt-1 border-t border-border-hairline/60">
-          <span>Officer: <strong class="text-text-primary">${ev.reviewerName || 'Reviewer'}</strong></span>
+          <span>KYC Agent: <strong class="text-text-primary">${ev.reviewerName || 'KYC Agent'}</strong></span>
           ${ev.evidenceUrl ? `
             <a href="${ev.evidenceUrl}" target="_blank" rel="noopener noreferrer" class="text-institutional-navy hover:underline flex items-center gap-0.5 font-mono">
               <span class="material-symbols-outlined text-[13px]">link</span>
@@ -2141,7 +2141,7 @@ function renderMyReviewsWorkbench() {
   const avatarEl = document.getElementById('workbench-avatar');
 
   if (user) {
-    const displayName = user.name || (user.email ? user.email.split('@')[0].toUpperCase() : 'Reviewer Officer');
+    const displayName = user.name || (user.email ? user.email.split('@')[0].toUpperCase() : 'KYC Agent');
     if (nameEl) nameEl.textContent = displayName;
     if (roleEl) roleEl.textContent = `Clearance: ROLE_${user.role || 'REVIEWER'}`;
     if (headingEl) headingEl.textContent = `${displayName}'s Active Caseload`;

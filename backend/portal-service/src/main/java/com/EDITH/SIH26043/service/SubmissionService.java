@@ -99,12 +99,26 @@ public class SubmissionService {
 
         List<UUID> memberIds = request.memberUserIds() == null
                 ? List.of() : request.memberUserIds();
+        if (!memberIds.isEmpty()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "Invite students from Teams first; they join only after accepting the invitation");
+        }
         boolean teamMode = !memberIds.isEmpty()
-                || (request.teamName() != null && !request.teamName().isBlank());
+                || (request.teamName() != null && !request.teamName().isBlank()) || request.teamId() != null;
 
         UUID teamId = null;
         if (teamMode) {
-            teamId = createTeam(me, problem, memberIds, request.teamName());
+            if (request.teamId() != null) {
+                Team team = teamRepository.findById(request.teamId())
+                        .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Team not found"));
+                if (!team.getProblemId().equals(problem.getProblemId()))
+                    throw new ApiException(HttpStatus.BAD_REQUEST, "Team is linked to a different problem");
+                if (!teamMemberRepository.existsById(new TeamMemberId(team.getTeamId(), me.getParticipantId())))
+                    throw new ApiException(HttpStatus.FORBIDDEN, "You must accept a team invitation to join this team");
+                teamId = team.getTeamId();
+            } else {
+                teamId = createTeam(me, problem, List.of(), request.teamName());
+            }
         } else if (submissionRepository
                 .existsByProblemIdAndSubmitterParticipantIdAndStatusIn(
                         problem.getProblemId(), me.getParticipantId(), ACTIVE_STATUSES)) {
@@ -117,7 +131,7 @@ public class SubmissionService {
         submission.setTeamId(teamId);
         submission.setSubmitterParticipantId(me.getParticipantId());
         applyMeta(submission, request.title(), request.summary(), request.githubUrl(),
-                request.commitSha(), request.branch(), request.links(), true);
+                request.commitSha(), request.branch(), request.links(), request.projectDetails(), true);
         submissionRepository.save(submission);
         return toView(submission);
     }
@@ -168,7 +182,7 @@ public class SubmissionService {
         requireActor(submission, me);
         requireEditable(submission);
         applyMeta(submission, request.title(), request.summary(), request.githubUrl(),
-                request.commitSha(), request.branch(), request.links(), false);
+                request.commitSha(), request.branch(), request.links(), request.projectDetails(), false);
         submissionRepository.save(submission);
         return toView(submission);
     }
@@ -417,7 +431,8 @@ public class SubmissionService {
 
     private void applyMeta(Submission submission, String title, String summary,
                            String githubUrl, String commitSha, String branch,
-                           List<java.util.Map<String, String>> links, boolean replaceAll) {
+                           List<java.util.Map<String, String>> links,
+                           java.util.Map<String, Object> projectDetails, boolean replaceAll) {
         if (replaceAll || title != null) {
             submission.setTitle(title);
         }
@@ -437,6 +452,9 @@ public class SubmissionService {
         }
         if (replaceAll || links != null) {
             submission.setLinks(links == null ? List.of() : links);
+        }
+        if (replaceAll || projectDetails != null) {
+            submission.setProjectDetails(projectDetails == null ? java.util.Map.of() : projectDetails);
         }
     }
 
@@ -465,6 +483,7 @@ public class SubmissionService {
                 submission.getDecisionComment(),
                 submission.getSubmittedAt(),
                 submission.getDecidedAt(),
+                submission.getProjectDetails() == null ? java.util.Map.of() : submission.getProjectDetails(),
                 filesView(submission.getSubmissionId()),
                 teamView(submission.getTeamId()));
     }

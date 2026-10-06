@@ -1,13 +1,11 @@
 package com.EDITH.SIH26043.evaluation.pipeline;
 
-import com.EDITH.SIH26043.entity.AiEvaluation;
 import com.EDITH.SIH26043.entity.Evaluation;
 import com.EDITH.SIH26043.entity.EvaluationCategoryScore;
 import com.EDITH.SIH26043.entity.EvaluationFinding;
 import com.EDITH.SIH26043.entity.EvaluationReport;
 import com.EDITH.SIH26043.entity.ProjectSubmission;
 import com.EDITH.SIH26043.enums.EvaluationStatus;
-import com.EDITH.SIH26043.repository.AiEvaluationRepository;
 import com.EDITH.SIH26043.repository.EvaluationCategoryScoreRepository;
 import com.EDITH.SIH26043.repository.EvaluationFindingRepository;
 import com.EDITH.SIH26043.repository.EvaluationReportRepository;
@@ -21,12 +19,11 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * REPORT_GENERATION stage. Assembles the structured report JSON + a human-readable
- * markdown rendering from the persisted category scores, findings and AI advisory,
- * then moves the evaluation to COMPLETED inside the same transaction.
+ * markdown rendering from the persisted category scores and findings, then moves
+ * the evaluation to COMPLETED inside the same transaction.
  */
 @Component
 public class ReportStage implements Stage {
@@ -35,7 +32,6 @@ public class ReportStage implements Stage {
     private final EvaluationRepository evaluationRepository;
     private final EvaluationCategoryScoreRepository categoryScoreRepository;
     private final EvaluationFindingRepository findingRepository;
-    private final AiEvaluationRepository aiEvaluationRepository;
     private final EvaluationReportRepository reportRepository;
     private final ProjectSubmissionRepository submissionRepository;
 
@@ -43,14 +39,12 @@ public class ReportStage implements Stage {
                        EvaluationRepository evaluationRepository,
                        EvaluationCategoryScoreRepository categoryScoreRepository,
                        EvaluationFindingRepository findingRepository,
-                       AiEvaluationRepository aiEvaluationRepository,
                        EvaluationReportRepository reportRepository,
                        ProjectSubmissionRepository submissionRepository) {
         this.stageMachine = stageMachine;
         this.evaluationRepository = evaluationRepository;
         this.categoryScoreRepository = categoryScoreRepository;
         this.findingRepository = findingRepository;
-        this.aiEvaluationRepository = aiEvaluationRepository;
         this.reportRepository = reportRepository;
         this.submissionRepository = submissionRepository;
     }
@@ -76,15 +70,13 @@ public class ReportStage implements Stage {
                 .findByEvaluationIdOrderByCategoryKeyAsc(context.getEvaluationId());
         List<EvaluationFinding> findings = findingRepository
                 .findByEvaluationIdOrderBySeverityDescCreatedAtAsc(context.getEvaluationId());
-        Optional<AiEvaluation> ai = aiEvaluationRepository
-                .findFirstByEvaluationIdOrderByCreatedAtDesc(context.getEvaluationId());
 
-        Map<String, Object> reportJson = assembleJson(evaluation, submission, scores, findings, ai);
+        Map<String, Object> reportJson = assembleJson(evaluation, submission, scores, findings);
 
         EvaluationReport row = new EvaluationReport();
         row.setEvaluationId(context.getEvaluationId());
         row.setReportJson(reportJson);
-        row.setReportMarkdown(assembleMarkdown(evaluation, submission, scores, findings, ai));
+        row.setReportMarkdown(assembleMarkdown(evaluation, submission, scores, findings));
         reportRepository.save(row);
 
         // Terminal transition — the whole report is persisted in this transaction,
@@ -96,8 +88,7 @@ public class ReportStage implements Stage {
     private Map<String, Object> assembleJson(Evaluation evaluation,
                                              ProjectSubmission submission,
                                              List<EvaluationCategoryScore> scores,
-                                             List<EvaluationFinding> findings,
-                                             Optional<AiEvaluation> ai) {
+                                             List<EvaluationFinding> findings) {
         Map<String, Object> json = new LinkedHashMap<>();
         json.put("evaluationId", evaluation.getEvaluationId().toString());
         json.put("submissionId", evaluation.getSubmissionId().toString());
@@ -138,17 +129,13 @@ public class ReportStage implements Stage {
         }
         json.put("findings", findingList);
 
-        if (ai.isPresent()) {
-            json.put("ai", ai.get().getPayload());
-        }
         return json;
     }
 
     private String assembleMarkdown(Evaluation evaluation,
                                     ProjectSubmission submission,
                                     List<EvaluationCategoryScore> scores,
-                                    List<EvaluationFinding> findings,
-                                    Optional<AiEvaluation> ai) {
+                                    List<EvaluationFinding> findings) {
         StringBuilder sb = new StringBuilder();
         sb.append("# CodeJudge Evaluation Report\n\n");
         sb.append("- **Evaluation:** `").append(evaluation.getEvaluationId()).append("`\n");
@@ -182,17 +169,6 @@ public class ReportStage implements Stage {
                 sb.append("\n");
             }
         }
-        ai.ifPresent(row -> {
-            sb.append("\n## AI advisory (not a score)\n\n");
-            sb.append("- **Status:** ").append(row.getStatus()).append("\n");
-            if (row.getModel() != null) {
-                sb.append("- **Model:** ").append(row.getModel()).append("\n");
-            }
-            Object note = row.getPayload().get("note");
-            if (note != null) {
-                sb.append("- **Note:** ").append(note).append("\n");
-            }
-        });
         return sb.toString();
     }
 

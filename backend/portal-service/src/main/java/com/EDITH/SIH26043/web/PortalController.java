@@ -6,12 +6,14 @@ import com.EDITH.SIH26043.entity.SubmissionFile;
 import com.EDITH.SIH26043.exception.ApiException;
 import com.EDITH.SIH26043.security.AuthUser;
 import com.EDITH.SIH26043.service.ParticipantService;
+import com.EDITH.SIH26043.service.ParticipantSearchService;
 import com.EDITH.SIH26043.service.PublishedProblemService;
 import com.EDITH.SIH26043.service.SubmissionFileService;
 import com.EDITH.SIH26043.service.SubmissionService;
 import com.EDITH.SIH26043.web.dto.FileItemView;
 import com.EDITH.SIH26043.web.dto.ParticipantRegisterRequest;
 import com.EDITH.SIH26043.web.dto.ParticipantResponse;
+import com.EDITH.SIH26043.web.dto.ParticipantBrief;
 import com.EDITH.SIH26043.web.dto.PublishedProblemDetail;
 import com.EDITH.SIH26043.web.dto.PublishedProblemSummary;
 import com.EDITH.SIH26043.web.dto.SubmissionCreateRequest;
@@ -60,15 +62,18 @@ import java.util.UUID;
 public class PortalController {
 
     private final ParticipantService participantService;
+    private final ParticipantSearchService participantSearchService;
     private final PublishedProblemService publishedProblemService;
     private final SubmissionService submissionService;
     private final SubmissionFileService submissionFileService;
 
     public PortalController(ParticipantService participantService,
+                            ParticipantSearchService participantSearchService,
                             PublishedProblemService publishedProblemService,
                             SubmissionService submissionService,
                             SubmissionFileService submissionFileService) {
         this.participantService = participantService;
+        this.participantSearchService = participantSearchService;
         this.publishedProblemService = publishedProblemService;
         this.submissionService = submissionService;
         this.submissionFileService = submissionFileService;
@@ -112,6 +117,15 @@ public class PortalController {
     public ParticipantResponse registerStudent(@AuthenticationPrincipal AuthUser me,
                                                @Valid @RequestBody ParticipantRegisterRequest request) {
         return toResponse(participantService.registerStudent(me, request));
+    }
+
+    @Operation(summary = "🔎 Search registered student teammates",
+            description = "Searches all registered student participants by name. Only minimal participant details are returned.")
+    @GetMapping("/participants/search")
+    @Tag(name = OpenApiConfig.TAG_PARTICIPANT)
+    public List<ParticipantBrief> searchStudentParticipants(@AuthenticationPrincipal AuthUser me,
+                                                            @RequestParam String name) {
+        return participantSearchService.searchStudents(participantService.me(me), name);
     }
 
     // ------------------------------------------------------------------ catalog

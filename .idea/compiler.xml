@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Annotation profile for SIH26043" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+        </processorPath>
+        <module name="codejudge-service" />
+        <module name="edith-security" />
+        <module name="evaluation-service" />
+        <module name="problem-service" />
+        <module name="portal-service" />
+        <module name="edith-common" />
+        <module name="source-service" />
+        <module name="eureka-server" />
+      </profile>
+    </annotationProcessing>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="codejudge-service" options="-parameters" />
+      <module name="edith-common" options="-parameters" />
+      <module name="edith-security" options="-parameters" />
+      <module name="eureka-server" options="-parameters" />
+      <module name="evaluation-service" options="-parameters" />
+      <module name="portal-service" options="-parameters" />
+      <module name="problem-service" options="-parameters" />
+      <module name="source-service" options="-parameters" />
+    </option>
+  </component>
+</project>

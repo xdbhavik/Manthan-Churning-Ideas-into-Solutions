@@ -2,6 +2,7 @@ import { api } from '../lib/api';
 import { getAccessToken } from '../lib/auth';
 import type {
   AssignmentResponse,
+  AssignmentDetailResponse,
   AssignmentStatus,
   DeclineAssignmentRequest,
   EvaluationCriteria,
@@ -37,8 +38,8 @@ export async function getMyAssignments(status?: AssignmentStatus): Promise<Assig
   return data;
 }
 
-export async function getAssignment(assignmentId: string): Promise<AssignmentResponse> {
-  const { data } = await api.get<AssignmentResponse>('/evaluation/me/assignments/' + assignmentId);
+export async function getAssignment(assignmentId: string): Promise<AssignmentDetailResponse> {
+  const { data } = await api.get<AssignmentDetailResponse>('/evaluation/me/assignments/' + assignmentId);
   return data;
 }
 
@@ -49,6 +50,11 @@ export async function acceptAssignment(assignmentId: string): Promise<Assignment
 
 export async function declineAssignment(assignmentId: string, body: DeclineAssignmentRequest): Promise<AssignmentResponse> {
   const { data } = await api.post<AssignmentResponse>('/evaluation/me/assignments/' + assignmentId + '/decline', body);
+  return data;
+}
+
+export async function rejectAssignment(assignmentId: string, body: DeclineAssignmentRequest): Promise<AssignmentResponse> {
+  const { data } = await api.post<AssignmentResponse>('/evaluation/me/assignments/' + assignmentId + '/reject', body);
   return data;
 }
 

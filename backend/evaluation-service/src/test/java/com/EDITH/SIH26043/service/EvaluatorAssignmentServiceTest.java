@@ -192,22 +192,22 @@ class EvaluatorAssignmentServiceTest {
 
         AssignmentOutcomeResponse outcome = service.accept(userId, assignmentId, "127.0.0.1");
 
-        assertThat(outcome.status()).isEqualTo(AssignmentStatus.IN_PROGRESS);
+        assertThat(outcome.status()).isEqualTo(AssignmentStatus.ACCEPTED);
         verify(assignmentRepository).save(any(EvaluationAssignment.class));
         verify(auditService).record(eq("PROBLEM"), eq(problemId), eq(AuditAction.STATUS_CHANGED),
                 eq(userId), anyMap(), anyMap(), eq("127.0.0.1"));
     }
 
     @Test
-    void acceptingTwiceIsANoOp() {
+    void acceptingAnAlreadyAcceptedAssignmentIsANoOp() {
         givenProfile();
-        givenAssignment(AssignmentStatus.IN_PROGRESS);
+        givenAssignment(AssignmentStatus.ACCEPTED);
         givenCycle(EvaluationStatus.EVALUATION_IN_PROGRESS);
 
         AssignmentOutcomeResponse outcome = service.accept(userId, assignmentId, "127.0.0.1");
 
-        assertThat(outcome.status()).isEqualTo(AssignmentStatus.IN_PROGRESS);
-        assertThat(outcome.message()).contains("Already accepted");
+        assertThat(outcome.status()).isEqualTo(AssignmentStatus.ACCEPTED);
+        assertThat(outcome.message()).contains("already accepted");
         verify(assignmentRepository, never()).save(any());
     }
 
@@ -216,6 +216,7 @@ class EvaluatorAssignmentServiceTest {
         givenProfile();
         EvaluationAssignment late = givenAssignment(AssignmentStatus.ASSIGNED);
         late.setDeadline(Instant.now().minus(2, ChronoUnit.DAYS));
+        givenCycle(EvaluationStatus.EVALUATION_IN_PROGRESS);
 
         assertThatThrownBy(() -> service.accept(userId, assignmentId, "127.0.0.1"))
                 .isInstanceOf(ApiException.class)

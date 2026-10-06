@@ -26,6 +26,13 @@ public record SubmissionMetaRequest(
         @Size(max = 120)
         String branch,
 
-        List<Map<String, String>> links
+        List<Map<String, String>> links,
+
+        Map<String, Object> projectDetails
 ) {
+    public SubmissionMetaRequest(String title, String summary, String githubUrl,
+                                String commitSha, String branch,
+                                List<Map<String, String>> links) {
+        this(title, summary, githubUrl, commitSha, branch, links, null);
+    }
 }

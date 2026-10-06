@@ -109,16 +109,27 @@ public class EvaluatorController {
         return service.assignmentDetail(me.getUserId(), assignmentId);
     }
 
-    @Operation(summary = "✅ Accept an assignment",
+    @Operation(summary = "✅ Accept a problem statement",
             description = """
-                    ASSIGNED → IN_PROGRESS, claiming the work. Idempotent: accepting an
-                    already accepted assignment is a no-op. Accepting after the deadline
-                    marks the assignment EXPIRED and fails with 409.""")
+                    ASSIGNED/IN_PROGRESS → ACCEPTED records this pool's final decision. The
+                    cycle completes and starts portal publication after every assigned pool
+                    accepts. Acceptance is idempotent; accepting after the deadline marks the
+                    assignment EXPIRED.""")
     @PostMapping("/assignments/{assignmentId}/accept")
     public AssignmentOutcomeResponse accept(@AuthenticationPrincipal AuthUser me,
                                             @PathVariable UUID assignmentId,
                                             HttpServletRequest http) {
-        return service.accept(me.getUserId(), assignmentId, clientIp(http));
+        AssignmentOutcomeResponse outcome = service.accept(me.getUserId(), assignmentId, clientIp(http));
+        if (outcome.status() == com.EDITH.SIH26043.enums.AssignmentStatus.ACCEPTED
+                && outcome.cycleStatus() == EvaluationStatus.EVALUATION_COMPLETED) {
+            try {
+                portalPublishService.publishCompletedCycleByAssignment(assignmentId);
+            } catch (ApiException e) {
+                log.warn("Problem publish after all-pool acceptance skipped (assignment {}): {}",
+                        assignmentId, e.getMessage());
+            }
+        }
+        return outcome;
     }
 
     @Operation(summary = "🚫 Decline an assignment",
@@ -134,6 +145,16 @@ public class EvaluatorController {
                                              @RequestBody(required = false) @Valid DeclineRequest body,
                                              HttpServletRequest http) {
         return service.decline(me.getUserId(), assignmentId,
+                body == null ? null : body.reason(), clientIp(http));
+    }
+
+    @Operation(summary = "Reject a problem statement")
+    @PostMapping("/assignments/{assignmentId}/reject")
+    public AssignmentOutcomeResponse reject(@AuthenticationPrincipal AuthUser me,
+                                            @PathVariable UUID assignmentId,
+                                            @RequestBody(required = false) @Valid DeclineRequest body,
+                                            HttpServletRequest http) {
+        return service.reject(me.getUserId(), assignmentId,
                 body == null ? null : body.reason(), clientIp(http));
     }
 

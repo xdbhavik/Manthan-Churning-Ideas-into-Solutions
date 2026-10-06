@@ -4,10 +4,13 @@ import type {
   FileItem,
   Participant,
   ParticipantRegisterRequest,
+  ParticipantSearchResult,
   PublishedProblem,
   Submission,
   SubmissionCreateRequest,
   SubmissionMetaRequest,
+  TeamOverview,
+  TeamInvitation,
 } from '../types/dto';
 
 /** GET /portal/me — current participant (404 STUDENT_NOT_REGISTERED → register). */
@@ -25,6 +28,35 @@ export async function updateMe(body: import('../types/dto').ParticipantUpdateReq
 /** POST /portal/participants — register as a STUDENT participant. */
 export async function registerStudent(body: ParticipantRegisterRequest): Promise<Participant> {
   const { data } = await api.post<Participant>('/portal/participants', body);
+  return data;
+}
+
+/** Search all registered students by name. */
+export async function searchStudentParticipants(name: string): Promise<ParticipantSearchResult[]> {
+  const { data } = await api.get<ParticipantSearchResult[]>('/portal/participants/search', {
+    params: { name },
+  });
+  return data;
+}
+
+export async function getMyTeams(): Promise<TeamOverview[]> {
+  const { data } = await api.get<TeamOverview[]>('/portal/teams');
+  return data;
+}
+
+export async function getTeamInvitations(): Promise<TeamInvitation[]> {
+  const { data } = await api.get<TeamInvitation[]>('/portal/teams/invitations');
+  return data;
+}
+
+export async function createTeam(body: { problemId: string; name: string; inviteeParticipantIds: string[] }): Promise<TeamOverview> {
+  const { data } = await api.post<TeamOverview>('/portal/teams', body);
+  return data;
+}
+
+export async function respondToTeamInvitation(invitationId: string, accept: boolean): Promise<TeamInvitation> {
+  const action = accept ? 'accept' : 'decline';
+  const { data } = await api.post<TeamInvitation>(`/portal/teams/invitations/${invitationId}/${action}`);
   return data;
 }
 

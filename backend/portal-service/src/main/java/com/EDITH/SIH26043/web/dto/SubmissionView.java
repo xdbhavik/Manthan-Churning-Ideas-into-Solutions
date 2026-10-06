@@ -25,7 +25,19 @@ public record SubmissionView(
         String decisionComment,
         Instant submittedAt,
         Instant decidedAt,
+        java.util.Map<String, Object> projectDetails,
         List<FileItemView> files,
         TeamView team
 ) {
+    public SubmissionView(UUID submissionId, UUID problemId, UUID teamId,
+                          String title, String summary, String githubUrl,
+                          String commitSha, String branch,
+                          List<java.util.Map<String, String>> links, String status,
+                          int reviewRound, UUID reviewerUserId, String decisionComment,
+                          Instant submittedAt, Instant decidedAt,
+                          List<FileItemView> files, TeamView team) {
+        this(submissionId, problemId, teamId, title, summary, githubUrl, commitSha,
+                branch, links, status, reviewRound, reviewerUserId, decisionComment,
+                submittedAt, decidedAt, java.util.Map.of(), files, team);
+    }
 }

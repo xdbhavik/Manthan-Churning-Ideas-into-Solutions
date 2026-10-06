@@ -157,7 +157,7 @@ function render() {
                   <th class="py-3 px-space-md">Submitter Entity Name</th>
                   <th class="py-3 px-space-md">Category</th>
                   <th class="py-3 px-space-md">Submitted Date</th>
-                  <th class="py-3 px-space-md">Reviewer Assigned</th>
+                  <th class="py-3 px-space-md">KYC Agent Assigned</th>
                   <th class="py-3 px-space-md">Status</th>
                   <th class="py-3 px-space-lg text-right">Quick Action</th>
                 </tr>
@@ -316,7 +316,7 @@ function render() {
               <div class="bg-surface-subtle p-space-lg rounded-xl shadow-sm border border-border-hairline flex flex-col gap-space-md sticky top-24">
                 <div class="flex items-center justify-between">
                   <span class="font-headline-sm text-headline-sm text-ashoka-blue font-bold flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[20px]">gavel</span>Reviewer Decision Console
+                    <span class="material-symbols-outlined text-[20px]">gavel</span>KYC Agent Decision Console
                   </span>
                   <span class="font-label-sm text-label-sm bg-status-review-bg text-status-review-text px-2 py-0.5 rounded-full uppercase font-bold">Session Active</span>
                 </div>
@@ -327,7 +327,7 @@ function render() {
                 <!-- Reviewer Assignment -->
                 <div class="p-3 bg-surface-crisp rounded-lg border border-border-hairline flex flex-col gap-2">
                   <div class="flex items-center justify-between text-xs">
-                    <span class="font-bold text-text-secondary">Assigned Reviewer</span>
+                    <span class="font-bold text-text-secondary">Assigned KYC Agent</span>
                     <span class="font-mono-code text-[11px] text-text-muted">${selected.assignedReviewerId || 'None'}</span>
                   </div>
                   ${!selected.assignedReviewerId ? `
@@ -345,7 +345,7 @@ function render() {
                 <!-- Reviewer Remarks Input -->
                 <div class="flex flex-col gap-1.5">
                   <label class="font-label-md text-label-md text-text-primary font-semibold flex items-center justify-between" for="reviewerRemarks">
-                    <span>Reviewer Remarks / Audit Justification <span class="text-saffron-accent">*</span></span>
+                    <span>KYC Agent Remarks / Audit Justification <span class="text-saffron-accent">*</span></span>
                     <span class="text-text-muted font-normal text-[11px]">Audit Recorded</span>
                   </label>
                   <textarea
@@ -472,7 +472,7 @@ window.regPage = {
   async requestAction(id) {
     const remarks = document.getElementById('reviewerRemarks')?.value?.trim();
     if (!remarks) {
-      showToast('Reviewer checklist comments are mandatory when requesting applicant action.', 'error');
+      showToast('KYC Agent checklist comments are mandatory when requesting applicant action.', 'error');
       document.getElementById('reviewerRemarks')?.focus();
       return;
     }

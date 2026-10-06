@@ -229,7 +229,7 @@ window.otpPage = {
       // Verify user payload / role
       const user = res.user || (res.accessToken ? decodeJwtPayload(res.accessToken) : null) || {};
       const role = (user.role || (user.roles && user.roles[0]) || 'ADMIN').toUpperCase();
-      const userName = user.name || (user.email ? user.email.split('@')[0].toUpperCase() : (role === 'ADMIN' ? 'Sovereign Administrator' : 'Reviewer Officer'));
+      const userName = user.name || (user.email ? user.email.split('@')[0].toUpperCase() : (role === 'ADMIN' ? 'Sovereign Administrator' : 'KYC Agent'));
       user.name = userName;
 
       // Persist tokens and user into sessionStorage

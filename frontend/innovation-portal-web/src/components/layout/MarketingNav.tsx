@@ -64,10 +64,10 @@ export function MarketingNav() {
             Login
           </Link>
           <Link
-            to="/login"
+            to="/login?mode=register"
             className="btn-sheen px-4 py-2 rounded-lg text-sm font-bold text-white bg-navy-900 hover:bg-navy-700 transition-colors"
           >
-            Join the Portal
+            Register
           </Link>
         </div>
 
@@ -106,8 +106,8 @@ export function MarketingNav() {
             <Link to="/login" onClick={() => setOpen(false)} className="flex-1 text-center px-3 py-2 rounded-lg text-sm font-semibold text-navy-900 bg-surface">
               Login
             </Link>
-            <Link to="/login" onClick={() => setOpen(false)} className="flex-1 text-center px-3 py-2 rounded-lg text-sm font-bold text-white bg-navy-900">
-              Join the Portal
+            <Link to="/login?mode=register" onClick={() => setOpen(false)} className="flex-1 text-center px-3 py-2 rounded-lg text-sm font-bold text-white bg-navy-900">
+              Register
             </Link>
           </div>
         </div>

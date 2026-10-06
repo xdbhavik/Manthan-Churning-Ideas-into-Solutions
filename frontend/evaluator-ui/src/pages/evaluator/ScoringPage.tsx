@@ -48,7 +48,20 @@ export default function ScoringPage() {
     try {
       let a: DetailedAssignment;
       try {
-        a = (await getAssignment(assignmentId)) as DetailedAssignment;
+        const detail = await getAssignment(assignmentId);
+        a = {
+          ...detail.assignment,
+          criteria: detail.criteria.map((criterion) => ({
+            id: criterion.criterionId,
+            key: criterion.criterionKey,
+            label: criterion.criterionLabel,
+            description: criterion.description,
+            maxScore: criterion.maxScore,
+            sortOrder: criterion.sortOrder,
+            existingScore: criterion.myScore,
+            existingComment: criterion.myComment,
+          })),
+        };
         setAssignment(a);
       } catch {
         // Fallback mock assignment if live record is not in database

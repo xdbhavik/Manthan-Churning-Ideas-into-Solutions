@@ -133,6 +133,12 @@ export default function ProfilePage() {
               </div>
               <div className="flex flex-col items-center">
                 <h2 className="font-headline-lg text-headline-lg text-on-surface">{displayName}</h2>
+                {participant?.participantId && (
+                  <div className="mt-2 flex flex-col items-center gap-1">
+                    <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">PARTICIPANT ID · SHARE WITH TEAM LEADS</span>
+                    <code className="select-all rounded bg-surface-container px-2 py-1 text-xs text-on-surface">{participant.participantId}</code>
+                  </div>
+                )}
                 <div className="flex items-center gap-space-xs mt-1">
                   <span className="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full bg-state-submitted-bg text-state-submitted-text font-label-mono-sm text-label-mono-sm font-semibold">
                     <span className="material-symbols-outlined text-[14px]">school</span>

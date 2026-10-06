@@ -90,6 +90,7 @@ public class ParticipantService {
         student.setUserId(caller.getUserId());
         student.setParticipantType(ParticipantType.STUDENT);
         student.setFullName(request.fullName().trim());
+        student.setInstitutionName(request.institutionName().trim());
         student.setEmail(request.email());
         student.setPhone(blankTo(request.phone(), caller.getPhone()));
         return participantRepository.save(student);

@@ -28,6 +28,7 @@ public class OtpService {
     private final long ttlMinutes;
     private final int maxAttempts;
     private final int maxRequestsPerPhonePerHour;
+    private final boolean rateLimitEnabled;
     private final boolean prod;
     private final String mockCode;
     private final SecureRandom random = new SecureRandom();
@@ -36,6 +37,7 @@ public class OtpService {
                       @Value("${app.otp.ttl-minutes}") long ttlMinutes,
                       @Value("${app.otp.max-attempts}") int maxAttempts,
                       @Value("${app.otp.max-requests-per-phone-per-hour}") int maxRequestsPerPhonePerHour,
+                      @Value("${app.otp.rate-limit-enabled:false}") boolean rateLimitEnabled,
                       @Value("${app.otp.mock-code:}") String mockCode,
                       @Value("${spring.profiles.active:}") String activeProfiles) {
         this.otpRepository = otpRepository;
@@ -43,6 +45,7 @@ public class OtpService {
         this.ttlMinutes = ttlMinutes;
         this.maxAttempts = maxAttempts;
         this.maxRequestsPerPhonePerHour = maxRequestsPerPhonePerHour;
+        this.rateLimitEnabled = rateLimitEnabled;
         this.mockCode = mockCode;
         this.prod = activeProfiles != null && activeProfiles.contains("prod");
     }
@@ -51,8 +54,13 @@ public class OtpService {
     public OtpResponse issue(String phone) {
         Instant windowStart = Instant.now().minus(1, ChronoUnit.HOURS);
         long recent = otpRepository.countByPhoneAndCreatedAtAfter(phone, windowStart);
-        int remaining = (int) Math.max(0, maxRequestsPerPhonePerHour - recent);
-        if (remaining == 0) {
+        boolean enforceRateLimit = prod || rateLimitEnabled;
+        int remaining = enforceRateLimit
+                ? (int) Math.max(0, maxRequestsPerPhonePerHour - recent)
+                : maxRequestsPerPhonePerHour;
+        // Production always enforces the throttle, even if an operator mistakenly
+        // sets OTP_RATE_LIMIT_ENABLED=false. Local demo/test stacks can opt out.
+        if (enforceRateLimit && remaining == 0) {
             throw new ApiException(HttpStatus.TOO_MANY_REQUESTS,
                     "OTP rate limit reached for this phone (5/hour)");
         }

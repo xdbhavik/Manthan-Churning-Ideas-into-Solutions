@@ -10,6 +10,7 @@ import com.EDITH.SIH26043.entity.EvaluatorProfile;
 import com.EDITH.SIH26043.enums.AssignmentStatus;
 import com.EDITH.SIH26043.enums.AuditAction;
 import com.EDITH.SIH26043.enums.EvaluationStatus;
+import com.EDITH.SIH26043.enums.EvaluatorType;
 import com.EDITH.SIH26043.enums.ScoreSource;
 import com.EDITH.SIH26043.exception.ApiException;
 import com.EDITH.SIH26043.internal.ProblemContextResponse;
@@ -144,7 +145,7 @@ public class EvaluatorAssignmentService {
                 .collect(Collectors.toMap(EvaluationCycle::getCycleId, Function.identity()));
 
         return assignments.stream()
-                .map(a -> toListItem(a, cycles.get(a.getCycleId()), criteriaTotal))
+                .map(a -> toListItem(profile, a, cycles.get(a.getCycleId()), criteriaTotal))
                 .toList();
     }
 
@@ -176,28 +177,45 @@ public class EvaluatorAssignmentService {
         int scored = (int) criteria.stream().filter(c -> c.myScore() != null).count();
 
         return new AssignmentDetailResponse(
-                toListItem(assignment, cycle, criteria.size()).withCriteriaScored(scored),
+                toListItem(profile, assignment, cycle, criteria.size()).withCriteriaScored(scored),
                 assignment.getFeedback(), assignment.getRecommendation(),
                 problem, analysis, criteria);
     }
 
-    /** ASSIGNED → IN_PROGRESS. Re-accepting an already accepted assignment is a no-op. */
+    /**
+     * Accepts an assignment as the evaluator's final decision for every pool.
+     */
     @Transactional
     public AssignmentOutcomeResponse accept(UUID userId, UUID assignmentId, String ipAddress) {
         EvaluatorProfile profile = myProfile(userId);
         EvaluationAssignment assignment = requireOwnAssignment(profile, assignmentId);
-
-        if (assignment.getStatus() == AssignmentStatus.IN_PROGRESS) {
-            return outcome(assignment, "Already accepted; assignment is IN_PROGRESS");
+        EvaluationCycle cycle = requireCycle(assignment.getCycleId());
+        if (assignment.getStatus() == AssignmentStatus.ACCEPTED) {
+            return outcome(assignment, "Assignment already accepted");
         }
-        requireStatus(assignment, AssignmentStatus.ASSIGNED, "accepted");
+        AssignmentStatus before = assignment.getStatus();
+        if (!OPEN_STATUSES.contains(before)) {
+            throw new ApiException(HttpStatus.CONFLICT,
+                    "Assignment is " + before + "; only an open assignment can be accepted");
+        }
         requireNotExpired(assignment);
 
-        assignment.setStatus(AssignmentStatus.IN_PROGRESS);
+        assignment.setStatus(AssignmentStatus.ACCEPTED);
         assignmentRepository.save(assignment);
-        audit(assignment, AuditAction.STATUS_CHANGED, userId, AssignmentStatus.ASSIGNED, ipAddress);
+        audit(assignment, AuditAction.STATUS_CHANGED, userId, before, ipAddress);
 
-        return outcome(assignment, "Accepted; submit the scorecard before " + assignment.getDeadline());
+        if (cycle.getStatus() == EvaluationStatus.EVALUATION_IN_PROGRESS
+                && !hasOpenAssignments(cycle)) {
+            statusService.transition(cycle.getCycleId(), EvaluationStatus.EVALUATION_COMPLETED,
+                    userId, "All evaluator pools accepted the problem statement");
+            auditService.record("PROBLEM", cycle.getProblemId(), AuditAction.EVALUATION_COMPLETED,
+                    userId, null, Map.of("cycleId", cycle.getCycleId(), "decision", "ACCEPTED",
+                            "workflow", "ALL_POOLS"),
+                    ipAddress);
+        }
+        return outcome(assignment, cycle.getStatus() == EvaluationStatus.EVALUATION_COMPLETED
+                ? "Accepted; all pool decisions are complete and publication has started"
+                : "Accepted; waiting for the remaining evaluator pools");
     }
 
     /**
@@ -228,6 +246,39 @@ public class EvaluatorAssignmentService {
             message = "Declined; cycle reopened for routing";
         }
         return outcome(assignment, message);
+    }
+
+    /** Permanently rejects a problem statement from any evaluator pool. */
+    @Transactional
+    public AssignmentOutcomeResponse reject(UUID userId, UUID assignmentId, String reason,
+                                            String ipAddress) {
+        EvaluatorProfile profile = myProfile(userId);
+        EvaluationAssignment assignment = requireOwnAssignment(profile, assignmentId);
+        EvaluationCycle cycle = requireCycle(assignment.getCycleId());
+        AssignmentStatus before = assignment.getStatus();
+        if (!OPEN_STATUSES.contains(before)) {
+            throw new ApiException(HttpStatus.CONFLICT,
+                    "Assignment is " + before + "; only an open assignment can be rejected");
+        }
+        requireNotExpired(assignment);
+        problemGateway.reject(cycle.getProblemId(), userId, reason);
+        assignment.setStatus(AssignmentStatus.REJECTED);
+        assignment.setFeedback(reason == null || reason.isBlank()
+                ? "Problem rejected by evaluator" : reason.trim());
+        assignmentRepository.save(assignment);
+        audit(assignment, AuditAction.STATUS_CHANGED, userId, before, ipAddress);
+        for (EvaluationAssignment other : assignmentRepository.findByCycleIdAndStatusIn(
+                cycle.getCycleId(), OPEN_STATUSES)) {
+            if (other.getAssignmentId().equals(assignmentId)) continue;
+            AssignmentStatus otherBefore = other.getStatus();
+            other.setStatus(AssignmentStatus.REJECTED);
+            other.setFeedback("Cycle closed because another evaluator pool rejected the problem");
+            assignmentRepository.save(other);
+            audit(other, AuditAction.STATUS_CHANGED, userId, otherBefore, ipAddress);
+        }
+        statusService.transition(cycle.getCycleId(), EvaluationStatus.REJECTED, userId,
+                "Problem rejected by an evaluator pool");
+        return outcome(assignment, "Problem rejected");
     }
 
     /**
@@ -525,7 +576,8 @@ public class EvaluatorAssignmentService {
         }
     }
 
-    private MyAssignmentResponse toListItem(EvaluationAssignment a, EvaluationCycle cycle,
+    private MyAssignmentResponse toListItem(EvaluatorProfile profile, EvaluationAssignment a,
+                                            EvaluationCycle cycle,
                                             int criteriaTotal) {
         boolean overdue = a.getDeadline() != null
                 && OPEN_STATUSES.contains(a.getStatus())
@@ -536,7 +588,8 @@ public class EvaluatorAssignmentService {
                 a.getStatus(), a.getAssignedAt(), a.getDeadline(), a.getSubmittedAt(),
                 overdue, criteriaTotal,
                 (int) responseRepository.countById_AssignmentId(a.getAssignmentId()),
-                cycle == null ? null : cycle.getStatus());
+                cycle == null ? null : cycle.getStatus(),
+                cycle != null);
     }
 
     private AssignmentOutcomeResponse outcome(EvaluationAssignment assignment, String message) {

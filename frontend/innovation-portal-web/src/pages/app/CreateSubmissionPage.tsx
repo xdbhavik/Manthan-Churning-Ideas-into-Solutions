@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/providers/AuthProvider';
@@ -6,18 +6,18 @@ import { useToast } from '../../app/providers/ToastProvider';
 import { getErrorMessage } from '../../services/apiClient';
 import * as portal from '../../services/portalService';
 import { useProblems, useProblem } from '../../hooks/usePortalQueries';
-import { Button, LinkButton, Card, Input, Select, Stepper } from '../../components/ui';
-import type { SubmissionCreateRequest, SubmissionLink } from '../../types/dto';
+import { Button, Card, Input, Select, Stepper } from '../../components/ui';
+import type { Participant, ParticipantSearchResult, SubmissionCreateRequest, SubmissionLink } from '../../types/dto';
 import { motion } from 'framer-motion';
 
 const COMMIT_RE = /^[A-Za-z0-9._-]{7,64}$/;
 
 const STEPPER_STEPS = [
-  { id: 'details', label: 'Basic Information', shortLabel: '01. DETAILS', icon: <span className="material-symbols-outlined text-[15px]">description</span> },
-  { id: 'squad', label: 'Team Builder', shortLabel: '02. SQUAD', icon: <span className="material-symbols-outlined text-[15px]">groups</span> },
-  { id: 'active', label: 'Code Repository', shortLabel: '03. ACTIVE', icon: <span className="material-symbols-outlined text-[15px]">terminal</span> },
-  { id: 'files', label: 'Project Artifacts', shortLabel: '04. FILES', icon: <span className="material-symbols-outlined text-[15px]">folder</span> },
-  { id: 'signoff', label: 'Review & Submit', shortLabel: '05. SIGN-OFF', icon: <span className="material-symbols-outlined text-[15px]">checklist</span> },
+  { id: 'details', label: 'Problem & Solution', shortLabel: '01. SOLUTION', icon: <span className="material-symbols-outlined text-[15px]">description</span> },
+  { id: 'squad', label: 'Student / Team', shortLabel: '02. TEAM', icon: <span className="material-symbols-outlined text-[15px]">groups</span> },
+  { id: 'active', label: 'Technical Details', shortLabel: '03. TECH', icon: <span className="material-symbols-outlined text-[15px]">terminal</span> },
+  { id: 'files', label: 'Links & Files', shortLabel: '04. FILES', icon: <span className="material-symbols-outlined text-[15px]">folder</span> },
+  { id: 'signoff', label: 'Review & Submit', shortLabel: '05. SUBMIT', icon: <span className="material-symbols-outlined text-[15px]">checklist</span> },
 ];
 
 export default function CreateSubmissionPage() {
@@ -28,32 +28,113 @@ export default function CreateSubmissionPage() {
   const [params] = useSearchParams();
   const pre = params.get('problemId') ?? '';
 
-  const [stepIndex, setStepIndex] = useState(2); // Start at step 3 (Repository)
+  const [stepIndex, setStepIndex] = useState(0);
   const [problemId] = useState(pre);
-  const [githubUrl, setGithubUrl] = useState('https://github.com/team-edith/edgespectra-firmware');
+  const [submissionType, setSubmissionType] = useState<'INDIVIDUAL' | 'TEAM'>('INDIVIDUAL');
+  const [teamName, setTeamName] = useState('');
+  const [memberSearch, setMemberSearch] = useState('');
+  const [memberSearchResults, setMemberSearchResults] = useState<ParticipantSearchResult[]>([]);
+  const [selectedMembers, setSelectedMembers] = useState<ParticipantSearchResult[]>([]);
+  const [searchingMembers, setSearchingMembers] = useState(false);
+  const [memberSearchError, setMemberSearchError] = useState('');
+  const [githubUrl, setGithubUrl] = useState('');
   const [branch, setBranch] = useState('main');
-  const [commitSha, setCommitSha] = useState('a4f8b2c90e1f3d456789abcdef0123456789abcd');
-  const [links, setLinks] = useState<SubmissionLink[]>([
-    { label: 'Hardware Schematics (EasyEDA/KiCad)', url: 'https://oshwlab.com/edith/edgespectra-v1' },
-    { label: 'System Architecture Miro Board', url: 'https://miro.com/app/board/edith-spec' },
-  ]);
+  const [commitSha, setCommitSha] = useState('');
+  const [links, setLinks] = useState<SubmissionLink[]>([]);
+  const [participant, setParticipant] = useState<Participant | null>(null);
+  const [solutionTitle, setSolutionTitle] = useState('');
+  const [shortDescription, setShortDescription] = useState('');
+  const [problemSolved, setProblemSolved] = useState('');
+  const [keyFeatures, setKeyFeatures] = useState('');
+  const [innovationUsp, setInnovationUsp] = useState('');
+  const [targetUsers, setTargetUsers] = useState('');
+  const [expectedImpact, setExpectedImpact] = useState('');
+  const [technology, setTechnology] = useState({ frontend: '', backend: '', database: '', aiMl: '', apis: '', deployment: '', architectureDiagramUrl: '' });
+  const [projectLinks, setProjectLinks] = useState({ liveDemoUrl: '', demoVideoUrl: '', documentationUrl: '', figmaUrl: '' });
+  const [documentFiles, setDocumentFiles] = useState<File[]>([]);
+  const [screenshots, setScreenshots] = useState<File[]>([]);
+
+  useEffect(() => {
+    portal.me().then(setParticipant).catch(() => setParticipant(null));
+  }, []);
 
   useProblems(authed); // Left to cache problem list if needed, or we can just import useProblem
   const { data: problem } = useProblem(problemId, authed);
+
+  useEffect(() => {
+    const query = memberSearch.trim();
+    if (submissionType !== 'TEAM' || query.length < 2) {
+      setMemberSearchResults([]);
+      setMemberSearchError('');
+      setSearchingMembers(false);
+      return;
+    }
+    let active = true;
+    const timer = window.setTimeout(async () => {
+      setSearchingMembers(true);
+      setMemberSearchError('');
+      try {
+        const results = await portal.searchStudentParticipants(query);
+        if (active) setMemberSearchResults(results.filter((candidate) =>
+          !selectedMembers.some((selected) => selected.participantId === candidate.participantId)));
+      } catch (error) {
+        if (active) setMemberSearchError(getErrorMessage(error));
+      } finally {
+        if (active) setSearchingMembers(false);
+      }
+    }, 250);
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [memberSearch, selectedMembers, submissionType]);
 
   const create = useMutation({
     mutationFn: () => {
       const body: SubmissionCreateRequest = {
         problemId,
+        title: solutionTitle.trim(),
+        summary: shortDescription.trim(),
+        teamName: submissionType === 'TEAM' ? teamName.trim() : undefined,
+        memberUserIds: submissionType === 'TEAM'
+          ? selectedMembers.map((member) => member.participantId)
+          : [],
         githubUrl: githubUrl.trim() || undefined,
         branch: branch.trim() || undefined,
         commitSha: commitSha.trim() || undefined,
-        links: links.filter((l) => l.url.trim()),
+        links: [
+          ...links.filter((l) => l.url.trim()),
+          ...Object.entries(projectLinks).filter(([, url]) => url.trim()).map(([label, url]) => ({ label, url: url.trim() })),
+        ],
+        projectDetails: {
+          problemSolved: problemSolved.trim(),
+          keyFeatures: keyFeatures.split('\n').map((value) => value.trim()).filter(Boolean),
+          innovationUsp: innovationUsp.trim(),
+          targetUsers: targetUsers.trim(),
+          expectedImpact: expectedImpact.trim(),
+          studentDetails: {
+            teamLeaderName: participant?.fullName || '',
+            collegeUniversity: participant?.institutionName || '',
+            email: participant?.email || '',
+            contactNumber: participant?.phone || '',
+          },
+          teamDetails: {
+            teamName: submissionType === 'TEAM' ? teamName.trim() : '',
+            members: selectedMembers.map((member) => ({ participantId: member.participantId, fullName: member.fullName })),
+          },
+          projectLinks: Object.fromEntries(Object.entries(projectLinks).map(([key, value]) => [key, value.trim()])),
+          technicalDetails: technology,
+        },
       };
       return portal.createSubmission(body);
     },
-    onSuccess: (s) => {
-      toast.notify('Draft created', 'success');
+    onSuccess: async (s) => {
+      try {
+        for (const file of [...documentFiles, ...screenshots]) await portal.uploadFile(s.submissionId, file);
+        toast.notify('Solution draft and project files saved', 'success');
+      } catch (error) {
+        toast.notify(`Draft saved, but a file could not be uploaded: ${getErrorMessage(error)}`, 'error');
+      }
       queryClient.invalidateQueries({ queryKey: ['portal', 'submissions'] });
       navigate(`/app/submissions/${s.submissionId}`);
     },
@@ -61,6 +142,17 @@ export default function CreateSubmissionPage() {
   });
 
   const commitValid = commitSha === '' || COMMIT_RE.test(commitSha);
+  const githubBranchUrl = useMemo(() => {
+    try {
+      const repo = new URL(githubUrl);
+      const parts = repo.pathname.split('/').filter(Boolean);
+      if (repo.protocol !== 'https:' || repo.hostname.toLowerCase() !== 'github.com' || parts.length !== 2) return '';
+      const branchPath = (branch || 'main').split('/').map(encodeURIComponent).join('/');
+      return `https://github.com/${parts.map(encodeURIComponent).join('/')}/tree/${branchPath}`;
+    } catch {
+      return '';
+    }
+  }, [githubUrl, branch]);
 
   const canContinue = useMemo(() => {
     switch (STEPPER_STEPS[stepIndex].id) {
@@ -79,6 +171,18 @@ export default function CreateSubmissionPage() {
   const finish = () => {
     if (!problemId) {
       toast.notify('Select a problem', 'error');
+      return;
+    }
+    if (submissionType === 'TEAM' && !teamName.trim()) {
+      toast.notify('Enter a team name to create a team submission', 'error');
+      return;
+    }
+    if (!solutionTitle.trim() || !shortDescription.trim()) {
+      toast.notify('Add a solution title and short description', 'error');
+      return;
+    }
+    if (screenshots.length > 0 && (screenshots.length < 3 || screenshots.length > 5)) {
+      toast.notify('Upload 3 to 5 screenshots, or remove the screenshots to continue without them', 'error');
       return;
     }
     create.mutate();
@@ -114,14 +218,15 @@ export default function CreateSubmissionPage() {
             <div className="flex flex-col min-w-0">
               <div className="flex items-center gap-space-xs flex-wrap">
                 <span className="px-2 py-0.5 rounded bg-surface-container text-primary font-label-mono-sm text-label-mono-sm uppercase tracking-wide">{problem?.problemId || 'PROBLEM'}</span>
-                <span className="text-on-surface-variant-weak font-body-sm text-body-sm">• Ministry of Jal Shakti</span>
+              <span className="text-on-surface-variant-weak font-body-sm text-body-sm">• {problem?.sourceBucket || 'Organization / department'}{problem?.subEntityType ? ` · ${problem.subEntityType}` : ''}</span>
                 <span className="px-2 py-0.5 rounded bg-state-accepted-bg text-state-accepted-text font-label-mono-sm text-label-mono-sm flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-state-accepted-text"></span> HARDWARE / EMBEDDED
+                  <span className="w-1.5 h-1.5 rounded-full bg-state-accepted-text"></span> {problem?.domains?.join(' / ') || problem?.subEntityType || 'Category not specified'}
                 </span>
               </div>
               <h1 className="font-headline-sm text-headline-sm text-on-surface truncate mt-1">
-                Automated Micro-Pollutant Detection in Rural Water Inflows via Edge Spectroscopy
+                {problem?.title || 'Selected problem statement'}
               </h1>
+              <p className="mt-1 text-sm text-on-surface-variant-weak line-clamp-2">{problem?.description || 'Problem description will appear here.'}</p>
             </div>
           </div>
           <div className="flex items-center gap-space-sm shrink-0">
@@ -130,8 +235,11 @@ export default function CreateSubmissionPage() {
               <span className="font-label-mono-md text-label-mono-md text-on-surface">36h Evaluation Hack</span>
             </div>
             <span className="px-2.5 py-1 rounded-full bg-primary-fixed text-primary font-label-mono-sm text-label-mono-sm">
-              STAGE 2 CODING
+              {problem?.severity ? `${problem.severity} difficulty` : problem?.urgency || 'PROBLEM SOLUTION'}
             </span>
+            <a href={`/problems/${problemId}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-lg border border-border-subtle px-3 py-2 text-sm font-semibold text-primary hover:bg-surface-container-low">
+              View Full Problem <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+            </a>
           </div>
         </div>
       </motion.div>
@@ -160,15 +268,15 @@ export default function CreateSubmissionPage() {
       >
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded bg-surface-container-high text-primary font-label-mono-sm text-label-mono-sm">Code Repository</span>
-            <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">v2.4 Runner Pipeline</span>
+            <span className="px-2 py-0.5 rounded bg-surface-container-high text-primary font-label-mono-sm text-label-mono-sm">Problem-solution submission</span>
+            <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">Complete every section before saving</span>
           </div>
           <h2 className="font-headline-lg text-headline-lg text-on-surface mt-1">
-            Connect Code Repository
+            Complete your solution dossier
           </h2>
         </div>
         <div className="max-w-xl text-on-surface-variant-weak font-body-sm text-body-sm">
-          The evaluation engine runs automated static and functional checks against your code repository. Your solution is evaluated strictly against the <strong className="text-on-surface">pinned commit SHA</strong>, not a moving branch HEAD.
+          Describe the solution, team, technical approach, project links, and supporting artifacts for the selected problem.
         </div>
       </motion.div>
 
@@ -186,6 +294,31 @@ export default function CreateSubmissionPage() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
         >
+          <Card variant="default" className="flex flex-col gap-space-md">
+            <div><p className="font-label-mono-sm text-label-mono-sm text-primary uppercase tracking-wider">Solution dossier</p><h2 className="font-headline-lg text-headline-lg text-on-surface">Describe your solution</h2><p className="text-sm text-on-surface-variant-weak">Give reviewers enough context to understand the idea, its users, and how it will be built.</p></div>
+            <Input label="Solution title" value={solutionTitle} onChange={(e) => setSolutionTitle(e.target.value)} required placeholder="A clear name for your solution" />
+            <label className="flex flex-col gap-1 text-sm font-medium text-on-surface">Short description<textarea required rows={3} value={shortDescription} onChange={(e) => setShortDescription(e.target.value)} className="w-full rounded-lg border border-border-subtle bg-surface-card px-3 py-2 font-normal" placeholder="Summarize your solution in a few sentences." /></label>
+            <label className="flex flex-col gap-1 text-sm font-medium text-on-surface">What problem does your solution solve?<textarea rows={3} value={problemSolved} onChange={(e) => setProblemSolved(e.target.value)} className="w-full rounded-lg border border-border-subtle bg-surface-card px-3 py-2 font-normal" /></label>
+            <label className="flex flex-col gap-1 text-sm font-medium text-on-surface">Key features <span className="font-normal text-xs text-on-surface-variant-weak">Enter one feature per line.</span><textarea rows={4} value={keyFeatures} onChange={(e) => setKeyFeatures(e.target.value)} className="w-full rounded-lg border border-border-subtle bg-surface-card px-3 py-2 font-normal" placeholder={'Real-time alerts\nOffline-first operation'} /></label>
+            <label className="flex flex-col gap-1 text-sm font-medium text-on-surface">Innovation / USP<textarea rows={3} value={innovationUsp} onChange={(e) => setInnovationUsp(e.target.value)} className="w-full rounded-lg border border-border-subtle bg-surface-card px-3 py-2 font-normal" /></label>
+            <div className="grid sm:grid-cols-2 gap-space-md">
+              <label className="flex flex-col gap-1 text-sm font-medium text-on-surface">Target users<textarea rows={3} value={targetUsers} onChange={(e) => setTargetUsers(e.target.value)} className="w-full rounded-lg border border-border-subtle bg-surface-card px-3 py-2 font-normal" /></label>
+              <label className="flex flex-col gap-1 text-sm font-medium text-on-surface">Expected impact<textarea rows={3} value={expectedImpact} onChange={(e) => setExpectedImpact(e.target.value)} className="w-full rounded-lg border border-border-subtle bg-surface-card px-3 py-2 font-normal" /></label>
+            </div>
+            <div className="border-t border-border-subtle pt-space-md"><h3 className="font-headline-sm text-on-surface mb-space-sm">Technical details</h3><div className="grid sm:grid-cols-2 gap-space-md">
+              {([['frontend','Frontend'],['backend','Backend'],['database','Database'],['aiMl','AI / ML used?'],['apis','APIs / external services'],['deployment','Deployment platform'],['architectureDiagramUrl','Architecture diagram URL']] as const).map(([key,label]) => <Input key={key} label={label} value={technology[key]} onChange={(e) => setTechnology((current) => ({ ...current, [key]: e.target.value }))} placeholder={key === 'architectureDiagramUrl' ? 'https://…' : `Describe ${label.toLowerCase()}`} />)}
+            </div></div>
+            <div className="border-t border-border-subtle pt-space-md"><h3 className="font-headline-sm text-on-surface mb-space-sm">Project links</h3><div className="grid sm:grid-cols-2 gap-space-md">
+              {([['liveDemoUrl','Live demo URL'],['demoVideoUrl','Demo video URL (YouTube / Drive)'],['documentationUrl','Documentation / PPT link'],['figmaUrl','Figma link (optional)']] as const).map(([key,label]) => <Input key={key} label={label} value={projectLinks[key]} onChange={(e) => setProjectLinks((current) => ({ ...current, [key]: e.target.value }))} placeholder="https://…" />)}
+            </div></div>
+            <div className="border-t border-border-subtle pt-space-md space-y-space-md"><h3 className="font-headline-sm text-on-surface">Project files</h3>
+              <label className="block text-sm font-medium text-on-surface">Documentation / PPT upload<input type="file" accept=".pdf,.ppt,.pptx,.doc,.docx" multiple onChange={(e) => setDocumentFiles(Array.from(e.target.files ?? []))} className="mt-1 block w-full text-sm" /></label>
+              <p className="text-xs text-on-surface-variant-weak">{documentFiles.length ? documentFiles.map((file) => file.name).join(', ') : 'Attach your documentation, presentation, or architecture diagram.'}</p>
+              <label className="block text-sm font-medium text-on-surface">Screenshots / demo (3–5 images)<input type="file" accept="image/*" multiple onChange={(e) => setScreenshots(Array.from(e.target.files ?? []))} className="mt-1 block w-full text-sm" /></label>
+              <p className="text-xs text-on-surface-variant-weak">{screenshots.length ? `${screenshots.length} selected: ${screenshots.map((file) => file.name).join(', ')}` : 'Optional. Add 3 to 5 images showing the home/dashboard, main feature, result, or admin panel.'}</p>
+            </div>
+          </Card>
+
           {/* CARD 1: REPOSITORY CONFIGURATION */}
           <Card variant="default" className="flex flex-col gap-space-md">
             <div className="flex items-center justify-between">
@@ -196,44 +329,35 @@ export default function CreateSubmissionPage() {
                 <h3 className="font-headline-sm text-headline-sm text-on-surface">Repository Source</h3>
               </div>
               <span className="px-2 py-0.5 rounded-full bg-state-submitted-bg text-state-submitted-text font-label-mono-sm text-label-mono-sm">
-                API Parameter: githubUrl
+                Repository settings
               </span>
             </div>
             <Input
-              label="GitHub Repository URL <span className='text-error'>*</span>"
+              label="GitHub repository URL"
               value={githubUrl}
               onChange={(e) => setGithubUrl(e.target.value)}
-              placeholder="https://github.com/team-edith/edgespectra-firmware"
+              type="url"
+              placeholder="https://github.com/your-organization/your-project"
               leftIcon={<span className="material-symbols-outlined">account_tree</span>}
-              helperText="Repository must be public or the evaluation bot invited"
+              helperText="Paste the repository URL. Private repositories must grant access to the evaluation team."
             />
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-space-md items-end">
-            <div className="md:col-span-7">
-              <Select
-                label="Target Branch <span className='text-error'>*</span>"
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-space-md items-end">
+              <Input
+                label="Branch to evaluate"
                 value={branch}
                 onChange={(e) => setBranch(e.target.value)}
-                options={[
-                  { value: 'main', label: 'main (protected)' },
-                  { value: 'develop', label: 'develop' },
-                  { value: 'feature/as7262-driver', label: 'feature/as7262-driver' },
-                  { value: 'release/v0.8.2', label: 'release/v0.8.2' },
-                ]}
+                placeholder="main, develop, feature/my-branch"
+                list="github-branch-suggestions"
                 leftIcon={<span className="material-symbols-outlined">fork_right</span>}
-                helperText="branch param"
+                helperText="Choose a suggestion or type any branch name."
               />
+              <datalist id="github-branch-suggestions">
+                <option value="main" /><option value="master" /><option value="develop" />
+              </datalist>
+              {githubBranchUrl && <a href={githubBranchUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-border-subtle px-4 text-sm font-semibold text-primary hover:bg-surface-container-low">
+                <span className="material-symbols-outlined text-[17px]">open_in_new</span> Open selected branch
+              </a>}
             </div>
-            <div className="md:col-span-5">
-              <Button variant="secondary" className="w-full h-10 px-space-md rounded-lg bg-surface-container-low text-primary font-headline-sm text-[13px] hover:bg-surface-container flex items-center justify-center gap-space-xs transition-colors shadow-sm">
-                <span className="material-symbols-outlined text-[16px]">sync</span>
-                <span>Inspect & Fetch</span>
-              </Button>
-            </div>
-          </div>
-          <div className="flex items-center gap-space-xs text-state-accepted-text bg-state-accepted-bg px-space-md py-2 rounded-lg">
-            <span className="material-symbols-outlined text-[16px]">verified</span>
-            <span className="font-body-sm text-body-sm">Repository ping successful (Public Read Access confirmed via GitHub REST API v3)</span>
-          </div>
         </Card>
 
         {/* CARD 2: PINNED COMMIT SHA */}
@@ -245,8 +369,8 @@ export default function CreateSubmissionPage() {
               </div>
               <h3 className="font-headline-sm text-headline-sm text-on-surface">Pinned Commit Validation</h3>
             </div>
-            <span className="px-2 py-0.5 rounded-full bg-state-accepted-bg text-state-accepted-text font-label-mono-sm text-label-mono-sm flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-state-accepted-text"></span> VERIFIED
+            <span className={`px-2 py-0.5 rounded-full font-label-mono-sm text-label-mono-sm flex items-center gap-1 ${commitSha && commitValid ? 'bg-state-accepted-bg text-state-accepted-text' : 'bg-surface-container text-on-surface-variant-weak'}`}>
+              <span className="w-1.5 h-1.5 rounded-full bg-current"></span> {commitSha && commitValid ? 'FORMAT OK' : 'NOT SET'}
             </span>
           </div>
           <Input
@@ -255,41 +379,11 @@ export default function CreateSubmissionPage() {
             onChange={(e) => setCommitSha(e.target.value)}
             leftIcon={<span className="material-symbols-outlined">content_copy</span>}
             error={!commitValid && commitSha ? 'Invalid SHA format' : undefined}
-            helperText="commitSha [IMMUTABLE]"
+            helperText="The exact commit used for evaluation. Enter 7–64 characters from the selected branch."
           />
-          <Card variant="outlined" className="p-space-md flex flex-col gap-space-sm">
-            <div className="flex items-start justify-between gap-space-sm">
-              <div className="flex items-start gap-space-sm">
-                <img className="w-8 h-8 rounded-full object-cover shrink-0 mt-0.5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiLkMcdrUAJpQ4PJTAPI89ushLccUZiyDLkZbeETzN0LgmjDCZON3IuGFpflbBrkVzYE0Trmn2IIOW6XsfEm6zoQrUHB4wm5erF8LQ6cVntu67Y9fJ8IjRNa966I-5RmSNsZQP3Ihf7hCJ1tFl6ERDKOB5FMdtiSRTO-q6wjcZp7NqDqf54EWuPZgRUIsMDXitNuhUmxbilE19AmpyuIY2PSBBYNfdlQ4a32MSpZXV3r6tfn11bQAXFQ" alt="Yogesh Ghule" />
-                <div className="flex flex-col">
-                  <span className="font-headline-sm text-[14px] text-on-surface leading-snug">
-                    feat(spectral): integrate AS7262 optical sensor driver and calibration routine
-                  </span>
-                  <div className="flex items-center gap-space-xs mt-1 text-on-surface-variant-weak font-label-mono-sm text-label-mono-sm">
-                    <span className="text-on-surface font-medium">yogesh-ghule</span>
-                    <span>committed 2 hours ago</span>
-                    <span>•</span>
-                    <span className="text-primary font-mono">tree: c77e90</span>
-                  </div>
-                </div>
-              </div>
-              <Button variant="ghost" size="sm" className="text-primary hover:text-secondary shrink-0 font-label-mono-sm text-label-mono-sm flex items-center gap-1" onClick={() => {}}>
-                View on GitHub <span className="material-symbols-outlined text-[13px]">open_in_new</span>
-              </Button>
-            </div>
-            <div className="flex items-center gap-space-md pt-2 font-label-mono-sm text-label-mono-sm">
-              <span className="flex items-center gap-1 text-state-accepted-text">
-                <span className="material-symbols-outlined text-[14px]">add_circle</span> +432 lines
-              </span>
-              <span className="flex items-center gap-1 text-state-returned-text">
-                <span className="material-symbols-outlined text-[14px]">remove_circle</span> -48 lines
-              </span>
-              <span className="flex items-center gap-1 text-on-surface-variant-weak">
-                <span className="material-symbols-outlined text-[14px]">description</span> 7 files changed
-              </span>
-              <span className="ml-auto px-2 py-0.5 rounded bg-surface-card text-on-surface">GPG SIGNED</span>
-            </div>
-          </Card>
+          <p className="rounded-lg bg-surface-container-low p-space-sm text-sm text-on-surface-variant-weak">
+            The repository URL, branch, and pinned commit are saved with your solution draft. Repository contents are not fetched from this form.
+          </p>
         </Card>
 
         {/* CARD 3: ADDITIONAL LINKS & RESOURCES (OPTIONAL) */}
@@ -425,24 +519,103 @@ export default function CreateSubmissionPage() {
             </div>
           </Card>
 
-          {/* TEAM CONTEXT CARD */}
+          {/* SUBMISSION TYPE AND TEAM DETAILS */}
           <Card variant="default" className="flex flex-col gap-space-md">
             <div className="flex items-center justify-between">
-              <span className="font-headline-sm text-headline-sm text-on-surface">Submission Identity</span>
-              <span className="font-label-mono-sm text-label-mono-sm text-primary font-semibold">TEAM EDITH #26043</span>
+              <span className="font-headline-sm text-headline-sm text-on-surface">How are you submitting?</span>
+              <span className="font-label-mono-sm text-label-mono-sm text-primary font-semibold">Saved with draft</span>
             </div>
-            <div className="grid grid-cols-2 gap-space-sm">
-              <div className="p-space-sm rounded-lg bg-surface-container-low flex flex-col">
-                <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">LEAD INNOVATOR</span>
-                <span className="font-headline-sm text-[13px] text-on-surface truncate mt-0.5">Yogesh Ghule</span>
-                <span className="font-body-sm text-[11px] text-on-surface-variant-weak">yg.innovate@sih.gov</span>
-              </div>
-              <div className="p-space-sm rounded-lg bg-surface-container-low flex flex-col">
-                <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">CONTRIBUTORS</span>
-                <span className="font-headline-sm text-[13px] text-on-surface truncate mt-0.5">4 Confirmed</span>
-                <span className="font-body-sm text-[11px] text-on-surface-variant-weak">memberUserIds [OK]</span>
-              </div>
+            <Select
+              label="Submission type"
+              value={submissionType}
+              onChange={(e) => setSubmissionType(e.target.value as 'INDIVIDUAL' | 'TEAM')}
+              options={[
+                { value: 'INDIVIDUAL', label: 'Individual' },
+                { value: 'TEAM', label: 'Team' },
+              ]}
+            />
+            <div className="rounded-lg border border-border-subtle bg-surface-container-low p-space-md space-y-1 text-sm">
+              <p className="font-semibold text-on-surface">Student / team leader</p>
+              <p><span className="text-on-surface-variant-weak">Name:</span> {participant?.fullName || 'Complete your portal profile'}</p>
+              <p><span className="text-on-surface-variant-weak">College / university:</span> {participant?.institutionName || 'Not provided'}</p>
+              <p><span className="text-on-surface-variant-weak">Email:</span> {participant?.email || 'Not provided'}</p>
+              <p><span className="text-on-surface-variant-weak">Contact:</span> {participant?.phone || 'Not provided'}</p>
+              {submissionType === 'TEAM' && <p><span className="text-on-surface-variant-weak">Team members:</span> {selectedMembers.map((member) => member.fullName).join(', ') || 'Add registered members below'}</p>}
             </div>
+            {submissionType === 'INDIVIDUAL' ? (
+              <p className="rounded-lg bg-surface-container-low p-space-sm text-sm text-on-surface-variant">
+                This solution draft will be submitted under your name as an individual.
+              </p>
+            ) : (
+              <>
+                <div className="rounded-lg bg-surface-container-low p-space-sm">
+                  <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">TEAM LEAD</span>
+                  <p className="font-headline-sm text-[13px] text-on-surface mt-0.5">You are added automatically</p>
+                </div>
+                <Input
+                  label="Team name"
+                  value={teamName}
+                  onChange={(e) => setTeamName(e.target.value)}
+                  placeholder="e.g. Campus Innovators"
+                  required
+                  helperText="Your team is created when this solution draft is saved."
+                />
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="teammate-search" className="text-sm font-medium text-on-surface">Find registered teammates</label>
+              <Input
+                id="teammate-search"
+                value={memberSearch}
+                onChange={(e) => setMemberSearch(e.target.value)}
+                placeholder="Search by student name"
+                helperText="Type at least 2 characters to search all registered student participants on the platform."
+              />
+              {(searchingMembers || memberSearchError || memberSearchResults.length > 0 || memberSearch.trim().length >= 2) && (
+                <div className="max-h-52 overflow-y-auto rounded-lg border border-border-subtle bg-surface-card shadow-sm" role="listbox" aria-label="Student search results">
+                  {searchingMembers ? (
+                    <p className="px-3 py-2 text-sm text-on-surface-variant-weak">Searching students…</p>
+                  ) : memberSearchError ? (
+                    <p className="px-3 py-2 text-sm text-error">{memberSearchError}</p>
+                  ) : memberSearchResults.length ? memberSearchResults.map((candidate) => (
+                    <button
+                      key={candidate.participantId}
+                      type="button"
+                      role="option"
+                      aria-selected="false"
+                      onClick={() => {
+                        setSelectedMembers((members) => [...members, candidate]);
+                        setMemberSearch('');
+                      }}
+                      className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-surface-container-low"
+                    >
+                      <span className="font-medium text-on-surface">{candidate.fullName}</span>
+                      <span className="text-xs text-primary">Add teammate</span>
+                    </button>
+                  )) : memberSearch.trim().length >= 2 ? (
+                    <p className="px-3 py-2 text-sm text-on-surface-variant-weak">No registered students found.</p>
+                  ) : null}
+                </div>
+              )}
+              <span className="font-body-sm text-[11px] text-on-surface-variant-weak">
+                All registered students are searchable. The backend checks problem access when you save the team draft.
+              </span>
+              {selectedMembers.length > 0 && (
+                <ul className="mt-1 flex flex-wrap gap-2" aria-label="Selected teammates">
+                  {selectedMembers.map((member) => (
+                    <li key={member.participantId} className="inline-flex items-center gap-2 rounded-full bg-primary-container px-3 py-1 text-sm text-on-surface">
+                      {member.fullName}
+                      <button
+                        type="button"
+                        aria-label={`Remove ${member.fullName}`}
+                        onClick={() => setSelectedMembers((members) => members.filter((item) => item.participantId !== member.participantId))}
+                        className="font-bold text-on-surface-variant hover:text-error"
+                      >×</button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+              </>
+            )}
             <div className="rounded-lg bg-surface-container-low p-space-sm flex items-center gap-space-sm">
               <img className="w-12 h-12 rounded object-cover shrink-0" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBXu4FLWi8wZV9zwUH6g1RE1dk01lusJigaL2508bEXjw-NkvsEDkpah1mpx161bYIEwArpv0RdKzxAOzctHbEY8gatId_RyUv8CYHgMTVzy7gvna0OKRpermcZC6TFRZL8P_ERHOzQu8gu5mGLMvase_Z_At95rDiseXNnWTey7n7nsExtg6jU0eDhaIZuKcRn0x7ihIN_QHhbIQYUGpIKyW9Tcqem9NztL0EMI4k4UCT-WxCQ7S_2DQ" alt="Optical Edge Ingestion Engine" />
               <div className="flex flex-col min-w-0">
@@ -483,11 +656,11 @@ export default function CreateSubmissionPage() {
             className="h-10 px-space-md rounded-lg bg-surface-card hover:bg-surface-container text-on-surface font-headline-sm text-headline-sm flex items-center gap-1 shadow-sm transition-colors"
           >
             <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-            <span>Back to Team</span>
+            <span>Back</span>
           </Button>
           <Button
             variant="secondary"
-            onClick={() => {}}
+            onClick={finish}
             className="h-10 px-space-md rounded-lg bg-surface-container-low hover:bg-surface-container text-primary font-headline-sm text-headline-sm flex items-center gap-1 transition-colors"
           >
             <span className="material-symbols-outlined text-[18px]">save</span>
@@ -499,7 +672,7 @@ export default function CreateSubmissionPage() {
             disabled={!canContinue || create.isPending}
             className="h-10 px-space-lg rounded-lg bg-primary-container hover:bg-primary text-on-primary font-headline-sm text-headline-sm flex items-center gap-2 transition-all shadow-md"
           >
-            <span>{create.isPending ? 'Validating Repository...' : stepIndex < STEPPER_STEPS.length - 1 ? 'Continue to Project Files' : 'Create draft'}</span>
+            <span>{create.isPending ? 'Saving solution draft…' : stepIndex < STEPPER_STEPS.length - 1 ? `Continue: ${STEPPER_STEPS[stepIndex + 1].label}` : 'Create draft'}</span>
             <span className="material-symbols-outlined text-[18px]">{create.isPending ? 'refresh' : 'arrow_forward'}</span>
           </Button>
         </div>

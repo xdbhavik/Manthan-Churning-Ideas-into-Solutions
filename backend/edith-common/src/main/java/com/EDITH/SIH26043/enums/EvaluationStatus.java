@@ -13,5 +13,6 @@ public enum EvaluationStatus {
     SCORES_AGGREGATED,
     PRIORITIZED,
     PHASE_3_READY,
-    ANALYSIS_FAILED
+    ANALYSIS_FAILED,
+    REJECTED
 }

@@ -115,12 +115,13 @@ class ParticipantServiceTest {
                 .thenAnswer(inv -> inv.getArgument(0));
 
         Participant participant = service.registerStudent(caller,
-                new ParticipantRegisterRequest("  Aarav Sharma  ", "aarav@student.ac.in", null));
+                new ParticipantRegisterRequest("  Aarav Sharma  ", "  IIT Madras  ", "aarav@student.ac.in", null));
 
         assertThat(participant.getParticipantType()).isEqualTo(ParticipantType.STUDENT);
         assertThat(participant.getFullName()).isEqualTo("Aarav Sharma"); // trimmed
         assertThat(participant.getPhone()).isEqualTo("9700000001");      // falls back to claim
         assertThat(participant.getEmail()).isEqualTo("aarav@student.ac.in");
+        assertThat(participant.getInstitutionName()).isEqualTo("IIT Madras");
     }
 
     @Test
@@ -128,7 +129,7 @@ class ParticipantServiceTest {
         when(participantRepository.existsByUserId(userId)).thenReturn(true);
 
         assertThatThrownBy(() -> service.registerStudent(caller,
-                new ParticipantRegisterRequest("Aarav", null, null)))
+                new ParticipantRegisterRequest("Aarav", "IIT Madras", null, null)))
                 .isInstanceOf(ApiException.class)
                 .extracting(ex -> ((ApiException) ex).getStatus())
                 .isEqualTo(HttpStatus.CONFLICT);
@@ -142,7 +143,7 @@ class ParticipantServiceTest {
                 heiAccount("IIT Madras", true)));
 
         assertThatThrownBy(() -> service.registerStudent(caller,
-                new ParticipantRegisterRequest("Aarav", null, null)))
+                new ParticipantRegisterRequest("Aarav", "IIT Madras", null, null)))
                 .isInstanceOf(ApiException.class)
                 .satisfies(ex -> {
                     assertThat(((ApiException) ex).getStatus()).isEqualTo(HttpStatus.CONFLICT);

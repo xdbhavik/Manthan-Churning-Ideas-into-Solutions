@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/providers/AuthProvider';
 import { useToast } from '../../app/providers/ToastProvider';
 import { getErrorMessage } from '../../services/apiClient';
@@ -19,6 +19,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const redirect = params.get('redirect') ?? '/app/dashboard';
+  const registrationMode = params.get('mode') === 'register';
   const { verifyOtp } = useAuth();
   const toast = useToast();
 
@@ -44,6 +45,10 @@ export default function LoginPage() {
         setError('Enter your phone number.');
         return;
       }
+      if (registering && !email.trim()) {
+        setError('Enter your email address to create an account.');
+        return;
+      }
       setLoading(true);
       setError(null);
       try {
@@ -61,6 +66,8 @@ export default function LoginPage() {
         if (!registering && e?.response?.status === 404) {
           setNeedsRegister(true);
           setError(null);
+        } else if (registering && e?.response?.status === 409) {
+          setError('An account already exists for this phone. Sign in instead.');
         } else {
           setError(getErrorMessage(e));
         }
@@ -108,14 +115,22 @@ export default function LoginPage() {
         <img src="/logo.svg" alt="Portal logo" className="w-9 h-9" />
         <div>
           <div className="font-headline font-bold text-on-surface">National Innovation Portal</div>
-          <div className="text-xs text-on-surface-variant-weak">Participant sign in</div>
+          <div className="text-xs text-on-surface-variant-weak">
+            {registrationMode ? 'Create a participant account' : 'Participant sign in'}
+          </div>
         </div>
       </div>
 
       {step === 'phone' ? (
         <div>
-          <h1 className="font-headline text-2xl font-bold text-on-surface">Sign in with OTP</h1>
-          <p className="text-sm text-on-surface-variant-weak mt-1">We'll send a one-time passcode to your phone.</p>
+          <h1 className="font-headline text-2xl font-bold text-on-surface">
+            {registrationMode ? 'Create your account' : 'Sign in with OTP'}
+          </h1>
+          <p className="text-sm text-on-surface-variant-weak mt-1">
+            {registrationMode
+              ? "Enter your phone and email to create an account. We'll send a one-time passcode to verify your phone."
+              : "We'll send a one-time passcode to your phone."}
+          </p>
 
           <div className="mt-6 space-y-4">
             <div>
@@ -125,18 +140,21 @@ export default function LoginPage() {
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="e.g. 9876543210"
                 inputMode="tel"
+                type="tel"
                 className="w-full px-3 py-2.5 rounded-lg border border-border-subtle bg-surface-card text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
               />
             </div>
             <div>
               <label className="block text-sm font-semibold text-body mb-1.5">
-                Email <span className="text-on-surface-variant-weak font-normal">(optional)</span>
+                Email <span className="text-on-surface-variant-weak font-normal">{registrationMode ? '(required)' : '(optional)'}</span>
               </label>
               <input
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 inputMode="email"
+                type="email"
+                required={registrationMode}
                 className="w-full px-3 py-2.5 rounded-lg border border-border-subtle bg-surface-card text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
               />
             </div>
@@ -152,7 +170,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            {needsRegister ? (
+            {needsRegister || registrationMode ? (
               <button
                 onClick={() => startOtp(true)}
                 disabled={loading}
@@ -169,6 +187,15 @@ export default function LoginPage() {
                 {loading ? 'Sending…' : 'Send code'}
               </button>
             )}
+            <p className="text-center text-sm text-on-surface-variant-weak">
+              {registrationMode ? 'Already have an account?' : 'New to the portal?'}{' '}
+              <Link
+                to={registrationMode ? '/login' : '/login?mode=register'}
+                className="font-semibold text-primary hover:text-primary-container"
+              >
+                {registrationMode ? 'Sign in' : 'Create account'}
+              </Link>
+            </p>
           </div>
         </div>
       ) : (
@@ -198,7 +225,11 @@ export default function LoginPage() {
             disabled={loading}
             className="btn-primary mt-4 w-full text-sm font-bold py-2.5 disabled:opacity-60"
           >
-            {loading ? 'Verifying…' : 'Verify & sign in'}
+            {loading
+              ? 'Verifying…'
+              : registrationMode
+                ? 'Verify & continue registration'
+                : 'Verify & sign in'}
           </button>
 
           <div className="mt-3 flex items-center justify-between text-sm">
