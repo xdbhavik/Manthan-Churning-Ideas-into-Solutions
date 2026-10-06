@@ -120,36 +120,29 @@ class SubmissionServiceTest {
     }
 
     @Test
-    void create_InTeamModeValidatesEveryMemberCanSeeTheProblem() {
+    void create_RequiresInvitationAcceptanceBeforeAddingMembers() {
         givenProblem();
         givenCanSee(leader, true);
-        givenCanSee(member, true);
-        when(participantRepository.findById(memberId)).thenReturn(Optional.of(member));
-        givenTeamSaveAssignsId();
-        givenSubmissionSaveAssignsId();
-
-        SubmissionView view = service.create(leader,
+        givenProblem();
+        assertThatThrownBy(() -> service.create(leader,
                 new SubmissionCreateRequest(problemId, "Solar water pump", "A solar solution", null,
-                        null, null, null, "Solar Squad", List.of(memberId)));
-
-        assertThat(view.teamId()).isNotNull();
-        verify(teamRepository).save(any(Team.class));
+                        null, null, null, "Solar Squad", List.of(memberId))))
+                .isInstanceOf(ApiException.class)
+                .extracting(ex -> ((ApiException) ex).getStatus())
+                .isEqualTo(HttpStatus.BAD_REQUEST);
+        verify(teamRepository, never()).save(any(Team.class));
     }
 
     @Test
     void create_RejectsATeamMemberWhoCannotSeeTheProblem() {
         givenProblem();
         givenCanSee(leader, true);
-        givenCanSee(member, false);
-        when(participantRepository.findById(memberId)).thenReturn(Optional.of(member));
-        givenTeamSaveAssignsId();
-
         assertThatThrownBy(() -> service.create(leader,
                 new SubmissionCreateRequest(problemId, "t", "s", null, null, null, null,
                         "Solar Squad", List.of(memberId))))
                 .isInstanceOf(ApiException.class)
                 .extracting(ex -> ((ApiException) ex).getStatus())
-                .isEqualTo(HttpStatus.FORBIDDEN);
+                .isEqualTo(HttpStatus.BAD_REQUEST);
         verify(submissionRepository, never()).save(any());
     }
 

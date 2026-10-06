@@ -9,10 +9,10 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Creates a DRAFT submission against a published problem. Team mode is implied
- * by {@code memberUserIds} being non-empty (and optionally a {@code teamName});
- * otherwise the submission is individual. Every member — including the caller —
- * must be able to see the problem under its access rule.
+ * Creates a DRAFT submission against a published problem. Team submissions
+ * reference an existing {@code teamId}; members must already have joined by
+ * accepting an invitation. {@code memberUserIds} is retained for payload
+ * compatibility but direct membership assignment is rejected.
  */
 public record SubmissionCreateRequest(
         @NotNull(message = "problemId is required")

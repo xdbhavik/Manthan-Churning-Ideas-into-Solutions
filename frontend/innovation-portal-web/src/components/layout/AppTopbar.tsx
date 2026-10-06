@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/providers/AuthProvider';
+import { useQuery } from '@tanstack/react-query';
+import * as portal from '../../services/portalService';
 
 function initials(name: string): string {
   return (
@@ -21,6 +23,8 @@ export function AppTopbar({
   onOpenSidebar: () => void;
 }) {
   const { logout } = useAuth();
+  const { data: invitations = [] } = useQuery({ queryKey: ['portal', 'team-invitations'], queryFn: portal.getTeamInvitations, refetchInterval: 30000 });
+  const pendingInvitations = invitations.filter((item) => item.direction === 'RECEIVED' && item.status === 'PENDING').length;
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
@@ -120,13 +124,10 @@ export function AppTopbar({
           <span className="material-symbols-outlined text-[22px]">settings</span>
         </Link>
 
-        <button
-          title="Notifications (not available)"
-          className="p-2 rounded-lg text-on-surface-variant-weak/50 cursor-not-allowed hidden sm:block"
-          disabled
-        >
+        <Link to="/app/teams" title={pendingInvitations ? `${pendingInvitations} pending team invitation(s)` : 'Team invitations'} className="relative p-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container hidden sm:block">
           <span className="material-symbols-outlined text-[22px]">notifications</span>
-        </button>
+          {pendingInvitations > 0 && <span className="absolute right-0 top-0 min-w-4 rounded-full bg-error px-1 text-center text-[10px] font-bold leading-4 text-white">{pendingInvitations}</span>}
+        </Link>
 
         <div className="relative" ref={menuRef}>
           <button

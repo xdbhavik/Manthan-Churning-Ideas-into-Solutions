@@ -7,6 +7,7 @@ import com.EDITH.SIH26043.entity.TeamInvitation;
 import com.EDITH.SIH26043.entity.TeamMember;
 import com.EDITH.SIH26043.entity.TeamMemberId;
 import com.EDITH.SIH26043.enums.TeamInvitationStatus;
+import com.EDITH.SIH26043.enums.ParticipantType;
 import com.EDITH.SIH26043.enums.TeamRole;
 import com.EDITH.SIH26043.exception.ApiException;
 import com.EDITH.SIH26043.repository.ParticipantRepository;
@@ -62,6 +63,8 @@ public class TeamService {
                 if (id.equals(leader.getParticipantId())) continue;
                 Participant invitee = participants.findById(id)
                         .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Registered student not found"));
+                if (invitee.getParticipantType() != ParticipantType.STUDENT)
+                    throw new ApiException(HttpStatus.BAD_REQUEST, "Only registered student participants can be invited");
                 if (!participantService.canSee(invitee, problem)) {
                     throw new ApiException(HttpStatus.FORBIDDEN, "Invitee cannot access this problem");
                 }

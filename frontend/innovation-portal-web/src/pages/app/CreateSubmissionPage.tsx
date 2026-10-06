@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/providers/AuthProvider';
 import { useToast } from '../../app/providers/ToastProvider';
 import { getErrorMessage } from '../../services/apiClient';
 import * as portal from '../../services/portalService';
 import { useProblems, useProblem } from '../../hooks/usePortalQueries';
 import { Button, Card, Input, Select, Stepper } from '../../components/ui';
-import type { Participant, ParticipantSearchResult, SubmissionCreateRequest, SubmissionLink } from '../../types/dto';
+import type { Participant, SubmissionCreateRequest, SubmissionLink } from '../../types/dto';
 import { motion } from 'framer-motion';
 
 const COMMIT_RE = /^[A-Za-z0-9._-]{7,64}$/;
@@ -31,12 +31,7 @@ export default function CreateSubmissionPage() {
   const [stepIndex, setStepIndex] = useState(0);
   const [problemId] = useState(pre);
   const [submissionType, setSubmissionType] = useState<'INDIVIDUAL' | 'TEAM'>('INDIVIDUAL');
-  const [teamName, setTeamName] = useState('');
-  const [memberSearch, setMemberSearch] = useState('');
-  const [memberSearchResults, setMemberSearchResults] = useState<ParticipantSearchResult[]>([]);
-  const [selectedMembers, setSelectedMembers] = useState<ParticipantSearchResult[]>([]);
-  const [searchingMembers, setSearchingMembers] = useState(false);
-  const [memberSearchError, setMemberSearchError] = useState('');
+  const [selectedTeamId, setSelectedTeamId] = useState('');
   const [githubUrl, setGithubUrl] = useState('');
   const [branch, setBranch] = useState('main');
   const [commitSha, setCommitSha] = useState('');
@@ -60,34 +55,9 @@ export default function CreateSubmissionPage() {
 
   useProblems(authed); // Left to cache problem list if needed, or we can just import useProblem
   const { data: problem } = useProblem(problemId, authed);
-
-  useEffect(() => {
-    const query = memberSearch.trim();
-    if (submissionType !== 'TEAM' || query.length < 2) {
-      setMemberSearchResults([]);
-      setMemberSearchError('');
-      setSearchingMembers(false);
-      return;
-    }
-    let active = true;
-    const timer = window.setTimeout(async () => {
-      setSearchingMembers(true);
-      setMemberSearchError('');
-      try {
-        const results = await portal.searchStudentParticipants(query);
-        if (active) setMemberSearchResults(results.filter((candidate) =>
-          !selectedMembers.some((selected) => selected.participantId === candidate.participantId)));
-      } catch (error) {
-        if (active) setMemberSearchError(getErrorMessage(error));
-      } finally {
-        if (active) setSearchingMembers(false);
-      }
-    }, 250);
-    return () => {
-      active = false;
-      window.clearTimeout(timer);
-    };
-  }, [memberSearch, selectedMembers, submissionType]);
+  const { data: myTeams = [] } = useQuery({ queryKey: ['portal', 'teams'], queryFn: portal.getMyTeams, enabled: authed });
+  const problemTeams = myTeams.filter((team) => team.problemId === problemId);
+  const selectedTeam = problemTeams.find((team) => team.teamId === selectedTeamId);
 
   const create = useMutation({
     mutationFn: () => {
@@ -95,10 +65,7 @@ export default function CreateSubmissionPage() {
         problemId,
         title: solutionTitle.trim(),
         summary: shortDescription.trim(),
-        teamName: submissionType === 'TEAM' ? teamName.trim() : undefined,
-        memberUserIds: submissionType === 'TEAM'
-          ? selectedMembers.map((member) => member.participantId)
-          : [],
+        teamId: submissionType === 'TEAM' ? selectedTeamId : undefined,
         githubUrl: githubUrl.trim() || undefined,
         branch: branch.trim() || undefined,
         commitSha: commitSha.trim() || undefined,
@@ -119,8 +86,8 @@ export default function CreateSubmissionPage() {
             contactNumber: participant?.phone || '',
           },
           teamDetails: {
-            teamName: submissionType === 'TEAM' ? teamName.trim() : '',
-            members: selectedMembers.map((member) => ({ participantId: member.participantId, fullName: member.fullName })),
+            teamName: submissionType === 'TEAM' ? selectedTeam?.name || '' : '',
+            members: selectedTeam?.members ?? [],
           },
           projectLinks: Object.fromEntries(Object.entries(projectLinks).map(([key, value]) => [key, value.trim()])),
           technicalDetails: technology,
@@ -173,8 +140,8 @@ export default function CreateSubmissionPage() {
       toast.notify('Select a problem', 'error');
       return;
     }
-    if (submissionType === 'TEAM' && !teamName.trim()) {
-      toast.notify('Enter a team name to create a team submission', 'error');
+    if (submissionType === 'TEAM' && !selectedTeamId) {
+      toast.notify('Create a team or accept an invitation from the Teams screen first', 'error');
       return;
     }
     if (!solutionTitle.trim() || !shortDescription.trim()) {
@@ -540,7 +507,7 @@ export default function CreateSubmissionPage() {
               <p><span className="text-on-surface-variant-weak">College / university:</span> {participant?.institutionName || 'Not provided'}</p>
               <p><span className="text-on-surface-variant-weak">Email:</span> {participant?.email || 'Not provided'}</p>
               <p><span className="text-on-surface-variant-weak">Contact:</span> {participant?.phone || 'Not provided'}</p>
-              {submissionType === 'TEAM' && <p><span className="text-on-surface-variant-weak">Team members:</span> {selectedMembers.map((member) => member.fullName).join(', ') || 'Add registered members below'}</p>}
+              {submissionType === 'TEAM' && <p><span className="text-on-surface-variant-weak">Team:</span> {selectedTeam?.name || 'Choose a team below'}</p>}
             </div>
             {submissionType === 'INDIVIDUAL' ? (
               <p className="rounded-lg bg-surface-container-low p-space-sm text-sm text-on-surface-variant">
@@ -548,72 +515,12 @@ export default function CreateSubmissionPage() {
               </p>
             ) : (
               <>
-                <div className="rounded-lg bg-surface-container-low p-space-sm">
-                  <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">TEAM LEAD</span>
-                  <p className="font-headline-sm text-[13px] text-on-surface mt-0.5">You are added automatically</p>
-                </div>
-                <Input
-                  label="Team name"
-                  value={teamName}
-                  onChange={(e) => setTeamName(e.target.value)}
-                  placeholder="e.g. Campus Innovators"
-                  required
-                  helperText="Your team is created when this solution draft is saved."
-                />
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="teammate-search" className="text-sm font-medium text-on-surface">Find registered teammates</label>
-              <Input
-                id="teammate-search"
-                value={memberSearch}
-                onChange={(e) => setMemberSearch(e.target.value)}
-                placeholder="Search by student name"
-                helperText="Type at least 2 characters to search all registered student participants on the platform."
-              />
-              {(searchingMembers || memberSearchError || memberSearchResults.length > 0 || memberSearch.trim().length >= 2) && (
-                <div className="max-h-52 overflow-y-auto rounded-lg border border-border-subtle bg-surface-card shadow-sm" role="listbox" aria-label="Student search results">
-                  {searchingMembers ? (
-                    <p className="px-3 py-2 text-sm text-on-surface-variant-weak">Searching students…</p>
-                  ) : memberSearchError ? (
-                    <p className="px-3 py-2 text-sm text-error">{memberSearchError}</p>
-                  ) : memberSearchResults.length ? memberSearchResults.map((candidate) => (
-                    <button
-                      key={candidate.participantId}
-                      type="button"
-                      role="option"
-                      aria-selected="false"
-                      onClick={() => {
-                        setSelectedMembers((members) => [...members, candidate]);
-                        setMemberSearch('');
-                      }}
-                      className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-surface-container-low"
-                    >
-                      <span className="font-medium text-on-surface">{candidate.fullName}</span>
-                      <span className="text-xs text-primary">Add teammate</span>
-                    </button>
-                  )) : memberSearch.trim().length >= 2 ? (
-                    <p className="px-3 py-2 text-sm text-on-surface-variant-weak">No registered students found.</p>
-                  ) : null}
-                </div>
-              )}
-              <span className="font-body-sm text-[11px] text-on-surface-variant-weak">
-                All registered students are searchable. The backend checks problem access when you save the team draft.
-              </span>
-              {selectedMembers.length > 0 && (
-                <ul className="mt-1 flex flex-wrap gap-2" aria-label="Selected teammates">
-                  {selectedMembers.map((member) => (
-                    <li key={member.participantId} className="inline-flex items-center gap-2 rounded-full bg-primary-container px-3 py-1 text-sm text-on-surface">
-                      {member.fullName}
-                      <button
-                        type="button"
-                        aria-label={`Remove ${member.fullName}`}
-                        onClick={() => setSelectedMembers((members) => members.filter((item) => item.participantId !== member.participantId))}
-                        className="font-bold text-on-surface-variant hover:text-error"
-                      >×</button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+                <label className="block text-sm font-medium text-on-surface">Your team for this problem
+                  <select value={selectedTeamId} onChange={(e) => setSelectedTeamId(e.target.value)} className="mt-1 w-full rounded-lg border border-border-subtle bg-surface-card p-3">
+                    <option value="">Select a team</option>{problemTeams.map((team) => <option key={team.teamId} value={team.teamId}>{team.name}</option>)}
+                  </select>
+                </label>
+                {selectedTeam ? <p className="rounded-lg bg-surface-container-low p-space-sm text-sm text-on-surface-variant">Members: {selectedTeam.members.map((member) => member.fullName).join(', ')}</p> : <Link to="/app/teams" className="text-sm font-semibold text-primary">Create a team or accept an invitation on the Teams screen</Link>}
               </>
             )}
             <div className="rounded-lg bg-surface-container-low p-space-sm flex items-center gap-space-sm">

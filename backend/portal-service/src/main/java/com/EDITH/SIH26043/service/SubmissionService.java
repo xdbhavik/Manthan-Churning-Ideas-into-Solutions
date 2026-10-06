@@ -103,8 +103,11 @@ public class SubmissionService {
             throw new ApiException(HttpStatus.BAD_REQUEST,
                     "Invite students from Teams first; they join only after accepting the invitation");
         }
-        boolean teamMode = !memberIds.isEmpty()
-                || (request.teamName() != null && !request.teamName().isBlank()) || request.teamId() != null;
+        boolean teamMode = request.teamId() != null;
+        if (!teamMode && request.teamName() != null && !request.teamName().isBlank()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "Create your team from the Teams screen before starting a team submission");
+        }
 
         UUID teamId = null;
         if (teamMode) {
@@ -116,8 +119,6 @@ public class SubmissionService {
                 if (!teamMemberRepository.existsById(new TeamMemberId(team.getTeamId(), me.getParticipantId())))
                     throw new ApiException(HttpStatus.FORBIDDEN, "You must accept a team invitation to join this team");
                 teamId = team.getTeamId();
-            } else {
-                teamId = createTeam(me, problem, List.of(), request.teamName());
             }
         } else if (submissionRepository
                 .existsByProblemIdAndSubmitterParticipantIdAndStatusIn(

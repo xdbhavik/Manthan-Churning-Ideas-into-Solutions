@@ -1,0 +1,1 @@
+import{j as e}from"./index-bmTDqWrU.js";function a(){return e.jsxs("div",{className:"p-8",children:[e.jsx("h1",{className:"text-2xl font-bold mb-4 text-on-surface",children:"Help"}),e.jsx("p",{className:"text-on-surface-variant",children:"Get help and read documentation."})]})}export{a as default};

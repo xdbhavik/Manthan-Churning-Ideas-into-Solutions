@@ -164,8 +164,8 @@ public class PortalController {
 
     @Operation(summary = "🆕 Create a submission (draft)",
             description = "Opens a DRAFT submission for a visible problem. Pass " +
-                    "teamName + memberUserIds to create a team and draft the team " +
-                    "submission; every member must individually be able to see the problem. " +
+                    "teamId to create a team submission. The caller must already be a " +
+                    "member (team invitations add students only after acceptance). " +
                     "An individual may have only one active (DRAFT/SUBMITTED/UNDER_REVIEW) " +
                     "submission per problem. For a repo-backed submission pass " +
                     "githubUrl + commitSha; the commit may be pinned later, but it is " +
