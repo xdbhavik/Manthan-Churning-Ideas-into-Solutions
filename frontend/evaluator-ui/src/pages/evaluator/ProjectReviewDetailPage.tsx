@@ -130,7 +130,7 @@ export default function ProjectReviewDetailPage() {
         <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-text-secondary">{text(problem.description)}</p>
         {problem.expectedOutcome != null && <div className="mt-4"><h4 className="text-xs font-bold uppercase tracking-wide text-text-muted">Expected outcome</h4><p className="mt-1 whitespace-pre-wrap text-sm text-text-primary">{text(problem.expectedOutcome)}</p></div>}
         <dl className="mt-4 grid grid-cols-1 gap-space-sm sm:grid-cols-2 lg:grid-cols-3">
-          <Field label="Problem ID" value={review.problemId} /><Field label="Organization / department" value={problem.sourceBucket} /><Field label="Category" value={problem.subEntityType} /><Field label="Urgency" value={problem.urgency} /><Field label="Severity" value={problem.severity} /><Field label="Location" value={problem.location} />
+          <Field label="Problem ID" value={review.problemId} /><Field label="Original problem submitter" value={problem.submittedByUserId} /><Field label="Organization / department" value={problem.sourceBucket} /><Field label="Category" value={problem.subEntityType} /><Field label="Urgency" value={problem.urgency} /><Field label="Severity" value={problem.severity} /><Field label="Location" value={problem.location} />
         </dl>
         {domains.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{domains.map((domain) => <span key={String(domain)} className="rounded-full bg-surface-muted px-3 py-1 text-xs text-text-secondary">{String(domain)}</span>)}</div>}
       </Section>

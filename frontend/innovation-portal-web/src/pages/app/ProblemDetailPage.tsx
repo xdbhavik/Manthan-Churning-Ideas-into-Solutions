@@ -174,13 +174,6 @@ export default function ProblemDetailPage() {
                 <span className="material-symbols-outlined text-[18px] text-on-surface-variant-weak">share</span>
                 <span>Share</span>
               </Button>
-              <Button
-                variant="ghost"
-                className="inline-flex items-center gap-space-xs px-space-md h-11 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-body-md text-body-md transition-colors"
-              >
-                <span className="material-symbols-outlined text-[18px] text-on-surface-variant-weak">download</span>
-                <span>Download Brief (PDF)</span>
-              </Button>
             </div>
             {/* Active Submission Constraint Badge */}
             <div className="flex items-start sm:items-center gap-space-xs bg-state-submitted-bg text-state-submitted-text px-space-md py-space-sm rounded-lg max-w-md">
@@ -451,34 +444,6 @@ export default function ProblemDetailPage() {
               </div>
             </div>
 
-            {/* ATTACHED BACKGROUND DOCUMENTS */}
-            <div className="bg-surface-card rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md">
-              <div className="flex items-center justify-between">
-                <h3 className="font-headline-sm text-headline-sm text-on-surface">Official Reference Briefs</h3>
-                <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">{problem.evidenceCount} FILES</span>
-              </div>
-              <div className="flex flex-col gap-space-sm">
-                {Array.from({ length: problem.evidenceCount }).map((_, i) => (
-                  <div key={i} className="flex items-center justify-between p-space-sm bg-surface-canvas hover:bg-surface-container transition-colors rounded-lg group">
-                    <div className="flex items-center gap-space-sm min-w-0">
-                      <span className="material-symbols-outlined text-primary text-[20px] shrink-0">picture_as_pdf</span>
-                      <div className="min-w-0 flex flex-col">
-                        <span className="font-body-sm text-body-sm text-on-surface font-medium truncate">Reference_Document_{i + 1}.pdf</span>
-                        <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">~2.5 MB • Technical Spec</span>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="shrink-0 p-space-xs text-on-surface-variant-weak hover:text-primary transition-colors"
-                      onClick={() => {}}
-                    >
-                      <span className="material-symbols-outlined text-[18px]">download</span>
-                    </Button>
-</div>
-            ))}
-          </div>
-        </div>
       </div>
       </aside>
       </div>

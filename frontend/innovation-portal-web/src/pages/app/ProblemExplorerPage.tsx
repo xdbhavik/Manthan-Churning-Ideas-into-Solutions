@@ -535,16 +535,6 @@ export default function AppProblemExplorerPage() {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-space-sm w-full md:w-auto justify-end">
-                <button
-                  type="button"
-                  className="h-9 px-space-md rounded-lg border border-border-subtle bg-surface-card hover:bg-surface-canvas text-on-surface font-headline-sm text-body-sm flex items-center gap-1.5 transition-colors"
-                  onClick={() => {}}
-                >
-                  <span className="material-symbols-outlined text-base">download</span>
-                  <span>Download Rubric (PDF)</span>
-                </button>
-              </div>
             </div>
           </>
         )}

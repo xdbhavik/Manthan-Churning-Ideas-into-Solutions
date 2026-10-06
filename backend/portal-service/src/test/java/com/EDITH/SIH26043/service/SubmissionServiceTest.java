@@ -5,6 +5,7 @@ import com.EDITH.SIH26043.client.CodeJudgeGateway;
 import com.EDITH.SIH26043.client.EvaluationGateway;
 import com.EDITH.SIH26043.client.ProjectReviewCreateRequest;
 import com.EDITH.SIH26043.client.ProjectReviewCreateResponse;
+import com.EDITH.SIH26043.client.ProblemContextGateway;
 import com.EDITH.SIH26043.entity.Participant;
 import com.EDITH.SIH26043.entity.PublishedProblem;
 import com.EDITH.SIH26043.entity.Submission;
@@ -64,11 +65,12 @@ class SubmissionServiceTest {
     private final ParticipantService participantService = mock(ParticipantService.class);
     private final EvaluationGateway evaluationGateway = mock(EvaluationGateway.class);
     private final CodeJudgeGateway codeJudgeGateway = mock(CodeJudgeGateway.class);
+    private final ProblemContextGateway problemContextGateway = mock(ProblemContextGateway.class);
 
     private final SubmissionService service = new SubmissionService(
             submissionRepository, problemRepository, participantRepository, teamRepository,
             teamMemberRepository, fileRepository, participantService, evaluationGateway,
-            codeJudgeGateway);
+            codeJudgeGateway, problemContextGateway);
 
     private final UUID problemId = UUID.randomUUID();
     private final UUID cycleId = UUID.randomUUID();

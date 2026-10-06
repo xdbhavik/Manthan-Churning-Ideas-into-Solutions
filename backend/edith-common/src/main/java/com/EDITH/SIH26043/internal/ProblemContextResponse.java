@@ -39,5 +39,17 @@ public record ProblemContextResponse(
         List<String> domains,
         int evidenceCount,
         String accessRule,
-        List<String> accessUniversities) {
+        List<String> accessUniversities,
+        UUID submittedByUserId) {
+
+    /** Compatibility constructor for services and tests using the original snapshot shape. */
+    public ProblemContextResponse(UUID problemId, String status, String title, String description,
+                                  String sourceBucket, String subEntityType, String urgency, String severity,
+                                  Integer affectedPopulation, String expectedOutcome, String existingIntervention,
+                                  String location, List<String> domains, int evidenceCount,
+                                  String accessRule, List<String> accessUniversities) {
+        this(problemId, status, title, description, sourceBucket, subEntityType, urgency, severity,
+                affectedPopulation, expectedOutcome, existingIntervention, location, domains,
+                evidenceCount, accessRule, accessUniversities, null);
+    }
 }

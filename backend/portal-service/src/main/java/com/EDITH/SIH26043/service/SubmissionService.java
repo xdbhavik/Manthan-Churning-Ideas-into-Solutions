@@ -5,6 +5,7 @@ import com.EDITH.SIH26043.client.CodeJudgeGateway;
 import com.EDITH.SIH26043.client.EvaluationGateway;
 import com.EDITH.SIH26043.client.ProjectReviewCreateRequest;
 import com.EDITH.SIH26043.client.ProjectReviewCreateResponse;
+import com.EDITH.SIH26043.client.ProblemContextGateway;
 import com.EDITH.SIH26043.entity.Participant;
 import com.EDITH.SIH26043.entity.PublishedProblem;
 import com.EDITH.SIH26043.entity.Submission;
@@ -13,6 +14,7 @@ import com.EDITH.SIH26043.entity.Team;
 import com.EDITH.SIH26043.entity.TeamMember;
 import com.EDITH.SIH26043.entity.TeamMemberId;
 import com.EDITH.SIH26043.enums.SubmissionStatus;
+import com.EDITH.SIH26043.internal.ProblemContextResponse;
 import com.EDITH.SIH26043.enums.TeamRole;
 import com.EDITH.SIH26043.exception.ApiException;
 import com.EDITH.SIH26043.repository.ParticipantRepository;
@@ -27,6 +29,8 @@ import com.EDITH.SIH26043.web.dto.ReviewResultPushRequest;
 import com.EDITH.SIH26043.web.dto.SubmissionCreateRequest;
 import com.EDITH.SIH26043.web.dto.SubmissionMetaRequest;
 import com.EDITH.SIH26043.web.dto.SubmissionView;
+import com.EDITH.SIH26043.web.dto.MentorAssignmentRequest;
+import com.EDITH.SIH26043.web.dto.SourceAcceptedSolutionView;
 import com.EDITH.SIH26043.web.dto.TeamView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,6 +73,7 @@ public class SubmissionService {
     private final ParticipantService participantService;
     private final EvaluationGateway evaluationGateway;
     private final CodeJudgeGateway codeJudgeGateway;
+    private final ProblemContextGateway problemContextGateway;
 
     public SubmissionService(SubmissionRepository submissionRepository,
                              PublishedProblemRepository problemRepository,
@@ -78,7 +83,8 @@ public class SubmissionService {
                              SubmissionFileRepository fileRepository,
                              ParticipantService participantService,
                              EvaluationGateway evaluationGateway,
-                             CodeJudgeGateway codeJudgeGateway) {
+                             CodeJudgeGateway codeJudgeGateway,
+                             ProblemContextGateway problemContextGateway) {
         this.submissionRepository = submissionRepository;
         this.problemRepository = problemRepository;
         this.participantRepository = participantRepository;
@@ -88,6 +94,7 @@ public class SubmissionService {
         this.participantService = participantService;
         this.evaluationGateway = evaluationGateway;
         this.codeJudgeGateway = codeJudgeGateway;
+        this.problemContextGateway = problemContextGateway;
     }
 
     // ------------------------------------------------------------------ create
@@ -334,6 +341,57 @@ public class SubmissionService {
         return toView(requireActableSubmission(submissionId, me));
     }
 
+    /** Accepted solutions for a source submitter's own problem statements only. */
+    @Transactional
+    public List<SourceAcceptedSolutionView> acceptedSolutionsForSource(UUID sourceUserId, UUID problemIdFilter) {
+        Map<UUID, PublishedProblem> problems = new LinkedHashMap<>();
+        List<SourceAcceptedSolutionView> result = new ArrayList<>();
+        for (Submission submission : submissionRepository.findByStatusOrderByDecidedAtDesc(SubmissionStatus.ACCEPTED)) {
+            if (problemIdFilter != null && !problemIdFilter.equals(submission.getProblemId())) continue;
+            PublishedProblem problem = problems.computeIfAbsent(submission.getProblemId(), id ->
+                    problemRepository.findById(id).orElse(null));
+            if (problem == null || !resolvePublishedProblemOwner(problem, sourceUserId)) continue;
+            result.add(new SourceAcceptedSolutionView(problem.getProblemId(), problem.getTitle(),
+                    problem.getDescription(), problem.getExpectedOutcome(), toView(submission)));
+        }
+        return result;
+    }
+
+    /** Original source owner may assign/update mentor details after the solution is accepted. */
+    @Transactional
+    public SubmissionView assignMentor(UUID sourceUserId, UUID submissionId, MentorAssignmentRequest request) {
+        Submission submission = submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Submission not found"));
+        if (submission.getStatus() != SubmissionStatus.ACCEPTED) {
+            throw new ApiException(HttpStatus.CONFLICT, "A mentor can be assigned only after the solution is accepted");
+        }
+        PublishedProblem problem = problemRepository.findById(submission.getProblemId())
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Problem statement not found"));
+        if (!resolvePublishedProblemOwner(problem, sourceUserId)) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Only the original problem statement submitter can assign its mentor");
+        }
+        Map<String, Object> mentor = new LinkedHashMap<>();
+        mentor.put("fullName", request.fullName().trim());
+        mentor.put("email", request.email().trim());
+        mentor.put("organization", trimToNull(request.organization()));
+        mentor.put("note", trimToNull(request.note()));
+        mentor.put("assignedByUserId", sourceUserId);
+        mentor.put("assignedAt", Instant.now());
+        submission.setMentorAssignment(mentor);
+        return toView(submissionRepository.save(submission));
+    }
+
+    /** Resolve ownership lazily for catalog rows published before owner snapshots were added. */
+    private boolean resolvePublishedProblemOwner(PublishedProblem problem, UUID expectedOwnerId) {
+        if (problem.getSubmittedByUserId() == null) {
+            ProblemContextResponse context = problemContextGateway.fetch(problem.getProblemId());
+            if (context == null || context.submittedByUserId() == null) return false;
+            problem.setSubmittedByUserId(context.submittedByUserId());
+            problemRepository.save(problem);
+        }
+        return expectedOwnerId.equals(problem.getSubmittedByUserId());
+    }
+
     /** Every submission the caller may act on: individual + team-member rows. */
     @Transactional(readOnly = true)
     public List<SubmissionView> mine(Participant me) {
@@ -488,6 +546,7 @@ public class SubmissionService {
         Map<String, Object> context = new LinkedHashMap<>();
         Map<String, Object> problemDetails = new LinkedHashMap<>();
         problemDetails.put("problemId", problem.getProblemId());
+        problemDetails.put("submittedByUserId", problem.getSubmittedByUserId());
         problemDetails.put("title", problem.getTitle());
         problemDetails.put("description", problem.getDescription());
         problemDetails.put("expectedOutcome", problem.getExpectedOutcome());
@@ -580,8 +639,11 @@ public class SubmissionService {
                 submission.getStatus() == SubmissionStatus.ACCEPTED
                         && submission.getReviewScorecard() != null
                         && !submission.getReviewScorecard().isEmpty()
-                        ? submission.getReviewScorecard()
-                        : null);
+                        ? submission.getReviewScorecard() : null,
+                submission.getStatus() == SubmissionStatus.ACCEPTED
+                        && submission.getMentorAssignment() != null
+                        && !submission.getMentorAssignment().isEmpty()
+                        ? submission.getMentorAssignment() : null);
     }
 
     private List<FileItemView> filesView(UUID submissionId) {

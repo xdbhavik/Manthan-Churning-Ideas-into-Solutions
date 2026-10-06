@@ -50,6 +50,7 @@ public class PublishedProblemService {
 
         problem.setProblemId(snapshot.problemId());
         problem.setCycleId(cycleId);
+        problem.setSubmittedByUserId(snapshot.submittedByUserId());
         problem.setTitle(snapshot.title());
         problem.setDescription(snapshot.description());
         problem.setExpectedOutcome(snapshot.expectedOutcome());

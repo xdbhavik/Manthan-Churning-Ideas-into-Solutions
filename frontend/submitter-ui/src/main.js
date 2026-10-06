@@ -277,6 +277,8 @@ const state = {
   selectedDomainIds: [],
   activeAccessRule: 'OPEN_TO_ALL',
   myProblems: [],
+  acceptedSolutionsByProblem: {},
+  myAcceptedSolutions: [],
   activeModalProblemId: null
 };
 
@@ -403,7 +405,7 @@ function showView(viewId) {
   const views = [
     'view-auth', 'view-otp', 'view-wizard', 'view-tracking',
     'view-deficiency', 'view-completed', 'view-profile',
-    'view-problem-form', 'view-my-problems'
+    'view-problem-form', 'view-my-problems', 'view-my-solutions'
   ];
   views.forEach(id => {
     const el = document.getElementById(id);
@@ -417,6 +419,7 @@ function showView(viewId) {
   if (viewId === 'view-wizard') bootWizardTimeline();
   if (viewId === 'view-problem-form') renderProblemFilingScreen();
   if (viewId === 'view-my-problems') loadMyProblems();
+  if (viewId === 'view-my-solutions') loadMyAcceptedSolutions();
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -425,6 +428,7 @@ function updateNavTabs(viewId) {
   const kycBtn = document.getElementById('nav-btn-kyc');
   const fileBtn = document.getElementById('nav-btn-file-problem');
   const myProbBtn = document.getElementById('nav-btn-my-problems');
+  const mySolutionsBtn = document.getElementById('nav-btn-my-solutions');
 
   const activeClass = 'portal-sidebar-link is-active';
   const inactiveClass = 'portal-sidebar-link';
@@ -432,10 +436,12 @@ function updateNavTabs(viewId) {
   const isKyc = ['view-wizard', 'view-tracking', 'view-deficiency', 'view-completed'].includes(viewId);
   const isFile = viewId === 'view-problem-form';
   const isMyProb = viewId === 'view-my-problems';
+  const isMySolutions = viewId === 'view-my-solutions';
 
   if (kycBtn) kycBtn.className = isKyc ? activeClass : inactiveClass;
   if (fileBtn) fileBtn.className = isFile ? activeClass : inactiveClass;
   if (myProbBtn) myProbBtn.className = isMyProb ? activeClass : inactiveClass;
+  if (mySolutionsBtn) mySolutionsBtn.className = isMySolutions ? activeClass : inactiveClass;
 }
 
 function togglePortalSidebar(forceOpen) {
@@ -626,6 +632,11 @@ function stopTrackingPolling() {
 /* ---------------- Screen 1: Auth Handlers ---------------- */
 function authErrorMessage(data, fallback) {
   return data?.detail || data?.message || data?.error || fallback;
+}
+
+function goToMySolutions() {
+  if (!state.token) return showView('view-auth');
+  showView('view-my-solutions');
 }
 
 function showAuthError(message, actionLabel, actionMode) {
@@ -2243,6 +2254,120 @@ async function loadMyProblems() {
   renderProblemsList(state.myProblems);
 }
 
+async function loadMyAcceptedSolutions() {
+  const container = document.getElementById('my-solutions-list-container');
+  if (!container) return;
+  container.innerHTML = '<div class="p-12 text-center text-text-muted text-xs border border-dashed border-border-strong rounded-xl bg-surface-crisp">Loading accepted student solutions...</div>';
+  const res = await api('GET', '/portal/source/accepted-solutions');
+  if (!res.ok || !Array.isArray(res.data)) {
+    container.innerHTML = `<div class="p-8 text-center text-xs text-error border border-error/20 bg-rose-50 rounded-xl">${escapeHtml(authErrorMessage(res.data, 'Could not load accepted solutions. Please try again.'))}<button type="button" onclick="loadMyAcceptedSolutions()" class="ml-2 font-bold underline">Retry</button></div>`;
+    return;
+  }
+  state.myAcceptedSolutions = res.data;
+  const mentored = res.data.filter(item => item.submission?.mentorAssignment?.fullName).length;
+  const countEl = document.getElementById('nav-my-solutions-count');
+  if (countEl) {
+    countEl.textContent = res.data.length;
+    countEl.classList.toggle('hidden', res.data.length === 0);
+  }
+  const totalEl = document.getElementById('stat-my-solutions-total');
+  const mentoredEl = document.getElementById('stat-my-solutions-mentored');
+  const unmentoredEl = document.getElementById('stat-my-solutions-unmentored');
+  if (totalEl) totalEl.textContent = res.data.length;
+  if (mentoredEl) mentoredEl.textContent = mentored;
+  if (unmentoredEl) unmentoredEl.textContent = res.data.length - mentored;
+  filterMySolutions();
+}
+
+async function downloadAcceptedSolutionFile(fileId, fileName) {
+  try {
+    const response = await fetch(`${state.baseUrl.replace(/\/+$/, '')}/portal/files/${encodeURIComponent(fileId)}/download`, {
+      headers: state.token ? { Authorization: `Bearer ${state.token}` } : {}
+    });
+    if (!response.ok) {
+      let message = 'Could not download this solution file.';
+      try { const error = await response.json(); message = authErrorMessage(error, message); } catch { /* keep fallback */ }
+      toast(message, 'error');
+      return;
+    }
+    const url = URL.createObjectURL(await response.blob());
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName || 'solution-file';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  } catch {
+    toast('Could not download this solution file. Please retry.', 'error');
+  }
+}
+
+function filterMySolutions() {
+  const container = document.getElementById('my-solutions-list-container');
+  if (!container) return;
+  const query = (document.getElementById('my-solutions-search-input')?.value || '').trim().toLowerCase();
+  const items = (state.myAcceptedSolutions || []).filter(item => {
+    const submission = item.submission || {};
+    const student = submission.projectDetails?.studentDetails || {};
+    const haystack = [item.problemTitle, item.problemDescription, submission.title, submission.summary,
+      student.teamLeaderName, student.email, submission.team?.name].filter(Boolean).join(' ').toLowerCase();
+    return haystack.includes(query);
+  });
+  if (!state.myAcceptedSolutions?.length) {
+    container.innerHTML = `<div class="rounded-xl border border-dashed border-border-strong bg-surface-crisp p-12 text-center"><span class="material-symbols-outlined text-4xl text-text-muted">inbox</span><h2 class="mt-3 text-base font-bold text-ashoka-blue">No accepted solutions yet</h2><p class="mt-1 text-sm text-text-secondary">Accepted student solutions for your problem statements will appear here.</p><button type="button" onclick="goToMyProblems()" class="mt-4 rounded-lg border border-border-strong px-4 py-2 text-xs font-bold text-ashoka-blue hover:bg-surface-subtle">View my problems</button></div>`;
+    return;
+  }
+  if (!items.length) {
+    container.innerHTML = '<div class="rounded-xl border border-border-hairline bg-surface-crisp p-8 text-center text-sm text-text-secondary">No accepted solutions match your search.</div>';
+    return;
+  }
+  container.innerHTML = items.map(item => renderOwnedAcceptedSolution(item, item.problemId)).join('');
+}
+
+async function toggleAcceptedSolutions(problemId) {
+  const current = state.acceptedSolutionsByProblem[problemId];
+  if (current?.open && !current.error) {
+    current.open = false;
+    return renderProblemsList(state.myProblems);
+  }
+  return loadAcceptedSolutionsForProblem(problemId);
+}
+
+async function loadAcceptedSolutionsForProblem(problemId) {
+  state.acceptedSolutionsByProblem[problemId] = { open: true, loading: true, items: [] };
+  renderProblemsList(state.myProblems);
+  const res = await api('GET', `/portal/source/accepted-solutions?problemId=${encodeURIComponent(problemId)}`);
+  state.acceptedSolutionsByProblem[problemId] = res.ok && Array.isArray(res.data)
+    ? { open: true, loading: false, items: res.data }
+    : { open: true, loading: false, error: authErrorMessage(res.data, 'Could not load accepted solutions. Please retry.'), items: [] };
+  renderProblemsList(state.myProblems);
+}
+
+async function handleAssignMentor(event, problemId, submissionId) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const fields = new FormData(form);
+  const submitButton = form.querySelector('button[type="submit"]');
+  if (submitButton) { submitButton.disabled = true; submitButton.textContent = 'Saving mentor…'; }
+  const res = await api('PUT', `/portal/source/accepted-solutions/${encodeURIComponent(submissionId)}/mentor`, {
+    body: {
+      fullName: fields.get('mentorName'),
+      email: fields.get('mentorEmail'),
+      organization: fields.get('mentorOrganization'),
+      note: fields.get('mentorNote')
+    }
+  });
+  if (!res.ok) {
+    toast(authErrorMessage(res.data, 'Mentor assignment failed. Please try again.'), 'error');
+    if (submitButton) { submitButton.disabled = false; submitButton.textContent = 'Assign mentor'; }
+    return;
+  }
+  toast('Mentor assigned. The student can see these details on the accepted solution page.', 'success');
+  if (state.activeView === 'view-my-solutions') await loadMyAcceptedSolutions();
+  else await loadAcceptedSolutionsForProblem(problemId);
+}
+
 function handleFilterProblemsList() {
   if (!state.myProblems) return;
   const search = document.getElementById('my-problems-search-input')?.value.trim().toLowerCase() || '';
@@ -2337,6 +2462,17 @@ function renderProblemsList(problems) {
       ? 'Universities Only'
       : 'Open to All';
 
+    const acceptedState = state.acceptedSolutionsByProblem[p.problemId];
+    const acceptedCount = acceptedState?.items?.length || 0;
+    const acceptedPanel = acceptedState?.open ? `
+      <section class="rounded-xl border border-sky-200 bg-sky-50/50 p-4 sm:p-5">
+        <div class="flex flex-wrap items-center justify-between gap-2"><div><h4 class="font-bold text-sm text-ashoka-blue">Accepted project solutions</h4><p class="mt-1 text-xs text-text-secondary">Solutions submitted for your problem statement. You can assign a mentor after acceptance.</p></div><span class="rounded-full bg-white px-2.5 py-1 text-xs font-bold text-ashoka-blue">${acceptedCount}</span></div>
+        ${acceptedState.loading ? '<div class="mt-4 rounded-lg bg-white p-4 text-sm text-text-muted">Loading accepted solutions…</div>' : ''}
+        ${acceptedState.error ? `<div class="mt-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800">${escapeHtml(acceptedState.error)} <button type="button" onclick="toggleAcceptedSolutions('${p.problemId}')" class="ml-1 font-bold underline">Retry</button></div>` : ''}
+        ${!acceptedState.loading && !acceptedState.error && acceptedCount === 0 ? '<div class="mt-4 rounded-lg border border-dashed border-sky-200 bg-white p-4 text-sm text-text-secondary">No accepted student solutions for this problem yet.</div>' : ''}
+        ${acceptedCount ? `<div class="mt-4 space-y-4">${acceptedState.items.map(item => renderOwnedAcceptedSolution(item, p.problemId)).join('')}</div>` : ''}
+      </section>` : '';
+
     return `
       <div class="p-5 sm:p-6 bg-surface-crisp rounded-xl border border-border-hairline shadow-sm hover:shadow-md transition-all flex flex-col gap-4">
         
@@ -2384,9 +2520,76 @@ function renderProblemsList(problems) {
           </span>
         </div>
 
+        <div class="flex flex-col gap-3 border-t border-border-hairline pt-3">
+          <button type="button" onclick="toggleAcceptedSolutions('${p.problemId}')" class="flex w-fit items-center gap-2 rounded-lg border border-sky-200 bg-sky-50 px-3.5 py-2 text-xs font-bold text-sky-900 transition-colors hover:bg-sky-100">
+            <span class="material-symbols-outlined text-[17px]">school</span><span>${acceptedState?.open ? 'Hide accepted solutions' : 'View accepted solutions'}</span>${acceptedCount ? `<span class="rounded-full bg-white px-2 py-0.5">${acceptedCount}</span>` : ''}
+          </button>
+          ${acceptedPanel}
+        </div>
+
       </div>
     `;
   }).join('');
+}
+
+function renderOwnedAcceptedSolution(item, problemId) {
+  const submission = item.submission || {};
+  const details = submission.projectDetails || {};
+  const student = details.studentDetails || {};
+  const teamDetails = details.teamDetails || {};
+  const technical = details.technicalDetails || {};
+  const projectLinks = details.projectLinks || {};
+  const team = submission.team || null;
+  const members = Array.isArray(team?.members) ? team.members : [];
+  const scorecard = submission.reviewScorecard || null;
+  const mentor = submission.mentorAssignment || {};
+  const safe = value => escapeHtml(value == null || value === '' ? '' : String(value));
+  const valueText = value => {
+    if (value == null || value === '') return '';
+    if (Array.isArray(value)) return value.map(entry => typeof entry === 'object' ? JSON.stringify(entry) : String(entry)).join(', ');
+    if (typeof value === 'object') return Object.entries(value).map(([key, entry]) => `${key.replace(/([A-Z])/g, ' $1').replace(/^./, ch => ch.toUpperCase())}: ${valueText(entry)}`).join('\n');
+    return String(value);
+  };
+  const detailsSection = (title, record, excluded = []) => {
+    const rows = Object.entries(record || {}).filter(([key, value]) => !excluded.includes(key) && value != null && value !== '');
+    if (!rows.length) return '';
+    return `<section class="mt-4 rounded-lg border border-border-hairline bg-white p-4"><h4 class="text-xs font-bold uppercase tracking-wide text-ashoka-blue">${safe(title)}</h4><dl class="mt-3 grid gap-3 sm:grid-cols-2">${rows.map(([key, value]) => `<div class="min-w-0"><dt class="text-[10px] font-semibold uppercase tracking-wide text-text-muted">${safe(key.replace(/([A-Z])/g, ' $1').replace(/^./, ch => ch.toUpperCase()))}</dt><dd class="mt-1 whitespace-pre-wrap break-words text-xs leading-5 text-text-primary">${safe(valueText(value))}</dd></div>`).join('')}</dl></section>`;
+  };
+  const repo = /^https?:\/\//i.test(submission.githubUrl || '')
+    ? `<a href="${safe(submission.githubUrl)}" target="_blank" rel="noreferrer" class="break-all font-semibold text-ashoka-blue hover:underline">Open project repository ↗</a>`
+    : '';
+  const links = [
+    ...(Array.isArray(submission.links) ? submission.links : []),
+    ...Object.entries(projectLinks).filter(([, url]) => typeof url === 'string' && url.trim()).map(([label, url]) => ({ label, url }))
+  ].filter((link, index, all) => link?.url && all.findIndex(other => other.url === link.url) === index);
+  const scorecardPanel = scorecard ? `
+    <section class="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/40 p-4 sm:p-5">
+      <div class="flex flex-wrap items-start justify-between gap-3"><div><h4 class="text-sm font-bold text-emerald-950">Evaluator scorecard</h4><p class="mt-1 text-xs text-emerald-900">Final scoring for this accepted solution.</p></div><div class="rounded-lg bg-white px-4 py-2 text-right"><p class="text-[10px] font-bold uppercase tracking-wide text-emerald-800">Total score</p><p class="text-xl font-bold text-emerald-950">${safe(scorecard.totalScore ?? '—')} <span class="text-sm font-medium">/ ${safe(scorecard.maxScore ?? '—')}</span></p></div></div>
+      ${Array.isArray(scorecard.criteria) && scorecard.criteria.length ? `<div class="mt-4 divide-y divide-emerald-100 rounded-lg border border-emerald-100 bg-white">${scorecard.criteria.map(criterion => { const result = scorecard.criteriaScores?.[criterion.key] || {}; return `<article class="flex flex-wrap items-start justify-between gap-3 p-3"><div class="min-w-0"><h5 class="text-sm font-semibold text-text-primary">${safe(criterion.label || criterion.key)}</h5>${criterion.description ? `<p class="mt-1 text-xs text-text-secondary">${safe(criterion.description)}</p>` : ''}${result.comment ? `<p class="mt-2 whitespace-pre-wrap text-xs text-text-secondary">${safe(result.comment)}</p>` : ''}</div><span class="shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-900">${safe(result.score ?? '—')} / ${safe(criterion.maxScore ?? '—')}</span></article>`; }).join('')}</div>` : '<p class="mt-3 rounded-lg bg-white p-3 text-xs text-text-secondary">No criterion scores were included.</p>'}
+      ${scorecard.overallRemarks ? `<div class="mt-3 rounded-lg bg-white p-3"><p class="text-[10px] font-bold uppercase tracking-wide text-text-muted">Evaluator remarks</p><p class="mt-1 whitespace-pre-wrap text-sm text-text-primary">${safe(scorecard.overallRemarks)}</p></div>` : ''}
+      ${scorecard.submittedAt ? `<p class="mt-3 text-[11px] text-text-muted">Scorecard submitted ${safe(new Date(scorecard.submittedAt).toLocaleString('en-IN'))}</p>` : ''}
+    </section>` : '<section class="mt-4 rounded-lg border border-dashed border-border-strong bg-surface-subtle p-4"><h4 class="text-sm font-bold text-ashoka-blue">Evaluator scorecard</h4><p class="mt-1 text-xs text-text-secondary">Scorecard details are not available for this accepted solution yet.</p></section>';
+  return `<article class="rounded-xl border border-border-hairline bg-white p-4 sm:p-5">
+    <div class="flex flex-wrap items-start justify-between gap-3"><div><span class="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-800">Accepted</span><h5 class="mt-2 text-base font-bold text-ashoka-blue">${safe(submission.title || 'Untitled solution')}</h5><p class="mt-1 text-xs text-text-secondary">Round ${safe(submission.reviewRound || 1)} · Submitted ${submission.submittedAt ? safe(new Date(submission.submittedAt).toLocaleDateString('en-IN')) : 'date unavailable'}</p></div><span class="text-xs text-text-muted">${submission.decidedAt ? `Accepted ${safe(new Date(submission.decidedAt).toLocaleDateString('en-IN'))}` : ''}</span></div>
+    <div class="mt-3 rounded-lg bg-surface-subtle p-3"><p class="text-[10px] font-bold uppercase tracking-wide text-text-muted">Your problem statement</p><p class="mt-1 text-sm font-semibold text-text-primary">${safe(item.problemTitle)}</p><p class="mt-1 whitespace-pre-wrap text-xs leading-5 text-text-secondary">${safe(item.problemDescription)}</p>${item.expectedOutcome ? `<p class="mt-2 text-xs"><strong>Expected outcome:</strong> ${safe(item.expectedOutcome)}</p>` : ''}</div>
+    <section class="mt-4 rounded-lg border border-border-hairline bg-surface-subtle p-4"><h4 class="text-xs font-bold uppercase tracking-wide text-ashoka-blue">Complete solution</h4><p class="mt-2 whitespace-pre-wrap text-sm leading-6 text-text-primary">${safe(submission.summary || 'No solution summary provided.')}</p>${detailsSection('Solution and innovation details', details, ['studentDetails', 'teamDetails', 'technicalDetails', 'projectLinks'])}${detailsSection('Student details', student)}${detailsSection('Team details provided with submission', teamDetails)}${detailsSection('Technology and implementation', technical)}
+      <div class="mt-4 rounded-lg border border-border-hairline bg-white p-3"><div class="flex flex-wrap items-center justify-between gap-2"><div><p class="text-xs font-bold text-ashoka-blue">${team?.name ? safe(team.name) : 'Individual submission'}</p><p class="mt-1 text-[11px] text-text-secondary">${team ? `Team submission · ${members.length} student${members.length === 1 ? '' : 's'}` : 'Submitted by an individual student'}</p></div>${team ? `<span class="rounded-full bg-surface-subtle px-3 py-1 text-xs font-bold text-ashoka-blue">${members.length} members</span>` : ''}</div>${team ? `<ul class="mt-3 grid gap-2 sm:grid-cols-2">${members.length ? members.map((member, index) => `<li class="rounded-md border border-border-hairline px-3 py-2 text-xs text-text-primary"><span class="font-semibold">${safe(member.fullName || `Student ${index + 1}`)}</span></li>`).join('') : '<li class="text-xs text-text-muted">No team member details available.</li>'}</ul>` : `<p class="mt-2 text-xs text-text-secondary">${safe(student.teamLeaderName || student.email || 'Innovation Portal student')}</p>`}</div>
+      ${repo ? `<div class="mt-3">${repo}${submission.branch ? `<span class="ml-3 text-xs text-text-secondary">Branch: ${safe(submission.branch)}</span>` : ''}${submission.commitSha ? `<p class="mt-1 break-all font-mono text-[11px] text-text-muted">Commit: ${safe(submission.commitSha)}</p>` : ''}</div>` : ''}
+      ${links.length ? `<div class="mt-3"><p class="text-[10px] font-bold uppercase tracking-wide text-text-muted">Project links</p><ul class="mt-1 space-y-1">${links.map(link => /^https?:\/\//i.test(link.url || '') ? `<li><a href="${safe(link.url)}" target="_blank" rel="noreferrer" class="break-all text-xs font-semibold text-ashoka-blue hover:underline">${safe(link.label || link.url)} ↗</a></li>` : `<li class="text-xs text-text-secondary">${safe(link.label || 'Link')}: ${safe(link.url)}</li>`).join('')}</ul></div>` : ''}
+      ${Array.isArray(submission.files) && submission.files.length ? `<div class="mt-4"><p class="text-[10px] font-bold uppercase tracking-wide text-text-muted">Attached solution files (${submission.files.length})</p><ul class="mt-2 space-y-2">${submission.files.map(file => `<li class="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border-hairline bg-white px-3 py-2"><div><p class="break-all text-xs font-semibold text-text-primary">${safe(file.originalName)}</p><p class="mt-1 text-[10px] text-text-muted">${safe(file.contentType || 'File')} · ${safe(file.sizeBytes ? `${(file.sizeBytes / 1024 / 1024).toFixed(1)} MB` : 'size unavailable')}</p></div><button type="button" data-file-id="${safe(file.fileId)}" data-file-name="${safe(file.originalName)}" onclick="downloadAcceptedSolutionFile(this.dataset.fileId, this.dataset.fileName)" class="rounded-md border border-border-strong px-3 py-1.5 text-xs font-bold text-ashoka-blue hover:bg-surface-subtle">Download</button></li>`).join('')}</ul></div>` : '<p class="mt-3 text-xs text-text-muted">No files attached to this solution.</p>'}
+    </section>
+    ${scorecardPanel}
+    ${submission.decisionComment ? `<section class="mt-4 rounded-lg border border-border-hairline bg-surface-subtle p-3"><p class="text-[10px] font-bold uppercase tracking-wide text-text-muted">Evaluator feedback</p><p class="mt-1 whitespace-pre-wrap text-sm text-text-primary">${safe(submission.decisionComment)}</p></section>` : ''}
+    ${mentor.fullName ? `<div class="mt-4 rounded-lg border border-sky-200 bg-sky-50 p-3"><p class="text-[10px] font-bold uppercase tracking-wide text-sky-800">Assigned mentor</p><p class="mt-1 font-bold text-sky-950">${safe(mentor.fullName)}</p><p class="text-xs text-sky-900">${safe(mentor.email)}${mentor.organization ? ` · ${safe(mentor.organization)}` : ''}</p>${mentor.note ? `<p class="mt-2 whitespace-pre-wrap text-xs text-sky-900">${safe(mentor.note)}</p>` : ''}</div>` : ''}
+    <form class="mt-4 grid gap-3 rounded-lg border border-border-hairline bg-surface-subtle p-3 sm:grid-cols-2" onsubmit="handleAssignMentor(event, '${problemId}', '${submission.submissionId}')">
+      <div class="sm:col-span-2"><p class="text-xs font-bold text-ashoka-blue">${mentor.fullName ? 'Update assigned mentor' : 'Assign a mentor'}</p><p class="mt-1 text-[11px] text-text-muted">Enter the mentor’s contact details. The accepted student will see these on the solution page.</p></div>
+      <label class="text-[11px] font-semibold text-text-secondary">Mentor name<input name="mentorName" required maxlength="150" value="${safe(mentor.fullName)}" class="mt-1 w-full rounded-lg border border-border-strong bg-white px-3 py-2 text-sm text-text-primary" placeholder="Full name" /></label>
+      <label class="text-[11px] font-semibold text-text-secondary">Email<input name="mentorEmail" type="email" required maxlength="255" value="${safe(mentor.email)}" class="mt-1 w-full rounded-lg border border-border-strong bg-white px-3 py-2 text-sm text-text-primary" placeholder="mentor@organization.org" /></label>
+      <label class="text-[11px] font-semibold text-text-secondary">Organization<input name="mentorOrganization" maxlength="255" value="${safe(mentor.organization)}" class="mt-1 w-full rounded-lg border border-border-strong bg-white px-3 py-2 text-sm text-text-primary" placeholder="Organization or institution" /></label>
+      <label class="text-[11px] font-semibold text-text-secondary">Message for the student<input name="mentorNote" maxlength="2000" value="${safe(mentor.note)}" class="mt-1 w-full rounded-lg border border-border-strong bg-white px-3 py-2 text-sm text-text-primary" placeholder="Optional note" /></label>
+      <div class="sm:col-span-2 flex justify-end"><button type="submit" class="rounded-lg bg-ashoka-blue px-4 py-2 text-xs font-bold text-white hover:bg-institutional-navy">${mentor.fullName ? 'Update mentor' : 'Assign mentor'}</button></div>
+    </form>
+  </article>`;
 }
 
 async function openProblemDetailModal(problemId) {
@@ -3029,6 +3232,7 @@ window.goToKycAction = goToKycAction;
 window.togglePortalSidebar = togglePortalSidebar;
 window.goToFileProblem = goToFileProblem;
 window.goToMyProblems = goToMyProblems;
+window.goToMySolutions = goToMySolutions;
 window.handleAccessRuleChange = handleAccessRuleChange;
 window.filterUniversitiesList = filterUniversitiesList;
 window.selectUniversity = selectUniversity;
@@ -3036,6 +3240,11 @@ window.removeSelectedUniversity = removeSelectedUniversity;
 window.toggleDomainSelection = toggleDomainSelection;
 window.fillDefaultLocation = fillDefaultLocation;
 window.handleFilterProblemsList = handleFilterProblemsList;
+window.loadMyAcceptedSolutions = loadMyAcceptedSolutions;
+window.downloadAcceptedSolutionFile = downloadAcceptedSolutionFile;
+window.filterMySolutions = filterMySolutions;
+window.toggleAcceptedSolutions = toggleAcceptedSolutions;
+window.handleAssignMentor = handleAssignMentor;
 window.openProblemDetailModal = openProblemDetailModal;
 window.closeProblemDetailModal = closeProblemDetailModal;
 window.closeProblemSuccessModal = closeProblemSuccessModal;

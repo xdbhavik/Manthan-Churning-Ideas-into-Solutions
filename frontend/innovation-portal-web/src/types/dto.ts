@@ -156,6 +156,15 @@ export interface Submission {
   files: FileItem[];
   team: TeamBrief | null;
   reviewScorecard: ProjectReviewScorecard | null;
+  mentorAssignment: MentorAssignment | null;
+}
+
+export interface MentorAssignment {
+  fullName: string;
+  email: string;
+  organization: string | null;
+  note: string | null;
+  assignedAt: string;
 }
 
 export interface ProjectReviewScorecard {

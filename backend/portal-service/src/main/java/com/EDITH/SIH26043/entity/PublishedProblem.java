@@ -46,6 +46,10 @@ public class PublishedProblem {
     @Column(name = "cycle_id", nullable = false)
     private UUID cycleId;
 
+    /** Original source submitter; used to grant that source access to accepted solutions. */
+    @Column(name = "submitted_by_user_id")
+    private UUID submittedByUserId;
+
     @Column(name = "title", nullable = false, length = 255)
     private String title;
 

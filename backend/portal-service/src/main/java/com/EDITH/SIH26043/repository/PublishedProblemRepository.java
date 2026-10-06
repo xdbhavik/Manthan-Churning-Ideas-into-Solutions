@@ -13,4 +13,6 @@ public interface PublishedProblemRepository extends JpaRepository<PublishedProbl
     List<PublishedProblem> findAllByOrderByPublishedAtDesc();
 
     List<PublishedProblem> findByAccessRuleIn(Collection<ProblemAccessRule> accessRules);
+
+    List<PublishedProblem> findBySubmittedByUserId(UUID userId);
 }

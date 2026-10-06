@@ -37,6 +37,15 @@ services:
     networks:
       - frontend-network
 
+  reviewer-ui:
+    build:
+      context: ./frontend/reviewer-ui
+      dockerfile: Dockerfile
+    ports:
+      - "8086:80"
+    networks:
+      - frontend-network
+
 networks:
   frontend-network:
     driver: bridge

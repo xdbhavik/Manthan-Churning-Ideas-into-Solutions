@@ -97,6 +97,12 @@ export default function SubmissionDetailPage() {
       {submission.reviewScorecard.submittedAt && <p className="text-xs text-on-surface-variant">Scorecard submitted {new Date(submission.reviewScorecard.submittedAt).toLocaleString()}</p>}
     </Card>}
 
+    {submission.status === 'ACCEPTED' && submission.mentorAssignment && <Card variant="default" className="space-y-4 border border-sky-200 bg-sky-50/50">
+      <div className="flex items-start gap-3"><span className="material-symbols-outlined rounded-xl bg-sky-100 p-2 text-sky-800">school</span><div><h2 className="text-lg font-bold text-on-surface">Your assigned mentor</h2><p className="mt-1 text-sm text-on-surface-variant">The problem statement submitter assigned this mentor to support your accepted solution.</p></div></div>
+      <div className="grid gap-3 sm:grid-cols-2"><DetailRow label="Mentor name" value={submission.mentorAssignment.fullName} /><DetailRow label="Email" value={submission.mentorAssignment.email} /><DetailRow label="Organization" value={submission.mentorAssignment.organization || 'Not provided'} /><DetailRow label="Assigned on" value={new Date(submission.mentorAssignment.assignedAt).toLocaleString()} /></div>
+      {submission.mentorAssignment.note && <DetailRow label="Message" value={submission.mentorAssignment.note} />}
+    </Card>}
+
     <Card variant="default" className="space-y-4">
       <h2 className="text-lg font-bold text-on-surface">Technology details</h2>
       <div className="grid gap-3 sm:grid-cols-2">{([['frontend','Frontend'],['backend','Backend'],['database','Database'],['aiMl','AI / ML'],['apis','APIs / external services'],['deployment','Deployment platform'],['architectureDiagramUrl','Architecture diagram']] as const).map(([key, label]) => <DetailRow key={key} label={label} value={display(technical[key])} url={key === 'architectureDiagramUrl'} />)}</div>

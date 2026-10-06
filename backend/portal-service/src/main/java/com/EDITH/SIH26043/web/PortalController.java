@@ -19,6 +19,8 @@ import com.EDITH.SIH26043.web.dto.PublishedProblemSummary;
 import com.EDITH.SIH26043.web.dto.SubmissionCreateRequest;
 import com.EDITH.SIH26043.web.dto.SubmissionMetaRequest;
 import com.EDITH.SIH26043.web.dto.SubmissionView;
+import com.EDITH.SIH26043.web.dto.MentorAssignmentRequest;
+import com.EDITH.SIH26043.web.dto.SourceAcceptedSolutionView;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -36,6 +38,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -160,6 +163,24 @@ public class PortalController {
     @GetMapping("/submissions")
     public List<SubmissionView> mySubmissions(@AuthenticationPrincipal AuthUser me) {
         return submissionService.mine(participantService.me(me));
+    }
+
+    @Operation(summary = "Accepted solutions for my submitted problem statements",
+            description = "Returns accepted student solutions only for problem statements filed by the authenticated source submitter.")
+    @GetMapping("/source/accepted-solutions")
+    public List<SourceAcceptedSolutionView> sourceAcceptedSolutions(
+            @AuthenticationPrincipal AuthUser me,
+            @RequestParam(required = false) UUID problemId) {
+        return submissionService.acceptedSolutionsForSource(me.getUserId(), problemId);
+    }
+
+    @Operation(summary = "Assign a mentor to an accepted solution",
+            description = "Only the original problem statement submitter may assign or update this mentor.")
+    @PutMapping("/source/accepted-solutions/{submissionId}/mentor")
+    public SubmissionView assignMentor(@AuthenticationPrincipal AuthUser me,
+                                       @PathVariable UUID submissionId,
+                                       @Valid @RequestBody MentorAssignmentRequest request) {
+        return submissionService.assignMentor(me.getUserId(), submissionId, request);
     }
 
     @Operation(summary = "🆕 Create a submission (draft)",

@@ -3,9 +3,11 @@ package com.EDITH.SIH26043.service;
 import com.EDITH.SIH26043.entity.Participant;
 import com.EDITH.SIH26043.entity.Submission;
 import com.EDITH.SIH26043.entity.SubmissionFile;
+import com.EDITH.SIH26043.entity.PublishedProblem;
 import com.EDITH.SIH26043.enums.SubmissionStatus;
 import com.EDITH.SIH26043.exception.ApiException;
 import com.EDITH.SIH26043.repository.ParticipantRepository;
+import com.EDITH.SIH26043.repository.PublishedProblemRepository;
 import com.EDITH.SIH26043.repository.SubmissionFileRepository;
 import com.EDITH.SIH26043.repository.SubmissionRepository;
 import com.EDITH.SIH26043.repository.TeamMemberRepository;
@@ -33,8 +35,9 @@ import java.util.UUID;
  * servlet multipart config). Bytes live under {@code app.portal.storage-dir};
  * the DB row stores immutable metadata + sha-256. Files may only be added or
  * removed while the owning submission is DRAFT or RETURNED, and only by the
- * submitter or a team member. Download additionally allows the assigned reviewer
- * and REVIEWER/ADMIN roles (the eval side never stores bytes).
+ * submitter or a team member. Download additionally allows the assigned reviewer,
+ * REVIEWER/ADMIN roles, and the original problem submitter for accepted solutions
+ * (the eval side never stores bytes).
  */
 @Service
 public class SubmissionFileService {
@@ -43,17 +46,20 @@ public class SubmissionFileService {
     private final SubmissionRepository submissionRepository;
     private final ParticipantRepository participantRepository;
     private final TeamMemberRepository teamMemberRepository;
+    private final PublishedProblemRepository publishedProblemRepository;
     private final Path storageRoot;
 
     public SubmissionFileService(SubmissionFileRepository fileRepository,
                                  SubmissionRepository submissionRepository,
                                  ParticipantRepository participantRepository,
                                  TeamMemberRepository teamMemberRepository,
+                                 PublishedProblemRepository publishedProblemRepository,
                                  @Value("${app.portal.storage-dir}") String storageDir) {
         this.fileRepository = fileRepository;
         this.submissionRepository = submissionRepository;
         this.participantRepository = participantRepository;
         this.teamMemberRepository = teamMemberRepository;
+        this.publishedProblemRepository = publishedProblemRepository;
         this.storageRoot = Path.of(storageDir).toAbsolutePath().normalize();
     }
 
@@ -146,6 +152,12 @@ public class SubmissionFileService {
         if (submission.getReviewerUserId() != null
                 && submission.getReviewerUserId().equals(caller.getUserId())) {
             return; // the assigned evaluator
+        }
+        if (submission.getStatus() == SubmissionStatus.ACCEPTED) {
+            PublishedProblem problem = publishedProblemRepository.findById(submission.getProblemId()).orElse(null);
+            if (problem != null && caller.getUserId().equals(problem.getSubmittedByUserId())) {
+                return; // the original source submitter may view accepted solution artifacts
+            }
         }
         Participant actor = participantRepository.findByUserId(caller.getUserId()).orElse(null);
         if (actor != null) {

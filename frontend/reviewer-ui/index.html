@@ -46,6 +46,16 @@
       inset: 0;
       z-index: 90;
     }
+    @media (min-width: 768px) {
+      body.reviewer-authenticated #nav-menu { display: flex !important; }
+      body.reviewer-authenticated .screen-view.active > main,
+      body.reviewer-authenticated .screen-view.active > footer { width: calc(100% - 16rem); margin-left: 16rem; }
+    }
+    @media (max-width: 767px) {
+      body.reviewer-authenticated #nav-menu:not(.is-open) { display: none !important; }
+      body.reviewer-authenticated #nav-menu.is-open { display: flex !important; }
+      body.reviewer-authenticated #reviewer-sidebar-toggle { display: flex !important; }
+    }
   </style>
 
   <!-- Tailwind CSS CDN -->
@@ -222,24 +232,9 @@
         </div>
       </div>
 
-      <!-- Navigation Menu (shown when logged in) -->
-      <nav class="hidden md:flex items-center gap-1.5" id="nav-menu">
-        <a class="nav-link px-3 py-1.5 transition-colors flex items-center text-xs sm:text-sm rounded-lg font-medium" data-target="dashboard" href="#/dashboard" id="nav-link-dashboard">
-          <span class="material-symbols-outlined text-[16px] mr-1">folder_supervised</span>
-          <span>Registration Queue</span>
-          <span class="ml-1.5 px-1.5 py-0.2 bg-surface-muted text-institutional-navy rounded-full text-[10px] font-bold" id="nav-reg-count">4</span>
-        </a>
-        <a class="nav-link px-3 py-1.5 transition-colors flex items-center text-xs sm:text-sm rounded-lg font-medium text-on-surface-variant hover:bg-surface-container-high" data-target="problem-queue" href="#/problem-queue" id="nav-link-problem-queue">
-          <span class="material-symbols-outlined text-[16px] mr-1">verified_user</span>
-          <span>Source Verification</span>
-          <span class="ml-1.5 px-1.5 py-0.2 bg-surface-muted text-saffron-accent rounded-full text-[10px] font-bold" id="nav-prb-count">0</span>
-        </a>
-        <a class="nav-link px-3 py-1.5 transition-colors flex items-center text-xs sm:text-sm rounded-lg font-medium text-on-surface-variant hover:bg-surface-container-high" data-target="my-reviews" href="#/my-reviews" id="nav-link-my-reviews">
-          <span class="material-symbols-outlined text-[16px] mr-1">assignment</span>
-          <span>My Reviews</span>
-          <span class="ml-1.5 px-1.5 py-0.2 bg-status-review-bg text-status-review-text rounded-full text-[10px] font-bold" id="nav-my-count">0</span>
-        </a>
-      </nav>
+      <button type="button" id="reviewer-sidebar-toggle" onclick="toggleMobileMenu()" aria-label="Open navigation" aria-controls="nav-menu" aria-expanded="false" class="hidden h-10 w-10 items-center justify-center rounded-lg border border-border-hairline text-ashoka-blue hover:bg-surface-subtle max-md:order-first">
+        <span id="mobile-menu-icon" class="material-symbols-outlined">menu</span>
+      </button>
 
       <!-- User Profile / Session Status Button -->
       <div class="flex items-center gap-3">
@@ -317,6 +312,30 @@
       </div>
     </div>
   </header>
+
+  <button type="button" id="sidebar-backdrop" onclick="closeMobileMenu()" aria-label="Close navigation" class="hidden fixed inset-x-0 top-16 bottom-0 z-30 bg-slate-950/40 md:hidden"></button>
+  <aside id="nav-menu" aria-label="Reviewer navigation" class="hidden fixed left-0 top-16 bottom-0 z-40 w-64 flex-col border-r border-border-hairline bg-surface-crisp shadow-sm md:top-[68px]">
+    <div class="border-b border-border-hairline px-5 py-5">
+      <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">Reviewer workspace</p>
+      <p class="mt-1 text-sm font-bold text-ashoka-blue">Case Management</p>
+      <p class="mt-1 text-xs text-text-muted">Registration and source verification</p>
+    </div>
+    <nav class="flex flex-col gap-1 p-3" aria-label="Main navigation">
+      <a class="nav-link flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium" data-target="dashboard" href="#/dashboard" id="nav-link-dashboard">
+        <span class="material-symbols-outlined text-[19px]">folder_supervised</span><span>Registration Queue</span>
+        <span class="ml-auto rounded-full bg-surface-muted px-2 py-0.5 text-[10px] font-bold text-institutional-navy" id="nav-reg-count">4</span>
+      </a>
+      <a class="nav-link flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium" data-target="problem-queue" href="#/problem-queue" id="nav-link-problem-queue">
+        <span class="material-symbols-outlined text-[19px]">verified_user</span><span>Source Verification</span>
+        <span class="ml-auto rounded-full bg-surface-muted px-2 py-0.5 text-[10px] font-bold text-saffron-accent" id="nav-prb-count">0</span>
+      </a>
+      <a class="nav-link flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium" data-target="my-reviews" href="#/my-reviews" id="nav-link-my-reviews">
+        <span class="material-symbols-outlined text-[19px]">assignment</span><span>My Reviews</span>
+        <span class="ml-auto rounded-full bg-status-review-bg px-2 py-0.5 text-[10px] font-bold text-status-review-text" id="nav-my-count">0</span>
+      </a>
+    </nav>
+    <div class="mt-auto border-t border-border-hairline p-4 text-[11px] leading-relaxed text-text-muted">SIH26043 Reviewer Portal<br/><span class="font-semibold text-gov-emerald">Secure review workspace</span></div>
+  </aside>
 
   <!-- ========================================================================= -->
   <!-- SCREEN 1: LOGIN (OTP Request) — Route: #/login                           -->
@@ -545,27 +564,10 @@
                 Authorized verification intake for statutory entity identity verification, local governance credentials, and regulatory KYC triage.
               </p>
             </div>
-            <!-- Quick Operational Indicators -->
-            <div class="flex items-center gap-2 sm:gap-space-md self-start md:self-auto bg-surface-crisp p-2 sm:p-space-sm rounded-xl shadow-sm flex-wrap">
-              <div class="flex items-center gap-space-xs px-3 py-1.5 sm:px-space-md sm:py-space-xs rounded-lg bg-surface-subtle">
-                <span class="material-symbols-outlined text-gov-emerald text-[18px] sm:text-[20px]">verified_user</span>
-                <div class="flex flex-col">
-                  <span class="font-label-sm text-[10px] sm:text-label-sm text-text-muted uppercase">Digital Seal</span>
-                  <span class="font-mono-code text-[11px] sm:text-[12px] text-text-primary font-semibold">NIC-TSA-ACTIVE</span>
-                </div>
-              </div>
-              <div class="flex items-center gap-space-xs px-3 py-1.5 sm:px-space-md sm:py-space-xs rounded-lg bg-surface-subtle">
-                <span class="material-symbols-outlined text-secondary text-[18px] sm:text-[20px]">schedule</span>
-                <div class="flex flex-col">
-                  <span class="font-label-sm text-[10px] sm:text-label-sm text-text-muted uppercase">Cadence Sync</span>
-                  <span class="font-mono-code text-[11px] sm:text-[12px] text-text-primary font-semibold">Just now</span>
-                </div>
-              </div>
-            </div>
           </div>
 
           <!-- Summary Metrics Strip -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8 lg:mb-10">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8 lg:mb-10">
             <!-- Metric 1: Pending Inbox -->
             <div class="bg-surface-crisp rounded-xl p-5 sm:p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all cursor-pointer border border-border-hairline" onclick="switchQueueTab('inbox')">
               <div class="flex items-center justify-between mb-space-sm">
@@ -598,7 +600,7 @@
               </div>
               <div class="mt-space-md pt-space-xs flex items-center justify-between">
                 <span class="font-body-sm text-xs sm:text-body-sm text-text-muted">Officer Caseload</span>
-                <span class="font-mono-code text-[11px] text-institutional-navy font-semibold">REV-419082</span>
+                <span class="font-mono-code text-[11px] text-institutional-navy font-semibold">My assigned cases</span>
               </div>
             </div>
 
@@ -619,27 +621,10 @@
               </div>
               <div class="mt-space-md pt-space-xs flex items-center justify-between">
                 <span class="font-body-sm text-xs sm:text-body-sm text-text-muted">Archival Records</span>
-                <span class="font-mono-code text-[11px] text-gov-emerald font-semibold">DSC Signed</span>
+                <span class="font-mono-code text-[11px] text-gov-emerald font-semibold">Registration records</span>
               </div>
             </div>
 
-            <!-- Metric 4: Avg SLA Turnaround -->
-            <div class="bg-surface-crisp rounded-xl p-5 sm:p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all border border-border-hairline">
-              <div class="flex items-center justify-between mb-space-sm">
-                <span class="font-label-sm text-[11px] sm:text-label-sm text-text-muted uppercase tracking-wider">Statutory SLA Compliance</span>
-                <span class="p-2 rounded-lg bg-surface-container-high text-saffron-accent">
-                  <span class="material-symbols-outlined text-[20px]">timer</span>
-                </span>
-              </div>
-              <div class="flex items-baseline justify-between">
-                <span class="font-headline-xl text-3xl sm:text-headline-xl text-gov-emerald tracking-tight">100%</span>
-                <span class="font-label-sm text-xs sm:text-label-sm text-gov-emerald bg-status-approved-bg px-2 py-0.5 rounded-full font-bold">Standard</span>
-              </div>
-              <div class="mt-space-md pt-space-xs flex items-center justify-between">
-                <span class="font-body-sm text-xs sm:text-body-sm text-text-muted">Target Resolution</span>
-                <span class="font-mono-code text-[11px] text-text-primary font-semibold">&lt; 48 Hours</span>
-              </div>
-            </div>
           </div>
 
           <!-- Main Section: Triage Interface Panel -->
@@ -676,7 +661,6 @@
                     <option value="SUBMITTED">SUBMITTED</option>
                     <option value="UNDER_REVIEW">UNDER_REVIEW</option>
                     <option value="ACTION_REQUIRED">ACTION_REQUIRED</option>
-                    <option value="DRAFT">DRAFT</option>
                     <option value="APPROVED">APPROVED</option>
                     <option value="REJECTED">REJECTED</option>
                   </select>
@@ -689,7 +673,7 @@
             <div class="px-4 sm:px-6 py-2.5 sm:py-3 bg-surface-subtle flex flex-wrap items-center justify-between text-xs sm:text-body-sm text-text-muted gap-2 sm:gap-4 border-t border-b border-border-hairline">
               <div class="flex items-center gap-1.5">
                 <span class="material-symbols-outlined text-[16px] text-text-secondary">shield_lock</span>
-                <span>Role Guard: Statutory KYC Level 2 Clearance Officer</span>
+                <span>Access is limited to authorized reviewer accounts.</span>
               </div>
               <div class="flex items-center gap-3 sm:gap-space-base font-mono-code text-[11px] sm:text-[12px]">
                 <span>Displaying <strong class="text-text-primary font-semibold" id="displayed-count">0</strong> records</span>
@@ -730,59 +714,6 @@
             </div>
           </div>
 
-          <!-- Secondary Structural Layout: Reviewer Protocol Guidelines -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-8 sm:mt-10 lg:mt-12">
-            <!-- Panel 1: Statutory Claim Protocol -->
-            <div class="bg-surface-crisp rounded-xl p-5 sm:p-space-lg shadow-sm flex flex-col justify-between border border-border-hairline">
-              <div class="space-y-space-sm">
-                <div class="flex items-center gap-space-xs text-institutional-navy">
-                  <span class="material-symbols-outlined text-[20px]">gavel</span>
-                  <h3 class="font-headline-sm text-headline-sm font-semibold">Claim &amp; Lock SLA</h3>
-                </div>
-                <p class="font-body-sm text-xs sm:text-body-sm text-text-secondary leading-relaxed">
-                  Claiming an entity moves it immediately from <code class="font-mono-code text-[11px] bg-surface-subtle px-1 py-0.5 rounded">SUBMITTED</code> to <code class="font-mono-code text-[11px] bg-status-review-bg text-status-review-text px-1 py-0.5 rounded">UNDER_REVIEW</code>. Officers have a statutory 24-hour SLA to issue an Approval, Deficiency Notice, or Statutory Hearing notice.
-                </p>
-              </div>
-              <div class="mt-space-md pt-space-sm flex items-center gap-space-xs text-text-muted font-mono-code text-[11px] border-t border-border-hairline">
-                <span class="material-symbols-outlined text-[14px]">info</span>
-                <span>Section 14(A) National Statutory Portal Act</span>
-              </div>
-            </div>
-
-            <!-- Panel 2: Deficiency & Action Required Directives -->
-            <div class="bg-surface-crisp rounded-xl p-5 sm:p-space-lg shadow-sm flex flex-col justify-between border border-border-hairline">
-              <div class="space-y-space-sm">
-                <div class="flex items-center gap-space-xs text-saffron-accent">
-                  <span class="material-symbols-outlined text-[20px]">warning</span>
-                  <h3 class="font-headline-sm text-headline-sm font-semibold">Deficiency Notice Rules</h3>
-                </div>
-                <p class="font-body-sm text-xs sm:text-body-sm text-text-secondary leading-relaxed">
-                  Registrations flagged as <code class="font-mono-code text-[11px] bg-status-action-bg text-status-action-text px-1 py-0.5 rounded">ACTION_REQUIRED</code> allow applicants 15 calendar days to furnish clarifying documentation. Unresolved deficiencies default to Statutory Hearing triage.
-                </p>
-              </div>
-              <div class="mt-space-md pt-space-sm flex items-center justify-between font-mono-code text-[11px] border-t border-border-hairline">
-                <span class="text-text-muted">Auto-escalation timer: Active</span>
-                <span class="text-gov-emerald font-semibold">100% Traceability</span>
-              </div>
-            </div>
-
-            <!-- Panel 3: Quick Desk Reference -->
-            <div class="bg-surface-crisp rounded-xl p-5 sm:p-space-lg shadow-sm flex flex-col justify-between border border-border-hairline md:col-span-2 lg:col-span-1">
-              <div class="space-y-space-sm">
-                <div class="flex items-center gap-space-xs text-gov-emerald">
-                  <span class="material-symbols-outlined text-[20px]">rule_folder</span>
-                  <h3 class="font-headline-sm text-headline-sm font-semibold">Integrity Safeguards</h3>
-                </div>
-                <p class="font-body-sm text-xs sm:text-body-sm text-text-secondary leading-relaxed">
-                  All claimed actions log reviewer biometric/DSC signatures to sovereign audit logs. Draft applications are strictly untouchable until finalized and cryptographically submitted by the applicant.
-                </p>
-              </div>
-              <div class="mt-space-md pt-space-sm flex items-center justify-between border-t border-border-hairline">
-                <span class="font-mono-code text-[11px] text-text-muted">Audit Version: SEC-2024.11</span>
-                <span class="font-label-sm text-xs sm:text-label-sm text-institutional-navy hover:underline cursor-pointer" >NIC-KYC-POL-V4</span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </main>
@@ -823,13 +754,11 @@
               <span class="text-text-muted font-mono-code">/</span>
               <span class="font-label-md text-on-surface font-semibold">Triage &amp; Statutory Review</span>
             </div>
-            <!-- Live Operational SLA & Officer Ownership Badges -->
+            <!-- Current registration status -->
             <div class="flex items-center gap-2 sm:gap-space-md flex-wrap">
-              <!-- SLA countdown token -->
               <div class="flex items-center gap-1.5 sm:gap-space-xs bg-surface-crisp px-3 py-1 sm:px-space-md rounded-full shadow-sm">
-                <span class="material-symbols-outlined text-[16px] sm:text-[18px] text-saffron-accent animate-pulse">timer</span>
-                <span class="font-label-sm text-[10px] sm:text-label-sm uppercase text-text-muted">Statutory SLA:</span>
-                <span class="font-mono-code text-xs sm:text-label-md text-text-primary font-bold">68h 14m remaining</span>
+                <span class="font-label-sm text-[10px] sm:text-label-sm uppercase text-text-muted">Status:</span>
+                  <span class="font-mono-code text-xs sm:text-label-md text-text-primary font-bold">Registration status</span>
               </div>
               <!-- Status Pill -->
               <div class="flex items-center gap-1.5 sm:gap-space-xs px-3 py-1 sm:px-space-md rounded-full shadow-sm bg-status-review-bg text-status-review-text" id="detail-status-pill">
@@ -865,7 +794,7 @@
                   <!-- Authentic Institutional Stamp Avatar / Seal -->
                   <div class="flex flex-row sm:flex-col items-center justify-center p-2.5 sm:p-space-sm rounded-lg bg-surface-subtle text-center shrink-0 w-full sm:w-24 gap-2 sm:gap-0">
                     <span class="material-symbols-outlined text-[24px] sm:text-[32px] text-institutional-navy">assured_workload</span>
-                    <span class="font-label-sm text-[10px] text-text-muted font-bold uppercase sm:mt-1">LGD Valid</span>
+                    <span class="font-label-sm text-[10px] text-text-muted font-bold uppercase sm:mt-1">Entity</span>
                   </div>
                 </div>
               </div>
@@ -901,7 +830,6 @@
                     <span class="font-label-sm text-[10px] sm:text-label-sm text-text-muted uppercase">Bank Account Disbursement Status</span>
                     <div class="flex items-center justify-between bg-surface-crisp px-3 py-1.5 rounded shadow-sm border border-border-hairline">
                       <span class="font-mono-code text-xs sm:text-label-md text-text-primary" id="detail-meta-bank">--</span>
-                      <span class="px-2 py-0.5 rounded-full bg-status-approved-bg text-status-approved-text font-label-sm text-[10px] uppercase font-bold">PFMS Linked</span>
                     </div>
                   </div>
                 </div>
@@ -939,7 +867,7 @@
                     <span id="json-toggle-label">Expand Raw JSON</span>
                   </button>
                 </div>
-                <p class="font-body-sm text-xs text-text-muted mb-2">Immutable payload submitted by Nodal Custodian under statutory DSC.</p>
+                <p class="font-body-sm text-xs text-text-muted mb-2">Registration data received from the submitter.</p>
                 <div id="raw-json-container" class="hidden">
                   <pre class="bg-[#0b1c30] text-[#85f8c4] p-4 rounded-lg font-mono-code text-[11px] sm:text-[12px] leading-relaxed overflow-x-auto shadow-inner border border-white/10" id="raw-json-block">// Real database JSON payload will appear here when loaded</pre>
                 </div>
@@ -953,11 +881,11 @@
                       <span class="material-symbols-outlined text-institutional-navy text-[18px] sm:text-[20px]">inventory_2</span>
                       <span id="detail-docs-header">Statutory Evidence Documents</span>
                     </h2>
-                    <p class="font-body-sm text-xs sm:text-body-sm text-text-muted mt-0.5">Encrypted at rest with e-Gov HSM SHA-256 validation</p>
+                    <p class="font-body-sm text-xs sm:text-body-sm text-text-muted mt-0.5">Files listed here were submitted with this registration.</p>
                   </div>
                   <span class="font-mono-code text-[11px] sm:text-label-sm text-gov-emerald flex items-center gap-1 bg-status-approved-bg px-2 py-1 rounded">
                     <span class="material-symbols-outlined text-[16px]">lock</span>
-                    Tamper Evident
+                    Submitted files
                   </span>
                 </div>
                 <div class="flex flex-col gap-3 sm:gap-4" id="documents-list-container">
@@ -972,7 +900,7 @@
                     <span class="material-symbols-outlined text-institutional-navy text-[18px] sm:text-[20px]">history_edu</span>
                     Chronological Audit &amp; Event Log
                   </h2>
-                  <span class="font-label-sm text-[10px] sm:text-label-sm text-text-muted uppercase">Statutory Ledger</span>
+                  <span class="font-label-sm text-[10px] sm:text-label-sm text-text-muted uppercase">Registration history</span>
                 </div>
                 <div class="relative pl-6 flex flex-col gap-4 before:content-[''] before:absolute before:left-2 before:top-2 before:bottom-2 before:w-[2px] before:bg-surface-container" id="audit-trail-container"><p class="font-body-sm text-xs text-text-muted">Loading live audit trail...</p></div></div></div>
             </div>
@@ -992,9 +920,7 @@
                 </div>
 
                 <!-- Section Instruction -->
-                <p class="font-body-sm text-xs sm:text-body-sm text-text-secondary mb-4 leading-relaxed">
-                  Select statutory verdict. If recommending deficiency correction or disqualification, specific substantive feedback is required for audit conformity.
-                </p>
+                <p class="font-body-sm text-xs sm:text-body-sm text-text-secondary mb-4 leading-relaxed">Choose an outcome for this registration. A comment is required when requesting changes or rejecting it.</p>
 
                 <!-- Action Button Triad -->
                 <div class="grid grid-cols-3 gap-1.5 sm:gap-2 mb-4 sm:mb-6" id="action-selector-group">
@@ -1022,41 +948,33 @@
                 <div class="p-3.5 sm:p-space-base rounded-lg bg-status-action-bg text-status-action-text mb-4 flex items-start gap-2.5 sm:gap-space-sm border border-status-action-border" id="consequence-box">
                   <span class="material-symbols-outlined text-[18px] sm:text-[20px] shrink-0 text-saffron-accent mt-0.5">info</span>
                   <div class="text-xs sm:text-body-sm font-body-sm leading-relaxed" id="consequence-text">
-                    <strong class="font-bold">State Transition Consequence:</strong> Registration will transition to <span class="font-mono-code font-bold">ACTION_REQUIRED</span>. Edit access unlocked for submitter to re-upload deficient documents. SLA clock paused.
+                    <strong class="font-bold">State transition:</strong> Registration status will change to <span class="font-mono-code font-bold">ACTION_REQUIRED</span>.
                   </div>
                 </div>
 
                 <!-- Mandatory Comment / Remarks Form -->
+                <p id="decision-read-only-message" class="hidden p-4 rounded-lg bg-surface-subtle text-sm text-text-secondary mb-4"></p>
                 <form class="flex flex-col gap-3.5 sm:gap-space-base" id="statutory-decision-form" onsubmit="event.preventDefault();">
                   <div class="flex flex-col gap-1.5">
                     <div class="flex items-center justify-between">
                       <label class="font-label-md text-xs sm:text-label-md text-text-primary font-semibold flex items-center gap-1" for="reviewer-remarks">
-                        KYC Agent Comment / Official Order
+                        Reviewer comment
                         <span class="text-saffron-accent font-bold" id="mandatory-asterisk">*</span>
                       </label>
                       <span class="font-mono-code text-[10px] sm:text-[11px] text-text-muted" id="char-counter">0 / 1000 chars</span>
                     </div>
-                    <textarea class="w-full rounded-lg p-3 font-body-md text-xs sm:text-body-md text-text-primary bg-surface-crisp border border-border-hairline focus:border-institutional-navy focus:outline-none focus:bg-surface-crisp transition-colors resize-none shadow-sm" id="reviewer-remarks" oninput="handleRemarksInput()" placeholder="Enter mandatory legal findings, document deficiency notes, or statutory gazette citations..." rows="4"></textarea>
-                    <span class="font-body-sm text-[11px] sm:text-body-sm text-text-muted italic" id="validation-hint">A formal statutory notice will be dispatched directly to the official nodal custodian.</span>
-                  </div>
-
-                  <!-- Statutory Compliance Checkbox -->
-                  <div class="p-3 rounded-lg bg-surface-subtle flex items-start gap-2.5 sm:gap-space-sm border border-border-hairline">
-                    <input checked="" class="mt-0.5 w-4 h-4 rounded text-institutional-navy focus:ring-institutional-navy cursor-pointer" id="statutory-checkbox" onchange="evaluateSubmitReadiness()" type="checkbox"/>
-                    <label class="font-body-sm text-xs sm:text-body-sm text-text-secondary select-none cursor-pointer leading-relaxed" for="statutory-checkbox">I, <strong class="text-text-primary" id="attest-officer-name">KYC Agent</strong>, hereby attest that this administrative review is rendered in accordance with statutory guidelines.</label>
+                    <textarea class="w-full rounded-lg p-3 font-body-md text-xs sm:text-body-md text-text-primary bg-surface-crisp border border-border-hairline focus:border-institutional-navy focus:outline-none focus:bg-surface-crisp transition-colors resize-none shadow-sm" id="reviewer-remarks" oninput="handleRemarksInput()" placeholder="Add a comment for this decision..." rows="4"></textarea>
+                    <span class="font-body-sm text-[11px] sm:text-body-sm text-text-muted italic" id="validation-hint">Comments are saved with the registration decision.</span>
                   </div>
 
                   <!-- Execution Action Button -->
                   <div class="mt-1 flex flex-col gap-2">
                     <button class="w-full py-3 sm:py-space-md px-4 bg-institutional-navy hover:bg-primary-container text-on-primary font-headline-sm text-sm sm:text-headline-sm rounded-lg shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer" id="btn-execute-decision" onclick="executeStatutoryTransition()" type="button">
                       <span class="material-symbols-outlined text-[18px] sm:text-[20px]">send_time_extension</span>
-                      <span id="submit-btn-label">Confirm Deficiency &amp; Dispatch Notice</span>
+                      <span id="submit-btn-label">Approve Registration</span>
                     </button>
                     <div class="flex items-center justify-between px-1">
-                      <span class="font-mono-code text-[10px] sm:text-[11px] text-text-muted">SESSION: SIH26043-REV-ACTIVE</span>
-                      <span class="font-mono-code text-[10px] sm:text-[11px] text-gov-emerald flex items-center gap-0.5">
-                        <span class="material-symbols-outlined text-[12px]">verified</span> Digital Sign Active
-                      </span>
+                      <span class="font-mono-code text-[10px] sm:text-[11px] text-text-muted">Changes are saved by the reviewer service.</span>
                     </div>
                   </div>
                 </form>
@@ -1085,30 +1003,6 @@
 
   <!-- ========================================================================= -->
   <!-- DOCUMENT PREVIEW MODAL                                                    -->
-  <!-- ========================================================================= -->
-  <div id="doc-preview-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-    <div class="bg-surface-crisp rounded-xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]">
-      <div class="p-4 bg-primary text-on-primary flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <span class="material-symbols-outlined text-[20px]">visibility</span>
-          <h3 class="font-headline-sm text-headline-sm" id="modal-doc-title">Document Inspection Preview</h3>
-        </div>
-        <button class="p-1 rounded hover:bg-white/20 transition-colors cursor-pointer" onclick="closeDocPreview()">
-          <span class="material-symbols-outlined text-[20px]">close</span>
-        </button>
-      </div>
-      <div class="p-6 overflow-y-auto flex flex-col gap-4 bg-surface-subtle" id="modal-doc-body">
-        <!-- Injected via JavaScript -->
-      </div>
-      <div class="p-4 bg-surface-crisp border-t border-border-hairline flex items-center justify-between">
-        <span class="font-mono-code text-[11px] text-text-muted">HSM Cryptographic Seal Validated</span>
-        <button class="px-space-lg py-2 bg-ashoka-blue text-on-primary rounded font-label-md hover:bg-institutional-navy transition-colors cursor-pointer" onclick="closeDocPreview()">
-          Close Preview
-        </button>
-      </div>
-    </div>
-  </div>
-
   <!-- TOAST NOTIFICATION CONTAINER -->
   <div id="toast-container" class="fixed top-20 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
@@ -1127,36 +1021,20 @@
           <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6 mb-6 sm:mb-8">
             <div class="space-y-1.5">
               <div class="flex items-center gap-space-sm text-text-muted font-mono-code text-[11px] sm:text-label-sm uppercase tracking-wider flex-wrap">
-                <span>STATUTORY SOURCE IDENTITY CONSOLE</span>
+                <span>APPROVED SOURCES</span>
                 <span>/</span>
-                <span class="text-saffron-accent font-semibold">QUEUE ID: SRC-VERIFY-NATIONAL</span>
+                <span class="text-saffron-accent font-semibold">OPTIONAL VERIFICATION CHECKS</span>
                 <span class="w-1.5 h-1.5 rounded-full bg-gov-emerald animate-pulse"></span>
               </div>
               <h1 class="font-headline-xl text-2xl sm:text-3xl lg:text-headline-xl text-text-primary tracking-tight">
-                Source Identity Verification Console
+                Approved Source Records
               </h1>
               <p class="font-body-md text-sm sm:text-body-md text-text-secondary max-w-3xl">
-                Authorized statutory verification of entity identity, credentials, and institutional authorization for approved problem sources across Government Departments, Panchayats, Urban Local Bodies, Universities, and Enterprises.
+                View approved source registrations and record an additional identity check when needed.
               </p>
             </div>
             
             <!-- Quick Operational Indicators -->
-            <div class="flex items-center gap-2 sm:gap-space-md self-start md:self-auto bg-surface-crisp p-2 sm:p-space-sm rounded-xl shadow-sm flex-wrap border border-border-hairline">
-              <div class="flex items-center gap-space-xs px-3 py-1.5 sm:px-space-md sm:py-space-xs rounded-lg bg-surface-subtle">
-                <span class="material-symbols-outlined text-gov-emerald text-[18px] sm:text-[20px]">verified_user</span>
-                <div class="flex flex-col">
-                  <span class="font-label-sm text-[10px] sm:text-label-sm text-text-muted uppercase">Digital Seal</span>
-                  <span class="font-mono-code text-[11px] sm:text-[12px] text-text-primary font-semibold">NIC-TSA-ACTIVE</span>
-                </div>
-              </div>
-              <div class="flex items-center gap-space-xs px-3 py-1.5 sm:px-space-md sm:py-space-xs rounded-lg bg-surface-subtle">
-                <span class="material-symbols-outlined text-institutional-navy text-[18px] sm:text-[20px]">sync</span>
-                <div class="flex flex-col">
-                  <span class="font-label-sm text-[10px] sm:text-label-sm text-text-muted uppercase">Source Registry</span>
-                  <span class="font-mono-code text-[11px] sm:text-[12px] text-text-primary font-semibold">SIH-LIVE-V2</span>
-                </div>
-              </div>
-            </div>
           </div>
 
           <!-- Summary Metrics Strip -->
@@ -1164,7 +1042,7 @@
             <!-- Metric 1: Total Approved Sources -->
             <div class="bg-surface-crisp rounded-xl p-5 sm:p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all cursor-pointer border border-border-hairline" onclick="switchProblemTab('all')">
               <div class="flex items-center justify-between mb-space-sm">
-                <span class="font-label-sm text-[11px] sm:text-label-sm text-text-muted uppercase tracking-wider">Total Approved Sources</span>
+                <span class="font-label-sm text-[11px] sm:text-label-sm text-text-muted uppercase tracking-wider">Approved Sources</span>
                 <span class="p-2 rounded-lg bg-surface-container-high text-primary">
                   <span class="material-symbols-outlined text-[20px]">domain</span>
                 </span>
@@ -1173,68 +1051,23 @@
                 <span class="font-headline-xl text-3xl sm:text-headline-xl text-text-primary tracking-tight" id="prb-metric-total">0</span>
                 <span class="font-label-sm text-xs sm:text-label-sm text-institutional-navy bg-surface-subtle px-2 py-0.5 rounded-full font-bold">Approved</span>
               </div>
-              <div class="mt-space-md pt-space-xs flex items-center gap-2">
-                <div class="h-1.5 w-full bg-surface-muted rounded-full overflow-hidden">
-                  <div class="h-full bg-institutional-navy rounded-full" style="width: 100%;"></div>
-                </div>
-                <span class="font-mono-code text-[11px] text-text-muted">Total</span>
-              </div>
-            </div>
-
-            <!-- Metric 2: Awaiting Verification -->
-            <div class="bg-surface-crisp rounded-xl p-5 sm:p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all cursor-pointer border border-border-hairline" onclick="switchProblemTab('my-reviews')">
-              <div class="flex items-center justify-between mb-space-sm">
-                <span class="font-label-sm text-[11px] sm:text-label-sm text-text-muted uppercase tracking-wider">Awaiting Verification</span>
-                <span class="p-2 rounded-lg bg-surface-container-high text-saffron-accent">
-                  <span class="material-symbols-outlined text-[20px]">pending_actions</span>
-                </span>
-              </div>
-              <div class="flex items-baseline justify-between">
-                <span class="font-headline-xl text-3xl sm:text-headline-xl text-text-primary tracking-tight" id="prb-metric-my">0</span>
-                <span class="font-label-sm text-xs sm:text-label-sm text-saffron-accent bg-status-action-bg px-2 py-0.5 rounded-full font-bold">Action Needed</span>
-              </div>
-              <div class="mt-space-md pt-space-xs flex items-center justify-between">
-                <span class="font-body-sm text-xs sm:text-body-sm text-text-muted">Eligible for Check</span>
-                <span class="font-mono-code text-[11px] text-saffron-accent font-semibold">Priority</span>
-              </div>
-            </div>
-
-            <!-- Metric 3: Verified Sources -->
-            <div class="bg-surface-crisp rounded-xl p-5 sm:p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all cursor-pointer border border-border-hairline" onclick="switchProblemTab('registered')">
-              <div class="flex items-center justify-between mb-space-sm">
-                <span class="font-label-sm text-[11px] sm:text-label-sm text-text-muted uppercase tracking-wider">Verified Sources</span>
-                <span class="p-2 rounded-lg bg-surface-container-high text-gov-emerald">
-                  <span class="material-symbols-outlined text-[20px]">verified</span>
-                </span>
-              </div>
-              <div class="flex items-baseline justify-between">
-                <span class="font-headline-xl text-3xl sm:text-headline-xl text-text-primary tracking-tight" id="prb-metric-registered">0</span>
-                <div class="flex items-center text-gov-emerald font-label-sm text-xs sm:text-label-sm">
-                  <span class="material-symbols-outlined text-[16px]">task_alt</span>
-                  <span>PASS Certified</span>
-                </div>
-              </div>
-              <div class="mt-space-md pt-space-xs flex items-center justify-between">
-                <span class="font-body-sm text-xs sm:text-body-sm text-text-muted">Identity Cleared</span>
-                <span class="font-mono-code text-[11px] text-gov-emerald font-semibold">Accredited</span>
-              </div>
             </div>
 
             <!-- Metric 4: Flagged / Needs Review -->
             <div class="bg-surface-crisp rounded-xl p-5 sm:p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all cursor-pointer border border-border-hairline" onclick="switchProblemTab('rejected')">
               <div class="flex items-center justify-between mb-space-sm">
-                <span class="font-label-sm text-[11px] sm:text-label-sm text-text-muted uppercase tracking-wider">Needs Review / Flagged</span>
+                <span class="font-label-sm text-[11px] sm:text-label-sm text-text-muted uppercase tracking-wider">Additional Checks Needing Review</span>
                 <span class="p-2 rounded-lg bg-surface-container-high text-status-review-text">
                   <span class="material-symbols-outlined text-[20px]">rule</span>
                 </span>
               </div>
               <div class="flex items-baseline justify-between">
                 <span class="font-headline-xl text-3xl sm:text-headline-xl text-text-primary tracking-tight" id="prb-metric-critical">0</span>
-                <span class="font-label-sm text-xs sm:text-label-sm text-status-review-text bg-status-review-bg px-2 py-0.5 rounded-full font-bold">Review Queue</span>
+                <span class="font-label-sm text-xs sm:text-label-sm text-status-review-text bg-status-review-bg px-2 py-0.5 rounded-full font-bold">This session</span>
               </div>
               <div class="mt-space-md pt-space-xs flex items-center justify-between">
-                <span class="font-body-sm text-xs sm:text-body-sm text-text-muted">Pending Clarification</span>
-                <span class="font-mono-code text-[11px] text-status-review-text font-semibold">Triage</span>
+                <span class="font-body-sm text-xs sm:text-body-sm text-text-muted">Latest recorded result</span>
+                <span class="font-mono-code text-[11px] text-status-review-text font-semibold">Needs follow-up</span>
               </div>
             </div>
           </div>
@@ -1250,14 +1083,6 @@
                 <button class="tab-btn-prb px-3 sm:px-space-md py-1.5 rounded-md font-label-md text-xs sm:text-label-md transition-all flex items-center gap-1.5 bg-surface-crisp text-primary shadow-sm cursor-pointer" id="tab-prb-all" onclick="switchProblemTab('all')">
                   <span>All Approved Sources</span>
                   <span class="font-mono-code text-[10px] px-1.5 py-0.2 rounded-full bg-surface-container-high text-text-primary font-bold" id="tab-prb-all-badge">0</span>
-                </button>
-                <button class="tab-btn-prb px-3 sm:px-space-md py-1.5 rounded-md font-label-md text-xs sm:text-label-md transition-all flex items-center gap-1.5 text-text-secondary hover:text-text-primary cursor-pointer" id="tab-prb-my" onclick="switchProblemTab('my-reviews')">
-                  <span>Awaiting Verification</span>
-                  <span class="font-mono-code text-[10px] px-1.5 py-0.2 rounded-full bg-status-action-bg text-status-action-text font-bold" id="tab-prb-my-badge">0</span>
-                </button>
-                <button class="tab-btn-prb px-3 sm:px-space-md py-1.5 rounded-md font-label-md text-xs sm:text-label-md transition-all flex items-center gap-1.5 text-text-secondary hover:text-text-primary cursor-pointer" id="tab-prb-registered" onclick="switchProblemTab('registered')">
-                  <span>Verified Sources</span>
-                  <span class="font-mono-code text-[10px] px-1.5 py-0.2 rounded-full bg-status-approved-bg text-status-approved-text font-bold" id="tab-prb-registered-badge">0</span>
                 </button>
                 <button class="tab-btn-prb px-3 sm:px-space-md py-1.5 rounded-md font-label-md text-xs sm:text-label-md transition-all flex items-center gap-1.5 text-text-secondary hover:text-text-primary cursor-pointer" id="tab-prb-rejected" onclick="switchProblemTab('rejected')">
                   <span>Needs Review / Flagged</span>
@@ -1286,9 +1111,8 @@
                 <!-- Status Filter -->
                 <select class="py-1.5 px-3 rounded-lg border border-border-hairline bg-surface-crisp font-label-sm text-xs sm:text-label-sm text-text-primary focus:border-institutional-navy focus:outline-none cursor-pointer" id="problem-severity-filter" onchange="filterProblemRows()">
                   <option value="ALL">All Verification Statuses</option>
-                  <option value="PENDING">Awaiting Verification</option>
-                  <option value="VERIFIED">Verified Source (PASS)</option>
-                  <option value="NEEDS_REVIEW">Needs Review / Flagged</option>
+                  <option value="VERIFIED">Approved and verified</option>
+                  <option value="NEEDS_REVIEW">Latest check needs follow-up</option>
                 </select>
 
                 <button class="p-1.5 rounded-lg border border-border-hairline bg-surface-crisp text-text-muted hover:text-text-primary hover:bg-surface-subtle transition-colors cursor-pointer" onclick="resetProblemFilters()" title="Reset Filters" type="button">
@@ -1305,7 +1129,7 @@
                 <span class="text-institutional-navy cursor-pointer hover:underline" onclick="resetProblemFilters()">Reset Filters</span>
               </div>
               <div class="font-mono text-[11px] text-text-muted">
-                Statutory Authority: POST /sources/{id}/verify (Doc 11 Sec 1)
+                Additional checks are saved through the source verification endpoint.
               </div>
             </div>
 
@@ -1318,8 +1142,8 @@
                     <th class="py-3 px-4 sm:px-6" scope="col">Source Bucket &amp; Category</th>
                     <th class="py-3 px-4 sm:px-6" scope="col">Registration / Identifier</th>
                     <th class="py-3 px-4 sm:px-6" scope="col">Primary Nodal Contact</th>
-                    <th class="py-3 px-4 sm:px-6" scope="col">Verification Status</th>
-                    <th class="py-3 px-4 sm:px-6 text-right" scope="col">Statutory Action</th>
+                    <th class="py-3 px-4 sm:px-6" scope="col">Latest Check</th>
+                    <th class="py-3 px-4 sm:px-6 text-right" scope="col">Action</th>
                   </tr>
                 </thead>
                 <tbody id="problem-table-body" class="divide-y divide-border-hairline">
@@ -1330,8 +1154,8 @@
 
             <!-- Table Footer -->
             <div class="p-4 sm:p-space-base border-t border-border-hairline flex flex-col sm:flex-row items-center justify-between gap-3 bg-surface-subtle/20 text-xs text-text-secondary">
-              <span class="font-mono-code text-[11px]">Audit Protocol: SIH26043-SOURCE-VERIFICATION-REGISTRY</span>
-              <span class="font-body-sm text-[11px] text-text-muted">Immutable Audit Trail • Multi-Factor Attestation Active</span>
+              <span class="font-mono-code text-[11px]">Source verification</span>
+              <span class="font-body-sm text-[11px] text-text-muted">Verification records are returned by the backend.</span>
             </div>
 
           </div>
@@ -1355,15 +1179,13 @@
               <div class="flex items-center gap-space-sm text-text-muted font-mono-code text-[11px] sm:text-label-sm uppercase tracking-wider flex-wrap">
                 <span>OFFICER CASELOAD WORKBENCH</span>
                 <span>/</span>
-                <span class="text-institutional-navy font-semibold">NODAL OFFICER: REV-419082</span>
+                <span class="text-institutional-navy font-semibold">REGISTRATION REVIEW</span>
                 <span class="w-1.5 h-1.5 rounded-full bg-gov-emerald animate-pulse"></span>
               </div>
               <h1 class="font-headline-xl text-2xl sm:text-3xl lg:text-headline-xl text-text-primary tracking-tight">
                 <span id="workbench-officer-heading">My Active Caseload</span>
               </h1>
-              <p class="font-body-md text-sm sm:text-body-md text-text-secondary max-w-3xl">
-                Consolidated statutory triage queue for entity registrations and technical problem statements claimed under your quasi-judicial review authority.
-              </p>
+              <p class="font-body-md text-sm sm:text-body-md text-text-secondary max-w-3xl">Registration cases assigned to your reviewer account.</p>
             </div>
             
             <div class="flex items-center gap-2 self-start md:self-auto bg-surface-crisp p-2.5 rounded-xl shadow-sm border border-border-hairline">
@@ -1376,10 +1198,10 @@
           </div>
 
           <!-- Caseload Metrics Strip -->
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <div class="grid grid-cols-1 gap-4 sm:gap-6 mb-6 sm:mb-8">
             <div class="bg-surface-crisp rounded-xl p-5 shadow-sm border border-border-hairline flex items-center justify-between">
               <div>
-                <span class="text-xs uppercase font-bold text-text-muted tracking-wider block mb-1">Claimed Registrations</span>
+                <span class="text-xs uppercase font-bold text-text-muted tracking-wider block mb-1">Assigned registrations</span>
                 <span class="text-2xl font-bold text-text-primary" id="my-reg-count">0</span>
                 <span class="text-xs text-status-review-text block mt-0.5">Awaiting Statutory Decision</span>
               </div>
@@ -1388,27 +1210,6 @@
               </div>
             </div>
 
-            <div class="bg-surface-crisp rounded-xl p-5 shadow-sm border border-border-hairline flex items-center justify-between">
-              <div>
-                <span class="text-xs uppercase font-bold text-text-muted tracking-wider block mb-1">Pending Identity Checks</span>
-                <span class="text-2xl font-bold text-text-primary" id="my-prb-count">0</span>
-                <span class="text-xs text-saffron-accent block mt-0.5">Awaiting Source Verification</span>
-              </div>
-              <div class="w-11 h-11 rounded-xl bg-status-action-bg text-status-action-text flex items-center justify-center">
-                <span class="material-symbols-outlined text-[24px]">verified_user</span>
-              </div>
-            </div>
-
-            <div class="bg-surface-crisp rounded-xl p-5 shadow-sm border border-border-hairline flex items-center justify-between">
-              <div>
-                <span class="text-xs uppercase font-bold text-text-muted tracking-wider block mb-1">SLA Compliance Rate</span>
-                <span class="text-2xl font-bold text-gov-emerald">100%</span>
-                <span class="text-xs text-text-muted block mt-0.5">Average Decision Time: 6.4h</span>
-              </div>
-              <div class="w-11 h-11 rounded-xl bg-status-approved-bg text-gov-emerald flex items-center justify-center">
-                <span class="material-symbols-outlined text-[24px]">verified</span>
-              </div>
-            </div>
           </div>
 
           <!-- Section 1: Claimed Registrations Table -->
@@ -1442,36 +1243,6 @@
             </div>
           </div>
 
-          <!-- Section 2: Entities Awaiting Identity Verification Table -->
-          <div class="bg-surface-crisp rounded-xl shadow-md border border-border-hairline overflow-hidden">
-            <div class="p-4 sm:p-5 border-b border-border-hairline bg-surface-subtle/40 flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-saffron-accent text-[20px]">verified_user</span>
-                <h2 class="text-base font-bold text-ashoka-blue">Entities Awaiting Identity Verification (Source Clearance)</h2>
-              </div>
-              <a href="#/problem-queue" class="text-xs text-institutional-navy hover:underline font-medium flex items-center gap-1">
-                <span>View All Sources</span>
-                <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
-              </a>
-            </div>
-            
-            <div class="w-full overflow-x-auto">
-              <table class="w-full text-left border-collapse min-w-[780px]">
-                <thead>
-                  <tr class="bg-surface-container-high/30 text-text-secondary font-label-md text-xs uppercase tracking-wider border-b border-border-hairline">
-                    <th class="py-3 px-4 sm:px-6">Organization Entity</th>
-                    <th class="py-3 px-4 sm:px-6">Source Bucket &amp; Category</th>
-                    <th class="py-3 px-4 sm:px-6">Primary Nodal Contact</th>
-                    <th class="py-3 px-4 sm:px-6">Verification Status</th>
-                    <th class="py-3 px-4 sm:px-6 text-right">Direct Action</th>
-                  </tr>
-                </thead>
-                <tbody id="my-problems-tbody" class="divide-y divide-border-hairline">
-                  <!-- Rendered dynamically -->
-                </tbody>
-              </table>
-            </div>
-          </div>
 
         </div>
       </div>
@@ -1496,7 +1267,7 @@
           <div>
             <div class="flex items-center gap-2">
               <span class="font-mono text-xs font-bold text-saffron-accent" id="modal-src-id">#SRC-ORG-000000</span>
-              <span class="px-2 py-0.2 rounded-full text-[10px] font-bold uppercase bg-status-action-bg text-status-action-text" id="modal-src-status-pill">Awaiting Verification</span>
+              <span class="px-2 py-0.2 rounded-full text-[10px] font-bold uppercase bg-status-approved-bg text-status-approved-text" id="modal-src-status-pill">Verified Source</span>
             </div>
             <h2 class="text-base sm:text-lg font-bold text-ashoka-blue line-clamp-1" id="modal-src-name">Organization Name</h2>
           </div>
@@ -1591,7 +1362,7 @@
           <div class="p-3 rounded-lg bg-status-approved-bg text-status-approved-text text-xs flex items-start gap-2 border border-status-approved-border" id="src-impact-box">
             <span class="material-symbols-outlined text-[18px] text-gov-emerald shrink-0 mt-0.5" id="src-impact-icon">verified</span>
             <div id="src-impact-text">
-              <strong>PASS Result:</strong> The organization will receive a <span class="font-bold">Verified Source</span> badge in the national registry. Authorized submission privileges remain permanently confirmed.
+              <strong>PASS:</strong> This verification result will be recorded for the approved source.
             </div>
           </div>
 
@@ -1616,13 +1387,6 @@
             <input type="url" id="src-verify-evidence" class="w-full px-3 py-2 rounded-lg border border-border-hairline bg-surface-crisp font-mono text-xs text-text-primary placeholder:text-text-muted focus:border-institutional-navy focus:outline-none" placeholder="https://drive.google.com/... or https://portal.mca.gov.in/..."/>
           </div>
 
-          <!-- Attestation Checkbox -->
-          <div class="p-3 rounded-lg bg-surface-subtle flex items-start gap-2 border border-border-hairline">
-            <input type="checkbox" id="src-verify-attest" onchange="evaluateSourceVerifyReadiness()" checked class="mt-0.5 rounded text-institutional-navy focus:ring-institutional-navy cursor-pointer">
-            <label for="src-verify-attest" class="text-xs text-text-secondary select-none cursor-pointer">
-              I, <strong class="text-text-primary" id="src-verify-officer-name">KYC Agent</strong>, certify under statutory authority that the identity credentials for this organization have been evaluated against verified official records and documented evidence.
-            </label>
-          </div>
         </div>
 
         <!-- Append-only History of Past Verification Events -->
@@ -1630,16 +1394,15 @@
           <div class="flex items-center justify-between">
             <h3 class="text-xs font-bold uppercase tracking-wider text-text-muted flex items-center gap-1.5">
               <span class="material-symbols-outlined text-[16px] text-institutional-navy">history</span>
-              <span>Verification Audit Trail &amp; Past Events</span>
+              <span>Checks recorded in this session</span>
             </h3>
-            <span class="font-mono text-[10px] text-text-muted">Append-only Record</span>
           </div>
 
           <div id="src-verification-history-container" class="space-y-2 bg-surface-crisp rounded-xl border border-border-hairline p-3 sm:p-4">
             <!-- Rendered dynamically by renderSourceVerificationHistory() -->
             <div class="text-center py-4 text-text-muted text-xs">
               <span class="material-symbols-outlined text-[20px] text-text-muted mb-1 block">history_toggle_drop_down</span>
-              <span>No prior verification checks recorded for this organization.</span>
+              <span>No checks recorded in this session.</span>
             </div>
           </div>
         </div>

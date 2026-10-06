@@ -9,6 +9,7 @@ import com.EDITH.SIH26043.enums.SubmissionStatus;
 import com.EDITH.SIH26043.enums.UserRole;
 import com.EDITH.SIH26043.exception.ApiException;
 import com.EDITH.SIH26043.repository.ParticipantRepository;
+import com.EDITH.SIH26043.repository.PublishedProblemRepository;
 import com.EDITH.SIH26043.repository.SubmissionFileRepository;
 import com.EDITH.SIH26043.repository.SubmissionRepository;
 import com.EDITH.SIH26043.repository.TeamMemberRepository;
@@ -52,6 +53,7 @@ class SubmissionFileServiceTest {
     private final SubmissionRepository submissionRepository = mock(SubmissionRepository.class);
     private final ParticipantRepository participantRepository = mock(ParticipantRepository.class);
     private final TeamMemberRepository teamMemberRepository = mock(TeamMemberRepository.class);
+    private final PublishedProblemRepository publishedProblemRepository = mock(PublishedProblemRepository.class);
 
     private SubmissionFileService service;
 
@@ -59,6 +61,7 @@ class SubmissionFileServiceTest {
     void setUp() {
         service = new SubmissionFileService(
                 fileRepository, submissionRepository, participantRepository, teamMemberRepository,
+                publishedProblemRepository,
                 tempDir.toString());
     }
 

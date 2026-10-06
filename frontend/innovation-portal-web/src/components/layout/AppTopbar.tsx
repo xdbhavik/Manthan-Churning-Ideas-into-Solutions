@@ -59,18 +59,6 @@ export function AppTopbar({
     return () => document.removeEventListener('mousedown', onDocClick);
   }, []);
 
-  const focusSearch = (e: KeyboardEvent) => {
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-      e.preventDefault();
-      document.getElementById('app-search')?.focus();
-    }
-  };
-
-  useEffect(() => {
-    window.addEventListener('keydown', focusSearch);
-    return () => window.removeEventListener('keydown', focusSearch);
-  }, []);
-
   return (
     <header className="sticky top-0 z-40 bg-surface-card/90 backdrop-blur border-b border-border-subtle tricolor-border-bottom">
       <div className="h-16 px-4 sm:px-6 flex items-center gap-3">
@@ -81,22 +69,6 @@ export function AppTopbar({
         >
           <span className="material-symbols-outlined text-on-surface">menu</span>
         </button>
-
-        <div className="flex-1 max-w-md">
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant-weak text-[18px]">
-              search
-            </span>
-            <input
-              id="app-search"
-              placeholder="Search submissions… (⌘K)"
-              className="w-full pl-9 pr-8 py-2 rounded-lg bg-surface border border-border-subtle text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-on-surface"
-            />
-            <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 rounded border border-border-subtle bg-surface-card px-1.5 py-0.5 text-[10px] font-mono text-on-surface-variant-weak">
-              ⌘K
-            </kbd>
-          </div>
-        </div>
 
         <button
           onClick={toggleDarkMode}

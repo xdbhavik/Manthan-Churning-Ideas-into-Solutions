@@ -120,15 +120,16 @@
       <p class="mt-1 text-xs text-text-muted">Manage your organization and filed problems</p>
     </div>
     <nav class="flex flex-col gap-1 p-3" aria-label="Main navigation">
-      <button type="button" onclick="goToKycAction()" id="nav-btn-kyc" class="portal-sidebar-link">
-        <span class="material-symbols-outlined">verified_user</span><span>KYC Status</span>
-      </button>
       <button type="button" onclick="goToFileProblem()" id="nav-btn-file-problem" class="portal-sidebar-link">
         <span class="material-symbols-outlined">add_circle</span><span>File Problem</span>
       </button>
       <button type="button" onclick="goToMyProblems()" id="nav-btn-my-problems" class="portal-sidebar-link">
         <span class="material-symbols-outlined">task</span><span>My Problems</span>
         <span id="nav-my-problems-count" class="ml-auto hidden rounded-full bg-ashoka-blue px-2 py-0.5 font-mono-code text-[10px] font-bold text-white">0</span>
+      </button>
+      <button type="button" onclick="goToMySolutions()" id="nav-btn-my-solutions" class="portal-sidebar-link">
+        <span class="material-symbols-outlined">school</span><span>My Solutions</span>
+        <span id="nav-my-solutions-count" class="ml-auto hidden rounded-full bg-ashoka-blue px-2 py-0.5 font-mono-code text-[10px] font-bold text-white">0</span>
       </button>
     </nav>
     <div class="mt-auto border-t border-border-hairline p-4 text-[11px] leading-relaxed text-text-muted">National Problem Repository<br/><span class="font-semibold text-gov-emerald">Secure source workspace</span></div>
@@ -1417,6 +1418,40 @@
         </div>
       </div>
 
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SCREEN 9: ACCEPTED SOLUTIONS FOR MY PROBLEM STATEMENTS       -->
+    <!-- ============================================================ -->
+    <section id="view-my-solutions" class="hidden flex flex-col gap-6">
+      <div class="bg-surface-crisp p-6 sm:p-8 rounded-xl border border-border-hairline shadow-sm relative overflow-hidden flex flex-col gap-5">
+        <div class="w-full h-1 bg-gradient-to-r from-gov-emerald via-surface-muted to-ashoka-blue absolute top-0 left-0"></div>
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="material-symbols-outlined text-ashoka-blue text-xl">school</span>
+              <span class="text-xs font-bold uppercase tracking-wider text-ashoka-blue">Student Outcomes</span>
+            </div>
+            <h1 class="text-2xl font-bold text-ashoka-blue">My Solutions</h1>
+            <p class="text-sm text-text-secondary mt-0.5">View student solutions accepted for your problem statements and connect students with a mentor.</p>
+          </div>
+          <button type="button" onclick="loadMyAcceptedSolutions()" class="px-4 py-2.5 rounded-lg border border-border-strong bg-white text-ashoka-blue text-xs font-bold flex items-center gap-2 hover:bg-surface-subtle">
+            <span class="material-symbols-outlined text-base">refresh</span><span>Refresh</span>
+          </button>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="p-4 rounded-xl bg-status-approved-bg border border-status-approved-border"><span class="text-xs font-semibold text-status-approved-text">Accepted solutions</span><p id="stat-my-solutions-total" class="text-2xl font-bold text-status-approved-text font-mono-code mt-1">0</p></div>
+          <div class="p-4 rounded-xl bg-surface-subtle border border-border-hairline"><span class="text-xs font-semibold text-text-muted">Mentor assigned</span><p id="stat-my-solutions-mentored" class="text-2xl font-bold text-ashoka-blue font-mono-code mt-1">0</p></div>
+          <div class="p-4 rounded-xl bg-surface-muted border border-border-hairline"><span class="text-xs font-semibold text-text-muted">Awaiting mentor</span><p id="stat-my-solutions-unmentored" class="text-2xl font-bold text-text-secondary font-mono-code mt-1">0</p></div>
+        </div>
+        <div class="relative max-w-md">
+          <span class="material-symbols-outlined absolute left-3 top-2.5 text-text-muted text-[18px]">search</span>
+          <input id="my-solutions-search-input" type="search" oninput="filterMySolutions()" placeholder="Search solution, problem, or student..." class="w-full h-10 pl-9 pr-3 rounded-lg border border-border-strong bg-surface-subtle text-xs focus:bg-white focus:border-ashoka-blue focus:outline-none" />
+        </div>
+      </div>
+      <div id="my-solutions-list-container" class="flex flex-col gap-4">
+        <div class="p-12 text-center text-text-muted text-xs border border-dashed border-border-strong rounded-xl bg-surface-crisp">Loading accepted student solutions...</div>
+      </div>
     </section>
 
   </main>

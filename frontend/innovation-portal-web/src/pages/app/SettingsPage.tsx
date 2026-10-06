@@ -52,7 +52,7 @@ export default function SettingsPage() {
       >
         <h1 className="font-display-lg text-display-lg text-on-surface mb-space-xs">Settings</h1>
         <p className="font-body-md text-body-md text-on-surface-variant max-w-2xl">
-          Manage your personal information, notification preferences, and account security.
+          Update the contact details saved on your participant profile.
         </p>
       </motion.div>
 
@@ -128,61 +128,6 @@ export default function SettingsPage() {
           </Card>
         </motion.div>
 
-        {/* Preferences Section (UI Only) */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Card variant="default" className="p-space-xl">
-            <div className="mb-space-lg">
-              <h2 className="font-headline-md text-headline-md text-on-surface">Preferences</h2>
-              <p className="font-body-md text-body-md text-on-surface-variant-weak mt-1">
-                Customize your portal experience.
-              </p>
-            </div>
-            
-            <div className="space-y-space-lg max-w-xl">
-              <div className="flex items-center justify-between py-space-sm">
-                <div>
-                  <h4 className="font-headline-sm text-headline-sm text-on-surface">Email Notifications</h4>
-                  <p className="font-body-sm text-body-sm text-on-surface-variant-weak">Receive updates about your submissions via email.</p>
-                </div>
-                <div className="w-12 h-6 bg-primary rounded-full relative cursor-pointer">
-                  <div className="w-4 h-4 bg-white rounded-full absolute right-1 top-1 shadow-sm"></div>
-                </div>
-              </div>
-            </div>
-          </Card>
-        </motion.div>
-
-        {/* Security Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <Card variant="default" className="p-space-xl border-error border-opacity-30 bg-state-returned-bg">
-            <div className="mb-space-lg">
-              <h2 className="font-headline-md text-headline-md text-state-returned-text">Danger Zone</h2>
-              <p className="font-body-md text-body-md text-state-returned-text/80 mt-1">
-                Irreversible actions for your account.
-              </p>
-            </div>
-            
-            <div className="flex items-center justify-between border-t border-error/20 pt-space-md">
-              <div>
-                <h4 className="font-headline-sm text-headline-sm text-state-returned-text">Delete Account</h4>
-                <p className="font-body-sm text-body-sm text-state-returned-text/80 max-w-sm">
-                  Permanently remove your account and all associated data from the portal. This action cannot be undone.
-                </p>
-              </div>
-              <Button variant="outline" className="text-error border-error hover:bg-error hover:text-white">
-                Delete Account
-              </Button>
-            </div>
-          </Card>
-        </motion.div>
       </div>
     </div>
   );

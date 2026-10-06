@@ -28,7 +28,8 @@ public record SubmissionView(
         java.util.Map<String, Object> projectDetails,
         List<FileItemView> files,
         TeamView team,
-        Map<String, Object> reviewScorecard
+        Map<String, Object> reviewScorecard,
+        Map<String, Object> mentorAssignment
 ) {
     public SubmissionView(UUID submissionId, UUID problemId, UUID teamId,
                           String title, String summary, String githubUrl,
@@ -39,7 +40,7 @@ public record SubmissionView(
                           List<FileItemView> files, TeamView team) {
         this(submissionId, problemId, teamId, title, summary, githubUrl, commitSha,
                 branch, links, status, reviewRound, reviewerUserId, decisionComment,
-                submittedAt, decidedAt, java.util.Map.of(), files, team, java.util.Map.of());
+                submittedAt, decidedAt, java.util.Map.of(), files, team, java.util.Map.of(), java.util.Map.of());
     }
 
     public SubmissionView(UUID submissionId, UUID problemId, UUID teamId,
@@ -52,6 +53,21 @@ public record SubmissionView(
                           List<FileItemView> files, TeamView team) {
         this(submissionId, problemId, teamId, title, summary, githubUrl, commitSha,
                 branch, links, status, reviewRound, reviewerUserId, decisionComment,
-                submittedAt, decidedAt, projectDetails, files, team, java.util.Map.of());
+                submittedAt, decidedAt, projectDetails, files, team, java.util.Map.of(), java.util.Map.of());
+    }
+
+    public SubmissionView(UUID submissionId, UUID problemId, UUID teamId,
+                          String title, String summary, String githubUrl,
+                          String commitSha, String branch,
+                          List<java.util.Map<String, String>> links, String status,
+                          int reviewRound, UUID reviewerUserId, String decisionComment,
+                          Instant submittedAt, Instant decidedAt,
+                          java.util.Map<String, Object> projectDetails,
+                          List<FileItemView> files, TeamView team,
+                          Map<String, Object> reviewScorecard) {
+        this(submissionId, problemId, teamId, title, summary, githubUrl,
+                commitSha, branch, links, status, reviewRound, reviewerUserId,
+                decisionComment, submittedAt, decidedAt, projectDetails, files,
+                team, reviewScorecard, java.util.Map.of());
     }
 }
