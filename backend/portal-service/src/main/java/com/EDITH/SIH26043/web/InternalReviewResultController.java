@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
+import java.util.Map;
 
 /**
  * Service-to-service intake for evaluation-service's project-review decision.
@@ -35,5 +36,11 @@ public class InternalReviewResultController {
     public SubmissionView reviewResult(@PathVariable UUID submissionId,
                                        @Valid @RequestBody ReviewResultPushRequest request) {
         return submissionService.acceptReviewResult(submissionId, request);
+    }
+
+    @PostMapping("/{submissionId}/review-scorecard")
+    public SubmissionView reviewScorecard(@PathVariable UUID submissionId,
+                                          @RequestBody Map<String, Object> scorecard) {
+        return submissionService.saveReviewScorecard(submissionId, scorecard);
     }
 }

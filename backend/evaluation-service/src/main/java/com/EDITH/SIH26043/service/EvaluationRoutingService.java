@@ -550,7 +550,7 @@ public class EvaluationRoutingService {
                         "Evaluation cycle " + cycleId + " not found"));
     }
 
-    private static EvaluatorType poolFor(String sourceBucket) {
+    static EvaluatorType poolFor(String sourceBucket) {
         SourceBucket bucket;
         try {
             bucket = sourceBucket == null ? null : SourceBucket.valueOf(sourceBucket);

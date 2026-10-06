@@ -9,6 +9,9 @@ import type {
   EvaluatorProfileResponse,
   ProjectReviewDecisionRequest,
   ProjectReviewResponse,
+  ProjectReviewListItem,
+  ProjectReviewScorecardRequest,
+  ProjectReviewScorecardView,
   ScorecardSubmitRequest,
 } from '../types';
 
@@ -63,10 +66,10 @@ export async function submitScorecard(assignmentId: string, body: ScorecardSubmi
   return data;
 }
 
-export async function getMyProjectReviews(status?: 'ASSIGNED' | 'ACCEPTED' | 'RETURNED'): Promise<ProjectReviewResponse[]> {
+export async function getMyProjectReviews(status?: 'ASSIGNED' | 'ACCEPTED' | 'RETURNED'): Promise<ProjectReviewListItem[]> {
   const params: Record<string, string> = {};
   if (status) params['status'] = status;
-  const { data } = await api.get<ProjectReviewResponse[]>('/evaluation/me/project-reviews', { params });
+  const { data } = await api.get<ProjectReviewListItem[]>('/evaluation/me/project-reviews', { params });
   return data;
 }
 
@@ -77,6 +80,21 @@ export async function getProjectReview(reviewId: string): Promise<ProjectReviewR
 
 export async function submitProjectReviewDecision(reviewId: string, body: ProjectReviewDecisionRequest): Promise<ProjectReviewResponse> {
   const { data } = await api.post<ProjectReviewResponse>('/evaluation/me/project-reviews/' + reviewId + '/decision', body);
+  return data;
+}
+
+export async function getMyAllProjectReviews(): Promise<ProjectReviewListItem[]> {
+  const { data } = await api.get<ProjectReviewListItem[]>('/evaluation/me/project-reviews');
+  return data;
+}
+
+export async function getProjectReviewScorecard(reviewId: string): Promise<ProjectReviewScorecardView> {
+  const { data } = await api.get<ProjectReviewScorecardView>(`/evaluation/me/project-reviews/${reviewId}/scorecard`);
+  return data;
+}
+
+export async function saveProjectReviewScorecard(reviewId: string, body: ProjectReviewScorecardRequest): Promise<ProjectReviewScorecardView> {
+  const { data } = await api.put<ProjectReviewScorecardView>(`/evaluation/me/project-reviews/${reviewId}/scorecard`, body);
   return data;
 }
 

@@ -1,7 +1,6 @@
 package com.EDITH.SIH26043.service;
 
 import com.EDITH.SIH26043.entity.Participant;
-import com.EDITH.SIH26043.entity.PublishedProblem;
 import com.EDITH.SIH26043.entity.Team;
 import com.EDITH.SIH26043.entity.TeamInvitation;
 import com.EDITH.SIH26043.entity.TeamMember;
@@ -11,7 +10,6 @@ import com.EDITH.SIH26043.enums.ParticipantType;
 import com.EDITH.SIH26043.enums.TeamRole;
 import com.EDITH.SIH26043.exception.ApiException;
 import com.EDITH.SIH26043.repository.ParticipantRepository;
-import com.EDITH.SIH26043.repository.PublishedProblemRepository;
 import com.EDITH.SIH26043.repository.TeamInvitationRepository;
 import com.EDITH.SIH26043.repository.TeamMemberRepository;
 import com.EDITH.SIH26043.repository.TeamRepository;
@@ -33,27 +31,18 @@ public class TeamService {
     private final TeamMemberRepository members;
     private final TeamInvitationRepository invitations;
     private final ParticipantRepository participants;
-    private final PublishedProblemRepository problems;
-    private final ParticipantService participantService;
 
     public TeamService(TeamRepository teams, TeamMemberRepository members,
-                       TeamInvitationRepository invitations, ParticipantRepository participants,
-                       PublishedProblemRepository problems, ParticipantService participantService) {
+                       TeamInvitationRepository invitations, ParticipantRepository participants) {
         this.teams = teams;
         this.members = members;
         this.invitations = invitations;
         this.participants = participants;
-        this.problems = problems;
-        this.participantService = participantService;
     }
 
     @Transactional
     public TeamOverview create(Participant leader, TeamCreateRequest request) {
-        PublishedProblem problem = problems.findById(request.problemId())
-                .filter(p -> participantService.canSee(leader, p))
-                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Problem not found or not visible"));
         Team team = new Team();
-        team.setProblemId(problem.getProblemId());
         team.setName(request.name().trim());
         team.setCreatedByParticipantId(leader.getParticipantId());
         teams.save(team);
@@ -65,9 +54,6 @@ public class TeamService {
                         .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Registered student not found"));
                 if (invitee.getParticipantType() != ParticipantType.STUDENT)
                     throw new ApiException(HttpStatus.BAD_REQUEST, "Only registered student participants can be invited");
-                if (!participantService.canSee(invitee, problem)) {
-                    throw new ApiException(HttpStatus.FORBIDDEN, "Invitee cannot access this problem");
-                }
                 invitations.save(newInvitation(team, leader, invitee));
             }
         }
@@ -99,10 +85,6 @@ public class TeamService {
         Team team = teams.findById(invite.getTeamId())
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Team not found"));
         if (accept) {
-            PublishedProblem problem = problems.findById(team.getProblemId())
-                    .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Problem not found"));
-            if (!participantService.canSee(me, problem))
-                throw new ApiException(HttpStatus.FORBIDDEN, "You cannot access this problem");
             if (!members.existsById(new TeamMemberId(team.getTeamId(), me.getParticipantId())))
                 members.save(member(team.getTeamId(), me, TeamRole.MEMBER));
             invite.setStatus(TeamInvitationStatus.ACCEPTED);
@@ -118,21 +100,19 @@ public class TeamService {
     }
 
     private TeamOverview overview(Team t, Participant me) {
-        PublishedProblem p = problems.findById(t.getProblemId()).orElse(null);
         List<ParticipantBrief> people = members.findByIdTeamId(t.getTeamId()).stream()
                 .map(m -> participants.findById(m.getId().getParticipantId()).orElse(null))
                 .filter(x -> x != null).map(x -> new ParticipantBrief(x.getParticipantId(), x.getFullName())).toList();
         String role = t.getCreatedByParticipantId().equals(me.getParticipantId()) ? "LEADER" : "MEMBER";
-        return new TeamOverview(t.getTeamId(), t.getName(), t.getProblemId(), p == null ? "" : p.getTitle(), role, t.getCreatedAt(), people);
+        return new TeamOverview(t.getTeamId(), t.getName(), t.getProblemId(), null, role, t.getCreatedAt(), people);
     }
 
     private TeamInvitationView invitationView(TeamInvitation i, Participant me) {
         Team t = teams.findById(i.getTeamId()).orElse(null);
-        PublishedProblem p = t == null ? null : problems.findById(t.getProblemId()).orElse(null);
         Participant from = participants.findById(i.getInviterParticipantId()).orElse(null);
         Participant to = participants.findById(i.getInviteeParticipantId()).orElse(null);
         return new TeamInvitationView(i.getInvitationId(), i.getTeamId(), t == null ? "" : t.getName(),
-                t == null ? null : t.getProblemId(), p == null ? "" : p.getTitle(),
+                t == null ? null : t.getProblemId(), null,
                 from == null ? "" : from.getFullName(), to == null ? "" : to.getFullName(),
                 i.getStatus().name(), i.getInviteeParticipantId().equals(me.getParticipantId()) ? "RECEIVED" : "SENT",
                 i.getCreatedAt(), i.getRespondedAt());

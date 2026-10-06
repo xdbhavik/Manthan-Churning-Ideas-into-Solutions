@@ -76,6 +76,11 @@ public class Submission {
     @Column(name = "project_details", nullable = false)
     private Map<String, Object> projectDetails = Map.of();
 
+    /** Final evaluator scorecard snapshot, surfaced to the submitter after acceptance. */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "review_scorecard", nullable = false)
+    private Map<String, Object> reviewScorecard = Map.of();
+
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "status", nullable = false, columnDefinition = "submission_status")
     private SubmissionStatus status = SubmissionStatus.DRAFT;
@@ -123,6 +128,9 @@ public class Submission {
         }
         if (links == null) {
             links = new ArrayList<>();
+        }
+        if (reviewScorecard == null) {
+            reviewScorecard = Map.of();
         }
     }
 

@@ -49,7 +49,7 @@ export async function getTeamInvitations(): Promise<TeamInvitation[]> {
   return data;
 }
 
-export async function createTeam(body: { problemId: string; name: string; inviteeParticipantIds: string[] }): Promise<TeamOverview> {
+export async function createTeam(body: { name: string; inviteeParticipantIds: string[] }): Promise<TeamOverview> {
   const { data } = await api.post<TeamOverview>('/portal/teams', body);
   return data;
 }

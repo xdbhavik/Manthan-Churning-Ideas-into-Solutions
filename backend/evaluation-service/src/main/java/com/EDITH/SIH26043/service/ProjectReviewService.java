@@ -1,6 +1,7 @@
 package com.EDITH.SIH26043.service;
 
 import com.EDITH.SIH26043.client.PortalGateway;
+import com.EDITH.SIH26043.client.ProblemContextGateway;
 import com.EDITH.SIH26043.entity.EvaluationAssignment;
 import com.EDITH.SIH26043.entity.EvaluationCycle;
 import com.EDITH.SIH26043.entity.EvaluatorProfile;
@@ -9,7 +10,9 @@ import com.EDITH.SIH26043.enums.AssignmentStatus;
 import com.EDITH.SIH26043.enums.AuditAction;
 import com.EDITH.SIH26043.enums.EvaluationStatus;
 import com.EDITH.SIH26043.enums.ProjectReviewStatus;
+import com.EDITH.SIH26043.enums.EvaluatorType;
 import com.EDITH.SIH26043.exception.ApiException;
+import com.EDITH.SIH26043.internal.ProblemContextResponse;
 import com.EDITH.SIH26043.repository.EvaluationAssignmentRepository;
 import com.EDITH.SIH26043.repository.EvaluationCycleRepository;
 import com.EDITH.SIH26043.repository.EvaluatorProfileRepository;
@@ -33,10 +36,10 @@ import java.util.UUID;
 
 /**
  * Project reviews: portal project submissions, opened in the evaluator queue and
- * decided by the same human evaluator who scored the problem's cycle — or, when
- * that cycle was scored entirely by the AI (every pool on AUTO), by the
- * least-loaded human evaluator, so a submission is never parked on a system AI
- * profile that nobody can log in as. AI-scored project reviews are out of scope.
+ * decided by a human evaluator in the pool matching the problem's source bucket.
+ * A submitted human evaluator from that pool is preferred; otherwise the pool's
+ * least-loaded active human receives the review. Reviews never cross pools or
+ * land on system AI profiles.
  *
  * <p>Create is an internal intake (portal → eval). List/detail/decide are scoped
  * to the caller's {@link EvaluatorProfile}, mirroring the ownership guard of
@@ -66,28 +69,31 @@ public class ProjectReviewService {
     private final EvaluatorProfileRepository profileRepository;
     private final AuditService auditService;
     private final PortalGateway portalGateway;
+    private final ProblemContextGateway problemContextGateway;
 
     public ProjectReviewService(ProjectReviewRepository reviewRepository,
                                 EvaluationCycleRepository cycleRepository,
                                 EvaluationAssignmentRepository assignmentRepository,
                                 EvaluatorProfileRepository profileRepository,
                                 AuditService auditService,
-                                PortalGateway portalGateway) {
+                                PortalGateway portalGateway,
+                                ProblemContextGateway problemContextGateway) {
         this.reviewRepository = reviewRepository;
         this.cycleRepository = cycleRepository;
         this.assignmentRepository = assignmentRepository;
         this.profileRepository = profileRepository;
         this.auditService = auditService;
         this.portalGateway = portalGateway;
+        this.problemContextGateway = problemContextGateway;
     }
 
     // ------------------------------------------------------------------ create
 
     /**
      * Opens (or returns the existing) review for a portal submission. The reviewer is
-     * resolved from the problem's SUBMITTED evaluation assignments — the human evaluator
-     * who scored it, or the least-loaded human when the cycle was scored entirely by the
-     * AI. Idempotent on {@code (submissionId, round)}.
+     * resolved from the problem's source bucket pool. A submitted human evaluator is
+     * preferred, followed by an active human already assigned in that problem cycle, then
+     * the least-loaded active human in that same pool. Idempotent on {@code (submissionId, round)}.
      *
      * @throws ApiException 409 {@code PROBLEM_NOT_EVALUATED} when the cycle is not
      *                      complete enough to have produced a reviewer.
@@ -110,15 +116,15 @@ public class ProjectReviewService {
             return toCreateResponse(existing); // duplicate push / retry
         }
 
+        ProblemContextResponse problem = problemContextGateway.fetch(req.problemId());
+        EvaluatorType problemPool = EvaluationRoutingService.poolFor(problem.sourceBucket());
         List<EvaluationAssignment> submitted = assignmentRepository
                 .findByCycleIdAndStatusIn(cycle.getCycleId(),
                         List.of(AssignmentStatus.SUBMITTED));
-        if (submitted.isEmpty()) {
-            throw new ApiException(HttpStatus.CONFLICT,
-                    "PROBLEM_NOT_EVALUATED — no submitted evaluation assignment for cycle "
-                            + cycle.getCycleId());
-        }
-        EvaluatorProfile reviewer = resolveReviewer(cycle, submitted);
+        // An EVALUATION_COMPLETED cycle can have no human-submitted assignments
+        // (for example, a fully automated evaluation). resolveReviewer handles
+        // that case by choosing the least-loaded active human evaluator.
+        EvaluatorProfile reviewer = resolveReviewer(cycle, submitted, problemPool);
 
         ProjectReview review = new ProjectReview();
         review.setSubmissionId(req.submissionId());
@@ -133,6 +139,7 @@ public class ProjectReviewService {
         review.setGithubUrl(req.githubUrl());
         review.setLinks(req.links() == null ? List.of() : req.links());
         review.setFiles(req.files() == null ? List.of() : toFileSnapshots(req.files()));
+        review.setContext(req.context() == null ? new HashMap<>() : new HashMap<>(req.context()));
         reviewRepository.save(review);
 
         Map<String, Object> after = new HashMap<>();
@@ -151,11 +158,9 @@ public class ProjectReviewService {
     /**
      * Who takes the project review — always a human.
      *
-     * <p>Preference order: (1) the first submitted assignment of the cycle whose profile is
-     * <em>not</em> a system AI profile, i.e. the evaluator who actually scored the problem;
-     * (2) when every submitted assignment is AI-owned — a fully-AUTO cycle — the
-     * least-loaded active human evaluator of any pool; (3) otherwise a 409 naming the real
-     * cause.</p>
+     * <p>Preference order: (1) a submitted human assignment from the problem's source
+     * bucket pool; (2) the least-loaded active human evaluator in that same pool. Reviews
+     * never cross evaluator pools.</p>
      *
      * <p>Step 1 exists because AI scoring is now a first-class way for a cycle to complete:
      * a review parked on a system profile would never be opened, since nobody can log in as
@@ -165,32 +170,52 @@ public class ProjectReviewService {
      * check would produce when every evaluator is full.</p>
      */
     private EvaluatorProfile resolveReviewer(EvaluationCycle cycle,
-                                             List<EvaluationAssignment> submitted) {
+                                             List<EvaluationAssignment> submitted,
+                                             EvaluatorType problemPool) {
         for (EvaluationAssignment assignment : submitted) {
             EvaluatorProfile profile = profileRepository
                     .findById(assignment.getEvaluatorProfileId()).orElse(null);
-            if (profile != null && !profile.isSystem()) {
+            if (isEligibleHuman(profile, problemPool)) {
                 return profile;
             }
         }
 
-        EvaluatorProfile human = leastLoadedHuman();
+        // If this cycle had a human evaluator in the matching pool but did not
+        // produce a SUBMITTED scorecard (for example the problem was completed by
+        // AI), keep the project review with that same evaluator before considering
+        // a pool-level workload fallback.
+        for (EvaluationAssignment assignment : assignmentRepository.findByCycleId(cycle.getCycleId())) {
+            EvaluatorProfile profile = profileRepository
+                    .findById(assignment.getEvaluatorProfileId()).orElse(null);
+            if (isEligibleHuman(profile, problemPool)) {
+                return profile;
+            }
+        }
+
+        EvaluatorProfile human = leastLoadedHuman(problemPool);
         if (human != null) {
-            log.info("Every submitted assignment of cycle {} is AI-owned; project review falls back "
-                    + "to human evaluator {}", cycle.getCycleId(), human.getProfileId());
+            log.info("No submitted human assignment in problem pool {}; project review for cycle {} "
+                    + "falls back to evaluator {} in the same pool", problemPool, cycle.getCycleId(),
+                    human.getProfileId());
             return human;
         }
         throw new ApiException(HttpStatus.CONFLICT,
-                "PROBLEM_NOT_EVALUATED — cycle " + cycle.getCycleId() + " was scored by the AI and no "
-                        + "human evaluator exists to review projects"
+                "PROBLEM_NOT_EVALUATED — no active human evaluator exists in the " + problemPool
+                        + " pool to review projects for cycle " + cycle.getCycleId()
                         + " (onboard one via POST /evaluation/evaluator-profiles)");
     }
 
-    /** Lowest open-load active human across all pools; null when the deployment has none. */
-    private EvaluatorProfile leastLoadedHuman() {
+    private static boolean isEligibleHuman(EvaluatorProfile profile, EvaluatorType problemPool) {
+        return profile != null && profile.isActive() && !profile.isSystem()
+                && profile.getEvaluatorType() == problemPool;
+    }
+
+    /** Lowest open-load active human in the problem's evaluator pool; null when none exists. */
+    private EvaluatorProfile leastLoadedHuman(EvaluatorType problemPool) {
         EvaluatorProfile chosen = null;
         long chosenLoad = 0;
-        for (EvaluatorProfile candidate : profileRepository.findByActiveIsTrue()) {
+        for (EvaluatorProfile candidate : profileRepository
+                .findByEvaluatorTypeAndActiveIsTrue(problemPool)) {
             if (candidate.isSystem()) {
                 continue;
             }
@@ -221,7 +246,12 @@ public class ProjectReviewService {
     /** Full review for the caller (403 for someone else's). */
     @Transactional(readOnly = true)
     public ProjectReviewDetailView detail(UUID userId, UUID projectReviewId) {
-        return toDetailView(requireOwn(userId, projectReviewId));
+        ProjectReview review = requireOwn(userId, projectReviewId);
+        Map<String, Object> context = review.getContext();
+        if (context == null || context.isEmpty()) {
+            context = portalGateway.reviewContext(review.getSubmissionId());
+        }
+        return toDetailView(review, context == null ? Map.of() : context);
     }
 
     // ------------------------------------------------------------------ decide
@@ -273,7 +303,7 @@ public class ProjectReviewService {
             log.warn("Project review {} decided {} but portal was not notified: {}",
                     projectReviewId, target, e.getMessage());
         }
-        return toDetailView(review);
+        return toDetailView(review, review.getContext());
     }
 
     // ------------------------------------------------------------------ helpers
@@ -331,7 +361,7 @@ public class ProjectReviewService {
                 r.getDecidedAt());
     }
 
-    private ProjectReviewDetailView toDetailView(ProjectReview r) {
+    private ProjectReviewDetailView toDetailView(ProjectReview r, Map<String, Object> context) {
         return new ProjectReviewDetailView(
                 r.getProjectReviewId(),
                 r.getSubmissionId(),
@@ -347,7 +377,8 @@ public class ProjectReviewService {
                 r.getDecisionComment(),
                 toFileViews(r.getFiles()),
                 r.getCreatedAt(),
-                r.getDecidedAt());
+                r.getDecidedAt(),
+                context == null ? Map.of() : context);
     }
 
     private List<ProjectReviewDetailView.ProjectReviewFile> toFileViews(

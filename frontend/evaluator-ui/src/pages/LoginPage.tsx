@@ -195,7 +195,7 @@ export default function LoginPage() {
       } else if (role === 'ADMIN' || role === 'REVIEWER') {
         navigate('/evaluation/queue', { replace: true });
       } else {
-        navigate('/evaluator/dashboard', { replace: true });
+        navigate('/evaluator/assignments', { replace: true });
       }
     } catch (err) {
       setError(getErrorMessage(err));
@@ -656,25 +656,12 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Statutory footer note below card */}
-        <div className="w-full max-w-[660px] mt-4 flex items-center justify-between text-xs text-text-muted px-2">
-          <div className="flex items-center gap-1.5">
-            <span className="material-symbols-outlined text-[16px] text-gov-emerald">security</span>
-            <span>Certified UIDAI / CERT-In Statutory Security Standards Compliant</span>
-          </div>
-          <span>ISO/IEC 27001</span>
-        </div>
       </main>
 
       {/* Clean Portal Footer */}
       <footer className="w-full bg-white border-t border-border-hairline py-4 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-text-muted">
-          <p>© 2025 National Evaluation Framework. All rights reserved.</p>
-          <div className="flex items-center gap-4">
-            <a className="hover:underline" href="#">Terms of Access</a>
-            <a className="hover:underline" href="#">Privacy Policy</a>
-            <a className="hover:underline" href="#">NIC Gateway Helpdesk</a>
-          </div>
+          <p>© 2025 National Evaluation Framework.</p>
         </div>
       </footer>
     </div>

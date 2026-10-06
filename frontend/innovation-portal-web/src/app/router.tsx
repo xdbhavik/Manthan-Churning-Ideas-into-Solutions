@@ -63,6 +63,7 @@ const router = createBrowserRouter([
           { path: 'problems/:problemId', element: <Suspense fallback={<PageLoader />}><AppProblemDetailPage /></Suspense> },
           { path: 'submissions', element: <Suspense fallback={<PageLoader />}><MySubmissionsPage /></Suspense> },
           { path: 'submissions/new', element: <Suspense fallback={<PageLoader />}><CreateSubmissionPage /></Suspense> },
+          { path: 'submissions/:submissionId/edit', element: <Suspense fallback={<PageLoader />}><CreateSubmissionPage /></Suspense> },
           { path: 'submissions/:submissionId', element: <Suspense fallback={<PageLoader />}><SubmissionDetailPage /></Suspense> },
           { path: 'profile', element: <Suspense fallback={<PageLoader />}><ProfilePage /></Suspense> },
           { path: 'teams', element: <Suspense fallback={<PageLoader />}><TeamsPage /></Suspense> },

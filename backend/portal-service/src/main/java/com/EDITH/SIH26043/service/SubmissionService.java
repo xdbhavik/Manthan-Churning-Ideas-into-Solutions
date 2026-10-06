@@ -114,10 +114,14 @@ public class SubmissionService {
             if (request.teamId() != null) {
                 Team team = teamRepository.findById(request.teamId())
                         .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Team not found"));
-                if (!team.getProblemId().equals(problem.getProblemId()))
-                    throw new ApiException(HttpStatus.BAD_REQUEST, "Team is linked to a different problem");
                 if (!teamMemberRepository.existsById(new TeamMemberId(team.getTeamId(), me.getParticipantId())))
                     throw new ApiException(HttpStatus.FORBIDDEN, "You must accept a team invitation to join this team");
+                for (TeamMember member : teamMemberRepository.findByIdTeamId(team.getTeamId())) {
+                    Participant teammate = participantRepository.findById(member.getId().getParticipantId())
+                            .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Team member not found"));
+                    if (!participantService.canSee(teammate, problem))
+                        throw new ApiException(HttpStatus.FORBIDDEN, "Every team member must have access to this problem");
+                }
                 teamId = team.getTeamId();
             }
         } else if (submissionRepository
@@ -230,7 +234,8 @@ public class SubmissionService {
                         submission.getSummary(),
                         submission.getGithubUrl(),
                         submission.getLinks(),
-                        toFileMetas(files)));
+                        toFileMetas(files),
+                        reviewContext(submission, problem, me)));
 
         submission.setReviewRound(nextRound);
         submission.setReviewerUserId(review.reviewerUserId());
@@ -467,6 +472,91 @@ public class SubmissionService {
                 .toList();
     }
 
+    /** Receives the final project scorecard for the Innovation Portal submission. */
+    @Transactional
+    public SubmissionView saveReviewScorecard(UUID submissionId, Map<String, Object> scorecard) {
+        Submission submission = requireSubmission(submissionId);
+        if (!"SUBMITTED".equals(scorecard.get("status"))) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Only a submitted project scorecard can be synced");
+        }
+        submission.setReviewScorecard(new LinkedHashMap<>(scorecard));
+        submissionRepository.save(submission);
+        return toView(submission);
+    }
+
+    private Map<String, Object> reviewContext(Submission submission, PublishedProblem problem, Participant submitter) {
+        Map<String, Object> context = new LinkedHashMap<>();
+        Map<String, Object> problemDetails = new LinkedHashMap<>();
+        problemDetails.put("problemId", problem.getProblemId());
+        problemDetails.put("title", problem.getTitle());
+        problemDetails.put("description", problem.getDescription());
+        problemDetails.put("expectedOutcome", problem.getExpectedOutcome());
+        problemDetails.put("sourceBucket", problem.getSourceBucket());
+        problemDetails.put("subEntityType", problem.getSubEntityType());
+        problemDetails.put("urgency", problem.getUrgency());
+        problemDetails.put("severity", problem.getSeverity());
+        problemDetails.put("location", problem.getLocation());
+        problemDetails.put("domains", problem.getDomains());
+        problemDetails.put("accessRule", problem.getAccessRule());
+        context.put("problem", problemDetails);
+
+        Map<String, Object> submitterDetails = new LinkedHashMap<>();
+        submitterDetails.put("participantId", submitter.getParticipantId());
+        submitterDetails.put("userId", submitter.getUserId());
+        submitterDetails.put("fullName", submitter.getFullName());
+        submitterDetails.put("email", submitter.getEmail());
+        submitterDetails.put("phone", submitter.getPhone());
+        submitterDetails.put("institution", submitter.getInstitutionName());
+        context.put("submitter", submitterDetails);
+
+        Map<String, Object> solutionDetails = new LinkedHashMap<>();
+        solutionDetails.put("title", submission.getTitle());
+        solutionDetails.put("summary", submission.getSummary());
+        solutionDetails.put("githubUrl", submission.getGithubUrl());
+        solutionDetails.put("commitSha", submission.getCommitSha());
+        solutionDetails.put("branch", submission.getBranch());
+        solutionDetails.put("details", submission.getProjectDetails() == null ? Map.of() : submission.getProjectDetails());
+        context.put("solution", solutionDetails);
+
+        if (submission.getTeamId() != null) {
+            Team team = teamRepository.findById(submission.getTeamId()).orElse(null);
+            if (team != null) {
+                Map<String, Object> teamDetails = new LinkedHashMap<>();
+                teamDetails.put("teamId", team.getTeamId());
+                teamDetails.put("name", team.getName());
+                List<Map<String, Object>> members = teamMemberRepository.findByIdTeamId(team.getTeamId()).stream()
+                        .map(member -> participantRepository.findById(member.getId().getParticipantId())
+                                .map(participant -> {
+                                    Map<String, Object> details = new LinkedHashMap<>();
+                                    details.put("participantId", participant.getParticipantId());
+                                    details.put("fullName", participant.getFullName());
+                                    details.put("email", participant.getEmail());
+                                    details.put("phone", participant.getPhone());
+                                    details.put("institution", participant.getInstitutionName());
+                                    details.put("role", member.getRole());
+                                    return details;
+                                }).orElse(null))
+                        .filter(java.util.Objects::nonNull)
+                        .toList();
+                teamDetails.put("members", members);
+                context.put("team", teamDetails);
+            }
+        }
+        return context;
+    }
+
+    /** Hydrates project reviews created before the evaluation context snapshot was added. */
+    @Transactional(readOnly = true)
+    public Map<String, Object> reviewContext(UUID submissionId) {
+        Submission submission = submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Submission not found"));
+        PublishedProblem problem = problemRepository.findById(submission.getProblemId())
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Published problem not found"));
+        Participant submitter = participantRepository.findById(submission.getSubmitterParticipantId())
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Submission owner not found"));
+        return reviewContext(submission, problem, submitter);
+    }
+
     private SubmissionView toView(Submission submission) {
         return new SubmissionView(
                 submission.getSubmissionId(),
@@ -486,7 +576,12 @@ public class SubmissionService {
                 submission.getDecidedAt(),
                 submission.getProjectDetails() == null ? java.util.Map.of() : submission.getProjectDetails(),
                 filesView(submission.getSubmissionId()),
-                teamView(submission.getTeamId()));
+                teamView(submission.getTeamId()),
+                submission.getStatus() == SubmissionStatus.ACCEPTED
+                        && submission.getReviewScorecard() != null
+                        && !submission.getReviewScorecard().isEmpty()
+                        ? submission.getReviewScorecard()
+                        : null);
     }
 
     private List<FileItemView> filesView(UUID submissionId) {

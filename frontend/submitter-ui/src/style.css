@@ -4,6 +4,30 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .auth-mode-tab {
+    @apply rounded-lg px-3 py-2.5 text-sm font-semibold text-text-secondary transition-colors hover:text-ashoka-blue;
+  }
+  .auth-mode-tab.is-active {
+    @apply bg-white text-ashoka-blue shadow-sm;
+  }
+  .otp-cell {
+    @apply h-12 w-10 rounded-xl border-2 border-border-strong bg-surface-subtle text-center font-mono-code text-xl font-bold text-ashoka-blue outline-none transition-all focus:border-ashoka-blue focus:bg-white focus:ring-2 focus:ring-blue-100 sm:h-14 sm:w-12;
+  }
+  .auth-brand-panel {
+    background-image: radial-gradient(circle at 95% 10%, rgba(56, 189, 248, 0.2), transparent 35%), linear-gradient(145deg, #0a2540, #1e3a8a);
+  }
+  .portal-sidebar-link {
+    @apply flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm font-semibold text-text-secondary transition-colors hover:bg-surface-muted hover:text-ashoka-blue;
+  }
+  .portal-sidebar-link .material-symbols-outlined {
+    @apply text-[19px];
+  }
+  .portal-sidebar-link.is-active {
+    @apply bg-surface-container text-ashoka-blue shadow-sm;
+  }
+}
+
 @layer base {
   html, body {
     margin: 0;

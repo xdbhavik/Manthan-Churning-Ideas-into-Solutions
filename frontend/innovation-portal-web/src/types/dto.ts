@@ -155,6 +155,17 @@ export interface Submission {
   decidedAt: string | null;
   files: FileItem[];
   team: TeamBrief | null;
+  reviewScorecard: ProjectReviewScorecard | null;
+}
+
+export interface ProjectReviewScorecard {
+  status: 'SUBMITTED';
+  criteria: Array<{ key: string; label: string; description: string | null; maxScore: number; sortOrder: number }>;
+  criteriaScores: Record<string, { score: number | null; comment: string | null }>;
+  overallRemarks: string | null;
+  totalScore: number;
+  maxScore: number;
+  submittedAt: string | null;
 }
 
 export interface SubmissionCreateRequest {
@@ -174,8 +185,8 @@ export interface SubmissionCreateRequest {
 export interface TeamOverview {
   teamId: string;
   name: string;
-  problemId: string;
-  problemTitle: string;
+  problemId: string | null;
+  problemTitle: string | null;
   callerRole: string;
   createdAt: string;
   members: TeamMemberBrief[];
@@ -185,8 +196,8 @@ export interface TeamInvitation {
   invitationId: string;
   teamId: string;
   teamName: string;
-  problemId: string;
-  problemTitle: string;
+  problemId: string | null;
+  problemTitle: string | null;
   inviterName: string;
   inviteeName: string;
   status: 'PENDING' | 'ACCEPTED' | 'DECLINED';

@@ -24,7 +24,8 @@ public record ProjectReviewCreateRequest(
         String summary,
         String githubUrl,
         List<Map<String, String>> links,
-        List<ProjectFileMeta> files) {
+        List<ProjectFileMeta> files,
+        Map<String, Object> context) {
 
     public record ProjectFileMeta(
             UUID fileId,

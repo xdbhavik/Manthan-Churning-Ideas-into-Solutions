@@ -250,6 +250,13 @@ const state = {
   otpChallenge: null,
   otpPhone: '',
   devOtp: '',
+  otpExpiresAt: null,
+  otpRequestedAt: null,
+  otpTimer: null,
+  otpMode: 'login',
+  authMode: 'login',
+  authBusy: false,
+  verifyBusy: false,
   activeView: 'view-auth',
   sourceTypes: null,
   domains: [],
@@ -381,6 +388,7 @@ function showView(viewId) {
     previousViewBeforeProfile = state.activeView;
   }
   state.activeView = viewId;
+  window.togglePortalSidebar?.(false);
   closeProfileDropdown();
 
   // Push browser history state for seamless back-navigation
@@ -418,8 +426,8 @@ function updateNavTabs(viewId) {
   const fileBtn = document.getElementById('nav-btn-file-problem');
   const myProbBtn = document.getElementById('nav-btn-my-problems');
 
-  const activeClass = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-surface-container text-ashoka-blue shadow-sm flex items-center gap-1.5 cursor-pointer transition-colors';
-  const inactiveClass = 'px-3 py-1.5 rounded-lg text-xs font-bold text-text-secondary hover:text-ashoka-blue hover:bg-surface-muted flex items-center gap-1.5 cursor-pointer transition-colors';
+  const activeClass = 'portal-sidebar-link is-active';
+  const inactiveClass = 'portal-sidebar-link';
 
   const isKyc = ['view-wizard', 'view-tracking', 'view-deficiency', 'view-completed'].includes(viewId);
   const isFile = viewId === 'view-problem-form';
@@ -428,6 +436,19 @@ function updateNavTabs(viewId) {
   if (kycBtn) kycBtn.className = isKyc ? activeClass : inactiveClass;
   if (fileBtn) fileBtn.className = isFile ? activeClass : inactiveClass;
   if (myProbBtn) myProbBtn.className = isMyProb ? activeClass : inactiveClass;
+}
+
+function togglePortalSidebar(forceOpen) {
+  const sidebar = document.getElementById('portal-sidebar');
+  const backdrop = document.getElementById('portal-sidebar-backdrop');
+  const toggle = document.getElementById('portal-sidebar-toggle');
+  if (!sidebar || !backdrop) return;
+  const authenticated = Boolean(state.token && state.user);
+  const isOpen = authenticated && (forceOpen ?? sidebar.classList.contains('hidden'));
+  sidebar.classList.toggle('hidden', !isOpen);
+  sidebar.classList.toggle('flex', isOpen);
+  backdrop.classList.toggle('hidden', !isOpen);
+  if (toggle) toggle.setAttribute('aria-expanded', String(isOpen));
 }
 
 function goToKycAction() {
@@ -603,28 +624,104 @@ function stopTrackingPolling() {
 }
 
 /* ---------------- Screen 1: Auth Handlers ---------------- */
+function authErrorMessage(data, fallback) {
+  return data?.detail || data?.message || data?.error || fallback;
+}
+
+function showAuthError(message, actionLabel, actionMode) {
+  const panel = document.getElementById('auth-error');
+  if (!panel) return;
+  panel.replaceChildren(document.createTextNode(message));
+  if (actionLabel && actionMode) {
+    const action = document.createElement('button');
+    action.type = 'button';
+    action.className = 'ml-1 font-bold underline';
+    action.textContent = actionLabel;
+    action.onclick = () => setAuthMode(actionMode);
+    panel.appendChild(action);
+  }
+  panel.classList.remove('hidden');
+}
+
+function setAuthMode(mode) {
+  state.authMode = mode === 'register' ? 'register' : 'login';
+  const isRegister = state.authMode === 'register';
+  const fields = document.getElementById('auth-register-fields');
+  const title = document.getElementById('auth-title');
+  const subtitle = document.getElementById('auth-subtitle');
+  const label = document.getElementById('auth-submit-label');
+  const loginTab = document.getElementById('auth-tab-login');
+  const registerTab = document.getElementById('auth-tab-register');
+  const error = document.getElementById('auth-error');
+  if (fields) {
+    fields.classList.toggle('hidden', !isRegister);
+    fields.classList.toggle('flex', isRegister);
+  }
+  if (title) title.textContent = isRegister ? 'Create your account' : 'Welcome back';
+  if (subtitle) subtitle.textContent = isRegister
+    ? 'Start with your mobile number. We’ll verify it with a one-time code.'
+    : 'Enter your registered mobile number and we’ll send a one-time code.';
+  if (label) label.textContent = isRegister ? 'Create account and continue' : 'Continue with mobile';
+  if (loginTab) {
+    loginTab.classList.toggle('is-active', !isRegister);
+    loginTab.setAttribute('aria-selected', String(!isRegister));
+  }
+  if (registerTab) {
+    registerTab.classList.toggle('is-active', isRegister);
+    registerTab.setAttribute('aria-selected', String(isRegister));
+  }
+  if (error) error.classList.add('hidden');
+}
+
 async function handleSendOtp(phone, email) {
-  phone = phone.replace(/\D/g, '');
+  phone = String(phone || '').replace(/\D/g, '').slice(-10);
   if (phone.length !== 10) {
-    toast('Please enter a valid 10-digit mobile number', 'error');
+    showAuthError('Enter a valid 10-digit mobile number.');
+    document.getElementById('mobile-input')?.focus();
     return;
   }
-  state.otpPhone = phone;
-
-  // Smart Flow: try login, fallback to register if 404
-  let res = await api('POST', '/auth/login', { body: { phone }, auth: false });
-  if (!res.ok && res.status === 404) {
-    res = await api('POST', '/auth/register', { body: { phone, email: email || null }, auth: false });
+  if (state.authMode === 'register' && !document.getElementById('auth-decl')?.checked) {
+    showAuthError('Please confirm that you are authorized to represent this organization.');
+    return;
   }
+  if (state.authBusy) return;
 
-  if (res.ok && res.data && res.data.challengeId) {
+  state.authBusy = true;
+  state.otpPhone = phone;
+  const submit = document.getElementById('auth-submit-btn');
+  const label = document.getElementById('auth-submit-label');
+  const error = document.getElementById('auth-error');
+  if (error) error.classList.add('hidden');
+  if (submit) submit.disabled = true;
+  if (label) label.textContent = state.authMode === 'register' ? 'Creating account…' : 'Sending secure code…';
+
+  const mode = state.authMode;
+  const path = mode === 'register' ? '/auth/register' : '/auth/login';
+  const body = { phone, ...(mode === 'register' ? { email: String(email || '').trim() || null } : {}) };
+  const res = await api('POST', path, { body, auth: false });
+  state.authBusy = false;
+  if (submit) submit.disabled = false;
+  if (label) label.textContent = mode === 'register' ? 'Create account and continue' : 'Continue with mobile';
+
+  if (res.ok && res.data?.challengeId) {
     state.otpChallenge = res.data.challengeId;
-    state.devOtp = res.data.devOtp || '123456';
-    setupOtpScreen();
+    state.otpExpiresAt = res.data.expiresAt || null;
+    state.otpRequestedAt = Date.now();
+    state.devOtp = res.data.devOtp || '';
+    state.otpMode = mode;
     showView('view-otp');
-    toast('Verification code sent successfully!', 'success');
+    setupOtpScreen();
+    return;
+  }
+  const fallback = res.status === 0
+    ? 'We could not reach the service. Check your connection and try again.'
+    : 'We could not send a code. Please try again.';
+  if (mode === 'login' && res.status === 404) {
+    showAuthError('No account is registered with this number.', 'Create an account', 'register');
+  } else if (mode === 'register' && res.status === 409) {
+    showAuthError('This number already has an account.', 'Sign in instead', 'login');
   } else {
-    toast((res.data && res.data.detail) || 'Failed to send OTP. Please check your number.', 'error');
+    showAuthError(authErrorMessage(res.data, fallback));
   }
 }
 
@@ -634,11 +731,70 @@ function setupOtpScreen() {
   if (displayPhone) displayPhone.textContent = `+91 ${state.otpPhone.slice(0, 5)} ${state.otpPhone.slice(5)}`;
 
   const devBadge = document.getElementById('dev-otp-code');
-  if (devBadge) devBadge.textContent = state.devOtp || '123456';
+  const devHint = document.getElementById('otp-dev-hint');
+  if (devBadge) devBadge.textContent = state.devOtp;
+  if (devHint) devHint.classList.toggle('hidden', !state.devOtp);
 
   const cells = document.querySelectorAll('.otp-cell');
   cells.forEach(c => (c.value = ''));
+  document.getElementById('otp-error')?.classList.add('hidden');
   if (cells[0]) cells[0].focus();
+  updateOtpExpiryHint();
+  if (state.otpTimer) clearInterval(state.otpTimer);
+  state.otpTimer = setInterval(updateOtpExpiryHint, 1000);
+}
+
+function updateOtpExpiryHint() {
+  const hint = document.getElementById('otp-expiry-hint');
+  const resend = document.getElementById('otp-resend-btn');
+  if (!hint) return;
+  const now = Date.now();
+  const expires = state.otpExpiresAt ? new Date(state.otpExpiresAt).getTime() : now + 5 * 60 * 1000;
+  const seconds = Math.max(0, Math.ceil((expires - now) / 1000));
+  const wait = Math.max(0, 30 - Math.floor((now - (state.otpRequestedAt || now)) / 1000));
+  hint.textContent = seconds > 0
+    ? `Code expires in ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}${wait ? ` · Resend available in ${wait}s` : ''}`
+    : 'This code has expired. Request a new code to continue.';
+  if (resend) {
+    resend.disabled = wait > 0;
+    resend.textContent = wait > 0 ? `Resend in ${wait}s` : 'Resend code';
+  }
+}
+
+function returnToAuth() {
+  if (state.otpTimer) clearInterval(state.otpTimer);
+  state.otpTimer = null;
+  state.otpChallenge = null;
+  showView('view-auth');
+  setAuthMode(state.otpMode || state.authMode);
+}
+
+async function handleResendOtp() {
+  if (!state.otpPhone || state.authBusy) return;
+  const remaining = 30 - Math.floor((Date.now() - (state.otpRequestedAt || 0)) / 1000);
+  if (remaining > 0) return;
+  state.authBusy = true;
+  const button = document.getElementById('otp-resend-btn');
+  const error = document.getElementById('otp-error');
+  if (button) { button.disabled = true; button.textContent = 'Sending…'; }
+  if (error) error.classList.add('hidden');
+  // Registration already created the account; subsequent codes use the login endpoint.
+  const res = await api('POST', '/auth/login', { body: { phone: state.otpPhone }, auth: false });
+  state.authBusy = false;
+  if (res.ok && res.data?.challengeId) {
+    state.otpChallenge = res.data.challengeId;
+    state.otpExpiresAt = res.data.expiresAt || null;
+    state.otpRequestedAt = Date.now();
+    state.devOtp = res.data.devOtp || '';
+    setupOtpScreen();
+  } else {
+    const panel = document.getElementById('otp-error');
+    if (panel) {
+      panel.textContent = authErrorMessage(res.data, res.status === 0 ? 'Connection failed. Check your network and retry.' : 'Could not resend the code. Please try again.');
+      panel.classList.remove('hidden');
+    }
+    updateOtpExpiryHint();
+  }
 }
 
 async function handleVerifyOtp(code) {
@@ -647,22 +803,41 @@ async function handleVerifyOtp(code) {
     showView('view-auth');
     return;
   }
-  if (!code || code.length !== 6) {
-    toast('Please enter the full 6-digit OTP', 'error');
+  code = String(code || '').replace(/\D/g, '');
+  if (code.length !== 6) {
+    const panel = document.getElementById('otp-error');
+    if (panel) { panel.textContent = 'Enter all six digits to continue.'; panel.classList.remove('hidden'); }
     return;
   }
+  if (state.verifyBusy) return;
+  state.verifyBusy = true;
+  const verifyButton = document.getElementById('otp-verify-btn');
+  const verifyLabel = document.getElementById('otp-verify-label');
+  const error = document.getElementById('otp-error');
+  if (verifyButton) verifyButton.disabled = true;
+  if (verifyLabel) verifyLabel.textContent = 'Verifying code…';
+  if (error) error.classList.add('hidden');
 
   const res = await api('POST', '/auth/verify-otp', {
     body: { challengeId: state.otpChallenge, code },
     auth: false
   });
+  state.verifyBusy = false;
+  if (verifyButton) verifyButton.disabled = false;
+  if (verifyLabel) verifyLabel.textContent = 'Verify and continue';
 
   if (res.ok && res.data && res.data.accessToken) {
+    if (state.otpTimer) clearInterval(state.otpTimer);
+    state.otpTimer = null;
     setSession(res.data.accessToken, res.data.refreshToken, res.data.user);
     toast('Authentication successful!', 'success');
     await syncPortalState();
   } else {
-    toast((res.data && res.data.detail) || 'Invalid or expired OTP code', 'error');
+    const panel = document.getElementById('otp-error');
+    if (panel) {
+      panel.textContent = authErrorMessage(res.data, res.status === 0 ? 'We could not reach the service. Check your connection and retry.' : 'That code did not work. Check the digits or request a new code.');
+      panel.classList.remove('hidden');
+    }
   }
 }
 
@@ -2478,8 +2653,25 @@ function updateHeaderUser() {
   const avatarEl = document.getElementById('header-avatar-initials');
   const ddName = document.getElementById('dropdown-user-name');
   const ddPhone = document.getElementById('dropdown-user-phone');
+  const sidebar = document.getElementById('portal-sidebar');
+  const sidebarToggle = document.getElementById('portal-sidebar-toggle');
+  const main = document.getElementById('portal-main');
+  const authenticated = Boolean(state.token && state.user);
+  if (sidebar) {
+    sidebar.classList.toggle('md:flex', authenticated);
+    sidebar.classList.toggle('hidden', !authenticated);
+    if (!authenticated) sidebar.classList.remove('flex');
+  }
+  if (sidebarToggle) sidebarToggle.classList.toggle('hidden', !authenticated);
+  if (main) {
+    main.classList.toggle('md:ml-64', authenticated);
+    main.classList.toggle('md:w-[calc(100%-16rem)]', authenticated);
+    main.classList.toggle('md:max-w-none', authenticated);
+    main.classList.toggle('md:mr-0', authenticated);
+  }
+  if (!authenticated) togglePortalSidebar(false);
 
-  if (state.token && state.user) {
+  if (authenticated) {
     const phone = state.user.phone || state.otpPhone || '';
     const role = state.user.role === 'SUBMITTER' ? 'Problem Submitter' : state.user.role;
     const kycStatus = state.user.kycStatus || 'UNVERIFIED';
@@ -2640,11 +2832,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const cells = document.querySelectorAll('.otp-cell');
   cells.forEach((cell, idx) => {
     cell.addEventListener('input', e => {
-      const v = e.target.value.replace(/\D/g, '');
-      e.target.value = v ? v.slice(-1) : '';
-      if (v && idx < cells.length - 1) {
-        cells[idx + 1].focus();
+      const value = e.target.value.replace(/\D/g, '');
+      if (value.length > 1) {
+        value.slice(0, cells.length - idx).split('').forEach((digit, offset) => {
+          cells[idx + offset].value = digit;
+        });
+        cells[Math.min(idx + value.length, cells.length - 1)].focus();
+      } else {
+        e.target.value = value;
+        if (value && idx < cells.length - 1) cells[idx + 1].focus();
       }
+      document.getElementById('otp-error')?.classList.add('hidden');
     });
     cell.addEventListener('keydown', e => {
       if (e.key === 'Backspace' && !e.target.value && idx > 0) {
@@ -2654,6 +2852,7 @@ document.addEventListener('DOMContentLoaded', () => {
     cell.addEventListener('paste', e => {
       e.preventDefault();
       const p = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+      cells.forEach(input => { input.value = ''; });
       p.split('').forEach((ch, i) => {
         if (cells[i]) cells[i].value = ch;
       });
@@ -2662,6 +2861,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
+
+  document.getElementById('mobile-input')?.addEventListener('input', (event) => {
+    const input = event.currentTarget;
+    input.value = input.value.replace(/\D/g, '').slice(-10);
+    document.getElementById('auth-error')?.classList.add('hidden');
+  });
+  document.getElementById('email-input')?.addEventListener('input', () => document.getElementById('auth-error')?.classList.add('hidden'));
 
   // Global Click Listener for Custom Selects & Profile Dropdowns
   document.addEventListener('click', (e) => {
@@ -2794,6 +3000,9 @@ document.addEventListener('DOMContentLoaded', () => {
 // Expose functions to window for HTML inline handlers
 window.handleSendOtp = handleSendOtp;
 window.handleVerifyOtp = handleVerifyOtp;
+window.handleResendOtp = handleResendOtp;
+window.returnToAuth = returnToAuth;
+window.setAuthMode = setAuthMode;
 window.syncPortalState = syncPortalState;
 window.toggleProfileDropdown = toggleProfileDropdown;
 window.showView = showView;
@@ -2817,6 +3026,7 @@ window.handlePatchDeficiency = handlePatchDeficiency;
 window.handleResubmit = handleResubmit;
 window.handlePostProblem = handlePostProblem;
 window.goToKycAction = goToKycAction;
+window.togglePortalSidebar = togglePortalSidebar;
 window.goToFileProblem = goToFileProblem;
 window.goToMyProblems = goToMyProblems;
 window.handleAccessRuleChange = handleAccessRuleChange;

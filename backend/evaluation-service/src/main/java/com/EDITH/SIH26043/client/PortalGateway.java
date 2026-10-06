@@ -10,6 +10,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 
 import java.util.UUID;
+import java.util.Map;
 
 /**
  * Thin wrapper over {@link PortalApi} mapping upstream failures to domain errors.
@@ -54,6 +55,25 @@ public class PortalGateway {
             throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE,
                     "Portal service unreachable; cannot notify review result for submission "
                             + submissionId);
+        }
+    }
+
+    public Map<String, Object> reviewContext(UUID submissionId) {
+        try {
+            Map<String, Object> context = api.reviewContext(submissionId);
+            return context == null ? Map.of() : context;
+        } catch (RestClientException e) {
+            log.warn("Could not load portal details for submission {}: {}", submissionId, e.getMessage());
+            return Map.of();
+        }
+    }
+
+    /** Best-effort copy for display in the student's accepted portal submission. */
+    public void syncReviewScorecard(UUID submissionId, Map<String, Object> scorecard) {
+        try {
+            api.syncReviewScorecard(submissionId, scorecard);
+        } catch (RestClientException e) {
+            log.warn("Project scorecard saved but portal sync failed for submission {}: {}", submissionId, e.getMessage());
         }
     }
 }

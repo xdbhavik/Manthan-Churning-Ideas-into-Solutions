@@ -1,6 +1,7 @@
 package com.EDITH.SIH26043.service;
 
 import com.EDITH.SIH26043.client.PortalGateway;
+import com.EDITH.SIH26043.client.ProblemContextGateway;
 import com.EDITH.SIH26043.entity.EvaluationAssignment;
 import com.EDITH.SIH26043.entity.EvaluationCycle;
 import com.EDITH.SIH26043.entity.EvaluatorProfile;
@@ -9,7 +10,9 @@ import com.EDITH.SIH26043.enums.AssignmentStatus;
 import com.EDITH.SIH26043.enums.AuditAction;
 import com.EDITH.SIH26043.enums.EvaluationStatus;
 import com.EDITH.SIH26043.enums.ProjectReviewStatus;
+import com.EDITH.SIH26043.enums.EvaluatorType;
 import com.EDITH.SIH26043.exception.ApiException;
+import com.EDITH.SIH26043.internal.ProblemContextResponse;
 import com.EDITH.SIH26043.repository.EvaluationAssignmentRepository;
 import com.EDITH.SIH26043.repository.EvaluationCycleRepository;
 import com.EDITH.SIH26043.repository.EvaluatorProfileRepository;
@@ -53,10 +56,11 @@ class ProjectReviewServiceTest {
     private final EvaluatorProfileRepository profileRepository = mock(EvaluatorProfileRepository.class);
     private final AuditService auditService = mock(AuditService.class);
     private final PortalGateway portalGateway = mock(PortalGateway.class);
+    private final ProblemContextGateway problemContextGateway = mock(ProblemContextGateway.class);
 
     private final ProjectReviewService service = new ProjectReviewService(
             reviewRepository, cycleRepository, assignmentRepository, profileRepository,
-            auditService, portalGateway);
+            auditService, portalGateway, problemContextGateway);
 
     private final UUID userId = UUID.randomUUID();
     private final UUID profileId = UUID.randomUUID();
@@ -151,19 +155,86 @@ class ProjectReviewServiceTest {
     }
 
     @Test
-    void create_NoSubmittedAssignmentIsAConflict() {
+    void create_CompletedCycleWithoutSubmittedAssignmentsFallsBackToLeastLoadedHuman() {
+        UUID freeProfileId = UUID.randomUUID();
+        UUID freeUserId = UUID.randomUUID();
         givenCompletedCycle();
         when(reviewRepository.findBySubmissionIdAndRound(submissionId, 1))
                 .thenReturn(Optional.empty());
         when(assignmentRepository.findByCycleIdAndStatusIn(eq(cycleId), anyCollection()))
                 .thenReturn(List.of());
+        when(profileRepository.findByEvaluatorTypeAndActiveIsTrue(EvaluatorType.GOVERNMENT)).thenReturn(List.of(
+                systemProfile(), profile(freeProfileId, freeUserId, false)));
+        when(assignmentRepository.countByEvaluatorProfileIdAndStatusIn(freeProfileId, List.of(
+                AssignmentStatus.ASSIGNED, AssignmentStatus.IN_PROGRESS))).thenReturn(0L);
+        when(reviewRepository.save(any(ProjectReview.class))).thenAnswer(inv -> {
+            ProjectReview review = inv.getArgument(0);
+            review.setProjectReviewId(UUID.randomUUID());
+            return review;
+        });
 
-        assertThatThrownBy(() -> service.createInternal(request(1)))
-                .isInstanceOf(ApiException.class)
-                .satisfies(ex -> {
-                    assertThat(((ApiException) ex).getStatus()).isEqualTo(HttpStatus.CONFLICT);
-                    assertThat(ex.getMessage()).contains("no submitted evaluation assignment");
-                });
+        ProjectReviewCreateResponse response = service.createInternal(request(1));
+
+        assertThat(response.reviewerUserId()).isEqualTo(freeUserId);
+        assertThat(response.evaluatorProfileId()).isEqualTo(freeProfileId);
+        verify(auditService).record(eq("PROBLEM"), eq(problemId),
+                eq(AuditAction.PROJECT_REVIEW_ASSIGNED), eq(freeUserId), isNull(), anyMap(),
+                eq("internal"));
+    }
+
+    @Test
+    void create_ReusesTheHumanEvaluatorAssignedToTheSamePoolForTheProblemCycle() {
+        givenCompletedCycle();
+        when(reviewRepository.findBySubmissionIdAndRound(submissionId, 1))
+                .thenReturn(Optional.empty());
+        when(assignmentRepository.findByCycleIdAndStatusIn(eq(cycleId), anyCollection()))
+                .thenReturn(List.of());
+        EvaluationAssignment acceptedCycleAssignment = submittedAssignment();
+        acceptedCycleAssignment.setStatus(AssignmentStatus.ACCEPTED);
+        when(assignmentRepository.findByCycleId(cycleId)).thenReturn(List.of(acceptedCycleAssignment));
+        when(profileRepository.findById(profileId)).thenReturn(Optional.of(profile()));
+        when(reviewRepository.save(any(ProjectReview.class))).thenAnswer(inv -> {
+            ProjectReview review = inv.getArgument(0);
+            review.setProjectReviewId(UUID.randomUUID());
+            return review;
+        });
+
+        ProjectReviewCreateResponse response = service.createInternal(request(1));
+
+        assertThat(response.evaluatorProfileId()).isEqualTo(profileId);
+        assertThat(response.reviewerUserId()).isEqualTo(userId);
+        verify(profileRepository, never())
+                .findByEvaluatorTypeAndActiveIsTrue(EvaluatorType.GOVERNMENT);
+    }
+
+    @Test
+    void create_NeverAssignsProjectReviewToHumanFromAnotherPool() {
+        UUID otherPoolUserId = UUID.randomUUID();
+        UUID samePoolProfileId = UUID.randomUUID();
+        UUID samePoolUserId = UUID.randomUUID();
+        EvaluatorProfile otherPoolHuman = profile(profileId, otherPoolUserId, false);
+        otherPoolHuman.setEvaluatorType(EvaluatorType.CITIZEN);
+
+        givenCompletedCycle();
+        when(reviewRepository.findBySubmissionIdAndRound(submissionId, 1))
+                .thenReturn(Optional.empty());
+        when(assignmentRepository.findByCycleIdAndStatusIn(eq(cycleId), anyCollection()))
+                .thenReturn(List.of(submittedAssignment(profileId)));
+        when(profileRepository.findById(profileId)).thenReturn(Optional.of(otherPoolHuman));
+        when(profileRepository.findByEvaluatorTypeAndActiveIsTrue(EvaluatorType.GOVERNMENT))
+                .thenReturn(List.of(profile(samePoolProfileId, samePoolUserId, false)));
+        when(assignmentRepository.countByEvaluatorProfileIdAndStatusIn(samePoolProfileId, List.of(
+                AssignmentStatus.ASSIGNED, AssignmentStatus.IN_PROGRESS))).thenReturn(0L);
+        when(reviewRepository.save(any(ProjectReview.class))).thenAnswer(inv -> {
+            ProjectReview review = inv.getArgument(0);
+            review.setProjectReviewId(UUID.randomUUID());
+            return review;
+        });
+
+        ProjectReviewCreateResponse response = service.createInternal(request(1));
+
+        assertThat(response.evaluatorProfileId()).isEqualTo(samePoolProfileId);
+        assertThat(response.reviewerUserId()).isEqualTo(samePoolUserId);
     }
 
     @Test
@@ -206,7 +277,7 @@ class ProjectReviewServiceTest {
         assertThat(response.reviewerUserId()).isEqualTo(userId);
         assertThat(response.evaluatorProfileId()).isEqualTo(profileId);
         // The human was found on the first pass, so the fallback never ran.
-        verify(profileRepository, never()).findByActiveIsTrue();
+        verify(profileRepository, never()).findByEvaluatorTypeAndActiveIsTrue(any());
     }
 
     @Test
@@ -222,7 +293,7 @@ class ProjectReviewServiceTest {
         when(assignmentRepository.findByCycleIdAndStatusIn(eq(cycleId), anyCollection()))
                 .thenReturn(List.of(submittedAssignment(aiProfileId)));
         when(profileRepository.findById(aiProfileId)).thenReturn(Optional.of(systemProfile()));
-        when(profileRepository.findByActiveIsTrue()).thenReturn(List.of(
+        when(profileRepository.findByEvaluatorTypeAndActiveIsTrue(EvaluatorType.GOVERNMENT)).thenReturn(List.of(
                 systemProfile(),
                 profile(busyProfileId, busyUserId, false),
                 profile(freeProfileId, freeUserId, false)));
@@ -253,13 +324,14 @@ class ProjectReviewServiceTest {
         when(assignmentRepository.findByCycleIdAndStatusIn(eq(cycleId), anyCollection()))
                 .thenReturn(List.of(submittedAssignment(aiProfileId)));
         when(profileRepository.findById(aiProfileId)).thenReturn(Optional.of(systemProfile()));
-        when(profileRepository.findByActiveIsTrue()).thenReturn(List.of(systemProfile()));
+        when(profileRepository.findByEvaluatorTypeAndActiveIsTrue(EvaluatorType.GOVERNMENT))
+                .thenReturn(List.of(systemProfile()));
 
         assertThatThrownBy(() -> service.createInternal(request(1)))
                 .isInstanceOf(ApiException.class)
                 .satisfies(ex -> {
                     assertThat(((ApiException) ex).getStatus()).isEqualTo(HttpStatus.CONFLICT);
-                    assertThat(ex.getMessage()).contains("no human evaluator exists");
+                    assertThat(ex.getMessage()).contains("no active human evaluator exists in the GOVERNMENT pool");
                 });
         verify(reviewRepository, never()).save(any());
     }
@@ -276,7 +348,7 @@ class ProjectReviewServiceTest {
         when(assignmentRepository.findByCycleIdAndStatusIn(eq(cycleId), anyCollection()))
                 .thenReturn(List.of(submittedAssignment(aiProfileId)));
         when(profileRepository.findById(aiProfileId)).thenReturn(Optional.empty());
-        when(profileRepository.findByActiveIsTrue())
+        when(profileRepository.findByEvaluatorTypeAndActiveIsTrue(EvaluatorType.GOVERNMENT))
                 .thenReturn(List.of(profile(humanProfileId, humanUserId, false)));
         when(assignmentRepository.countByEvaluatorProfileIdAndStatusIn(any(), anyCollection()))
                 .thenReturn(0L);
@@ -381,6 +453,7 @@ class ProjectReviewServiceTest {
         profile.setMaxWorkload(5);
         profile.setActive(true);
         profile.setSystem(system);
+        profile.setEvaluatorType(EvaluatorType.GOVERNMENT);
         return profile;
     }
 
@@ -394,6 +467,9 @@ class ProjectReviewServiceTest {
     private void givenCompletedCycle() {
         when(cycleRepository.findByProblemId(problemId))
                 .thenReturn(Optional.of(cycle(EvaluationStatus.EVALUATION_COMPLETED)));
+        when(problemContextGateway.fetch(problemId)).thenReturn(new ProblemContextResponse(
+                problemId, "PUBLISHED", "Problem", "Description", "GOVT", null, null,
+                null, null, null, null, null, List.of(), 0, "OPEN_TO_ALL", List.of()));
     }
 
     private EvaluationCycle cycle(EvaluationStatus status) {

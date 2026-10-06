@@ -8,13 +8,13 @@ import LoginPage from './pages/LoginPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 
 // Evaluator
-import DashboardPage from './pages/evaluator/DashboardPage';
 import ProfilePage from './pages/evaluator/ProfilePage';
-import CriteriaPage from './pages/evaluator/CriteriaPage';
+import DashboardPage from './pages/evaluator/DashboardPage';
 import AssignmentsPage from './pages/evaluator/AssignmentsPage';
 import ScoringPage from './pages/evaluator/ScoringPage';
 import ProjectReviewsPage from './pages/evaluator/ProjectReviewsPage';
 import ProjectReviewDetailPage from './pages/evaluator/ProjectReviewDetailPage';
+import NotificationsPage from './pages/evaluator/NotificationsPage';
 
 // Admin
 import EvaluationQueuePage from './pages/admin/EvaluationQueuePage';
@@ -36,10 +36,11 @@ export default function App() {
             <Route element={<AppShell />}>
               <Route path="/evaluator/dashboard" element={<DashboardPage />} />
               <Route path="/evaluator/profile" element={<ProfilePage />} />
-              <Route path="/evaluator/criteria" element={<CriteriaPage />} />
+              <Route path="/evaluator/criteria" element={<Navigate to="/evaluator/assignments" replace />} />
               <Route path="/evaluator/assignments" element={<AssignmentsPage />} />
               <Route path="/evaluator/project-reviews" element={<ProjectReviewsPage />} />
               <Route path="/evaluator/project-reviews/:reviewId" element={<ProjectReviewDetailPage />} />
+              <Route path="/evaluator/notifications" element={<NotificationsPage />} />
             </Route>
             {/* Scoring page has top navigation and full width */}
             <Route path="/evaluator/assignments/:assignmentId" element={<ScoringPage />} />

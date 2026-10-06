@@ -12,7 +12,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 /**
- * A group of participants solving one published problem. Students may also solve
+ * A reusable group of participants for published problem submissions. Students may also solve
  * individually (no team row); restricted problems are university-led, so the
  * team's creator is always the submitting participant.
  */
@@ -26,7 +26,7 @@ public class Team {
     @Column(name = "team_id")
     private UUID teamId;
 
-    @Column(name = "problem_id", nullable = false)
+    @Column(name = "problem_id")
     private UUID problemId;
 
     @Column(name = "name", nullable = false, length = 150)

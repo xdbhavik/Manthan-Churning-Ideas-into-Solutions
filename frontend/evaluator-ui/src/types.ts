@@ -110,21 +110,38 @@ export interface SubmittedFile {
   uploadedAt: string;
 }
 export interface ProjectReviewResponse {
-  reviewId: string;
+  projectReviewId: string;
   submissionId: string;
   problemId: string;
   cycleId: string | null;
   problemTitle: string;
   submissionTitle: string;
-  submissionSummary: string | null;
+  summary: string | null;
   githubUrl: string | null;
-  additionalLinks: string[];
-  submissionRound: number;
-  reviewStatus: ProjectReviewStatus;
-  existingDecisionComment: string | null;
+  links: Array<Record<string, string>>;
+  round: number;
+  status: ProjectReviewStatus;
+  decisionComment: string | null;
+  files: Array<{
+    fileId: string;
+    fileName: string;
+    sizeBytes: number | null;
+    contentType: string | null;
+    contentUrl: string | null;
+  }>;
+  context?: Record<string, unknown>;
   createdAt: string;
-  decisionAt: string | null;
-  submittedFiles: SubmittedFile[];
+  decidedAt: string | null;
+}
+export interface ProjectReviewListItem {
+  projectReviewId: string;
+  problemId: string;
+  problemTitle: string;
+  submissionTitle: string;
+  round: number;
+  status: ProjectReviewStatus;
+  createdAt: string;
+  decidedAt: string | null;
 }
 export interface ProjectReviewDecisionRequest {
   decision: 'ACCEPTED' | 'RETURNED';
@@ -197,6 +214,32 @@ export interface ProblemResponse {
   version?: number;
   metadata?: Record<string, unknown> | null;
   location?: string | null;
+}
+export interface ProjectReviewScorecardCriterion {
+  key: string;
+  label: string;
+  description: string | null;
+  maxScore: number;
+  sortOrder: number;
+}
+export interface ProjectReviewCriterionScore {
+  score: number | null;
+  comment: string | null;
+}
+export interface ProjectReviewScorecardView {
+  criteria: ProjectReviewScorecardCriterion[];
+  status: 'NOT_STARTED' | 'DRAFT' | 'SUBMITTED';
+  criteriaScores: Record<string, ProjectReviewCriterionScore>;
+  overallRemarks: string | null;
+  totalScore: number;
+  maxScore: number;
+  updatedAt: string | null;
+  submittedAt: string | null;
+}
+export interface ProjectReviewScorecardRequest {
+  criteriaScores: Record<string, ProjectReviewCriterionScore>;
+  overallRemarks: string;
+  submit: boolean;
 }
 
 export interface ProblemEvidenceResponse {

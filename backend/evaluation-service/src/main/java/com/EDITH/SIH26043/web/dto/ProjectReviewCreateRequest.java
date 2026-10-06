@@ -30,8 +30,17 @@ public record ProjectReviewCreateRequest(
         String summary,
         String githubUrl,
         List<Map<String, String>> links,
-        List<ProjectFileMeta> files
+        List<ProjectFileMeta> files,
+        Map<String, Object> context
 ) {
+    public ProjectReviewCreateRequest(UUID submissionId, UUID problemId, UUID cycleId, Integer round,
+                                     String problemTitle, String submissionTitle, String summary,
+                                     String githubUrl, List<Map<String, String>> links,
+                                     List<ProjectFileMeta> files) {
+        this(submissionId, problemId, cycleId, round, problemTitle, submissionTitle, summary,
+                githubUrl, links, files, Map.of());
+    }
+
     public record ProjectFileMeta(
             UUID fileId,
             String fileName,

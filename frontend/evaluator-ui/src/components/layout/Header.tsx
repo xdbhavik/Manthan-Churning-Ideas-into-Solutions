@@ -1,12 +1,14 @@
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { clearTokens, getPhone, getRole, getUserId } from '../../lib/auth';
 import { logout } from '../../services/authService';
+import { useEvaluatorNotifications } from '../../hooks/useEvaluatorNotifications';
 
 export default function Header() {
   const navigate = useNavigate();
   const role = getRole();
   const phone = getPhone();
   const userId = getUserId();
+  const { unreadCount } = useEvaluatorNotifications();
 
   const handleLogout = async () => {
     try {
@@ -30,63 +32,31 @@ export default function Header() {
             <span className="font-headline-sm text-headline-sm text-ashoka-blue tracking-tight">
               National Evaluation Service
             </span>
-            <span className="font-mono-code text-[11px] px-space-xs py-0.5 rounded bg-surface-muted text-text-secondary border border-border-hairline uppercase tracking-wider">
-              OFFICIAL // SECURE
-            </span>
           </div>
         </div>
       </div>
 
-      {/* Cross-Service Role Navigation & User Info */}
+      {/* User actions */}
       <div className="flex items-center gap-space-md">
-        <nav className="hidden xl:flex items-center bg-surface-muted p-space-2xs rounded border border-border-hairline">
-          <a
-            href="http://localhost:3002"
-            target="_blank"
-            rel="noreferrer"
-            className="px-space-sm py-1 rounded text-text-secondary hover:text-ashoka-blue font-label-md text-label-md transition-colors"
-          >
-            Submitter
-          </a>
-          <a
-            href="http://localhost:3000"
-            target="_blank"
-            rel="noreferrer"
-            className="px-space-sm py-1 rounded text-text-secondary hover:text-ashoka-blue font-label-md text-label-md transition-colors"
-          >
-            KYC Agent
-          </a>
-          <span className="px-space-sm py-1 rounded bg-ashoka-blue text-on-primary font-bold text-label-md shadow-xs">
-            Evaluator
-          </span>
-          <a
-            href="http://localhost:3000"
-            target="_blank"
-            rel="noreferrer"
-            className="px-space-sm py-1 rounded text-text-secondary hover:text-ashoka-blue font-label-md text-label-md transition-colors"
-          >
-            Admin
-          </a>
-        </nav>
-
-        <div className="h-6 w-px bg-border-hairline hidden sm:block"></div>
-
+        {role === 'EVALUATOR' && <Link to="/evaluator/notifications" aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ''}`} title="Notifications" className="relative flex h-9 w-9 items-center justify-center rounded-full border border-border-hairline text-text-secondary transition-colors hover:bg-surface-subtle hover:text-ashoka-blue">
+          <span className="material-symbols-outlined text-[21px]">notifications</span>
+          {unreadCount > 0 && <span className="absolute -right-1 -top-1 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white">{unreadCount > 99 ? '99+' : unreadCount}</span>}
+        </Link>}
         {/* User Card */}
         <div className="flex items-center gap-space-sm">
-          <div className="text-right hidden sm:flex flex-col">
-            <span className="font-label-md text-label-md text-text-primary font-bold">
-              {phone ? `+91 ${phone}` : 'Dr. Aris Thorne'}
-            </span>
-            <span className="font-mono-code text-[11px] text-text-muted">
-              {userId ? `EVAL-${userId.substring(0, 6)}` : 'EVAL-7729'}
-            </span>
-          </div>
-          <span className="px-2 py-0.5 rounded-full font-label-sm text-label-sm bg-status-review-bg text-status-review-text border border-status-review-border uppercase tracking-wider font-bold">
-            {role ?? 'EVALUATOR'}
-          </span>
-          <div className="w-8 h-8 rounded-full bg-ashoka-blue flex items-center justify-center text-on-primary shadow-sm">
-            <span className="material-symbols-outlined text-[18px]">person</span>
-          </div>
+          {(phone || userId) && <div className="text-right hidden sm:flex flex-col">
+            {phone && <span className="font-label-md text-label-md text-text-primary font-bold">+91 {phone}</span>}
+            {userId && <span className="font-mono-code text-[11px] text-text-muted">User {userId.substring(0, 8)}</span>}
+          </div>}
+          {role === 'EVALUATOR' ? (
+            <Link to="/evaluator/profile" aria-label="Evaluator profile" title="Evaluator Profile" className="w-9 h-9 rounded-full bg-ashoka-blue hover:bg-institutional-navy flex items-center justify-center text-on-primary shadow-sm transition-colors">
+              <span className="material-symbols-outlined text-[20px]">person</span>
+            </Link>
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-ashoka-blue flex items-center justify-center text-on-primary shadow-sm" aria-hidden="true">
+              <span className="material-symbols-outlined text-[18px]">person</span>
+            </div>
+          )}
           <button
             type="button"
             onClick={handleLogout}

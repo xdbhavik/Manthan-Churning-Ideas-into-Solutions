@@ -4,8 +4,10 @@ import com.EDITH.SIH26043.internal.ProblemContextResponse;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.service.annotation.HttpExchange;
+import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.PostExchange;
 
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -30,4 +32,11 @@ public interface PortalApi {
     @PostExchange("/internal/submissions/{submissionId}/review-result")
     void notifyReviewResult(@PathVariable("submissionId") UUID submissionId,
                             @RequestBody PortalReviewDecisionRequest request);
+
+    @GetExchange("/internal/submissions/{submissionId}/review-context")
+    Map<String, Object> reviewContext(@PathVariable("submissionId") UUID submissionId);
+
+    @PostExchange("/internal/submissions/{submissionId}/review-scorecard")
+    void syncReviewScorecard(@PathVariable("submissionId") UUID submissionId,
+                             @RequestBody Map<String, Object> scorecard);
 }

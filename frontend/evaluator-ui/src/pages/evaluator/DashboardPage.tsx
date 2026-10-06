@@ -1,161 +1,132 @@
-import { useEffect, useState, useCallback } from 'react';
-import { getMyProfile, getMyCriteria } from '../../services/evaluatorService';
-import { getErrorMessage, getErrorStatus } from '../../lib/api';
-import type { EvaluatorProfileResponse, EvaluationCriteria } from '../../types';
-import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import ErrorPanel from '../../components/ui/ErrorPanel';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import StatusBadge from '../../components/ui/StatusBadge';
+import { getErrorMessage, getErrorStatus } from '../../lib/api';
+import { getMyAssignments, getMyProjectReviews } from '../../services/evaluatorService';
+import type { AssignmentResponse, ProjectReviewListItem } from '../../types';
+
+function dateLabel(value?: string | null) {
+  if (!value) return 'Date unavailable';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? 'Date unavailable' : date.toLocaleString();
+}
+
+function StatCard({ label, count, icon, tone }: { label: string; count: number; icon: string; tone: string }) {
+  return (
+    <div className="flex items-center gap-4 rounded-xl border border-border-hairline bg-surface-crisp p-space-base">
+      <span className={`flex h-11 w-11 items-center justify-center rounded-lg ${tone}`}>
+        <span className="material-symbols-outlined">{icon}</span>
+      </span>
+      <div><p className="text-sm text-text-secondary">{label}</p><p className="mt-0.5 text-2xl font-bold text-text-primary">{count}</p></div>
+    </div>
+  );
+}
 
 export default function DashboardPage() {
-  const [profile, setProfile] = useState<EvaluatorProfileResponse | null>(null);
-  const [criteria, setCriteria] = useState<EvaluationCriteria[]>([]);
-  const [profileLoading, setProfileLoading] = useState(true);
-  const [criteriaLoading, setCriteriaLoading] = useState(true);
-  const [profileError, setProfileError] = useState<{ msg: string; status: number | null } | null>(null);
-  const [criteriaError, setCriteriaError] = useState<string | null>(null);
-  const [profileNotFound, setProfileNotFound] = useState(false);
+  const [assignments, setAssignments] = useState<AssignmentResponse[]>([]);
+  const [projectReviews, setProjectReviews] = useState<ProjectReviewListItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<{ message: string; status: number | null } | null>(null);
 
-  const loadProfile = useCallback(async () => {
-    setProfileLoading(true); setProfileError(null); setProfileNotFound(false);
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setProfile(await getMyProfile());
-    } catch (e) {
-      const status = getErrorStatus(e);
-      if (status === 404) setProfileNotFound(true);
-      else setProfileError({ msg: getErrorMessage(e), status });
-    } finally { setProfileLoading(false); }
+      const [assignmentData, projectReviewData] = await Promise.all([getMyAssignments(), getMyProjectReviews()]);
+      setAssignments(assignmentData || []);
+      setProjectReviews(projectReviewData || []);
+    } catch (cause) {
+      setError({ message: getErrorMessage(cause), status: getErrorStatus(cause) });
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const loadCriteria = useCallback(async () => {
-    setCriteriaLoading(true); setCriteriaError(null);
-    try {
-      const data = await getMyCriteria();
-      setCriteria((data || []).slice().sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)));
-    } catch (e) { setCriteriaError(getErrorMessage(e)); }
-    finally { setCriteriaLoading(false); }
-  }, []);
+  useEffect(() => { void load(); }, [load]);
 
-  useEffect(() => { void loadProfile(); void loadCriteria(); }, [loadProfile, loadCriteria]);
+  const pending = assignments.filter((item) => item.status === 'ASSIGNED');
+  const inProgress = assignments.filter((item) => item.status === 'IN_PROGRESS' || item.status === 'ACCEPTED');
+  const submitted = assignments.filter((item) => item.status === 'SUBMITTED' || item.status === 'REVIEWED');
+  const awaitingProjectDecision = projectReviews.filter((item) => item.status === 'ASSIGNED');
+
+  const nextDeadline = useMemo(() => assignments
+    .filter((item) => ['ASSIGNED', 'IN_PROGRESS', 'ACCEPTED'].includes(item.status))
+    .map((item) => ({ item, deadline: item.deadlineAt || item.deadline }))
+    .filter((entry): entry is { item: AssignmentResponse; deadline: string } => Boolean(entry.deadline) && !Number.isNaN(new Date(entry.deadline || 0).getTime()))
+    .sort((a, b) => new Date(a.deadline || 0).getTime() - new Date(b.deadline || 0).getTime())[0], [assignments]);
+
+  const recentActivity = useMemo(() => {
+    const activity = [
+      ...assignments.flatMap((item) => {
+        const entries = [{
+          key: `${item.assignmentId}-assigned`,
+          label: item.submittedAt ? 'Scorecard submitted' : 'Assignment received',
+          title: item.problemTitle || 'Assigned problem',
+          date: item.submittedAt || item.assignedAt,
+          href: `/evaluator/assignments/${item.assignmentId}`,
+          status: item.status,
+        }];
+        return entries;
+      }),
+      ...projectReviews.map((review) => ({
+        key: review.projectReviewId,
+        label: review.status === 'ASSIGNED' ? 'Project review assigned' : 'Project review updated',
+        title: review.submissionTitle || review.problemTitle || 'Project review',
+        date: review.decidedAt || review.createdAt,
+        href: `/evaluator/project-reviews/${review.projectReviewId}`,
+        status: review.status,
+      })),
+    ];
+    return activity.sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime()).slice(0, 6);
+  }, [assignments, projectReviews]);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-[24px] font-bold text-[#0A2540] tracking-tight">Evaluator Dashboard</h1>
-        <p className="text-[13px] text-[#64748B] mt-0.5">Your profile and assigned evaluation criteria</p>
-      </div>
-
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {/* Profile Panel */}
-        <div className="bg-white rounded-xl border border-[#E2E8F0] shadow-sm">
-          <div className="flex items-center gap-2 px-5 py-4 border-b border-[#E2E8F0]">
-            <span className="material-symbols-outlined text-[#0A2540] text-[20px]">account_circle</span>
-            <h2 className="text-[15px] font-semibold text-[#0A2540]">Evaluator Profile</h2>
-            <span className="ml-auto text-[11px] text-[#64748B] font-mono-code">GET /evaluation/me/profile</span>
-          </div>
-
-          {profileLoading && <div className="p-8 flex justify-center"><LoadingSpinner label="Loading profile…" /></div>}
-
-          {profileNotFound && !profileLoading && (
-            <div className="p-5">
-              <div className="flex items-start gap-3 p-4 bg-[#FFFBEB] border border-[#FDE68A] rounded-lg">
-                <span className="material-symbols-outlined text-[#D97706] text-[20px] shrink-0">warning</span>
-                <div>
-                  <p className="text-[13px] font-semibold text-[#92400E]">No Evaluator Profile Found</p>
-                  <p className="text-[13px] text-[#92400E] mt-0.5">
-                    You have been authenticated as EVALUATOR but no evaluation profile exists in the system.
-                    Please contact an administrator to create your evaluator profile before you can receive assignments.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {profileError && !profileLoading && (
-            <ErrorPanel status={profileError.status} message={profileError.msg} onRetry={loadProfile} />
-          )}
-
-          {profile && !profileLoading && (
-            <div className="p-5 grid grid-cols-2 gap-3 text-[13px]">
-              {[
-                ['Profile ID', profile.profileId],
-                ['User ID', profile.userId],
-                ['Full Name', profile.fullName],
-                ['Evaluator Type', profile.evaluatorType],
-                ['Organization', profile.organization ?? '—'],
-                ['Designation', profile.designation ?? '—'],
-                ['Experience', profile.experienceYears != null ? profile.experienceYears + ' years' : '—'],
-                ['Max Workload', profile.maxWorkload != null ? profile.maxWorkload.toString() : '—'],
-                ['Active', profile.active ? 'Yes' : 'No'],
-                ['Created', profile.createdAt ? new Date(profile.createdAt).toLocaleDateString() : '—'],
-                ['Updated', profile.updatedAt ? new Date(profile.updatedAt).toLocaleDateString() : '—'],
-              ].map(([label, value]) => (
-                <div key={label}>
-                  <div className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider mb-0.5">{label}</div>
-                  {label === 'Evaluator Type' ? (
-                    <StatusBadge status={value as string} />
-                  ) : (
-                    <div className="text-[#0A2540] font-medium break-all">{value}</div>
-                  )}
-                </div>
-              ))}
-              {(profile.regions || profile.regionStates || []).length > 0 && (
-                <div className="col-span-2">
-                  <div className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider mb-1">Regions</div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {(profile.regions || profile.regionStates || []).map((r) => (
-                      <span key={r} className="px-2 py-0.5 bg-[#F1F5F9] border border-[#E2E8F0] rounded text-[12px] text-[#475569]">{r}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+    <main className="mx-auto flex w-full max-w-7xl flex-col gap-space-lg px-space-lg py-space-base">
+      <header className="flex flex-wrap items-start justify-between gap-space-md border-b border-border-hairline pb-space-base">
+        <div>
+          <h1 className="font-headline-lg text-headline-lg text-ashoka-blue">My Work</h1>
+          <p className="mt-1 text-body-sm text-text-secondary">Live summary of your assigned evaluations and project reviews.</p>
         </div>
+        <button type="button" onClick={() => void load()} disabled={loading} className="flex items-center gap-2 rounded bg-ashoka-blue px-space-md py-2 font-semibold text-on-primary disabled:opacity-60">
+          <span className={`material-symbols-outlined text-[18px] ${loading ? 'animate-spin' : ''}`}>sync</span>Refresh
+        </button>
+      </header>
 
-        {/* Criteria Panel */}
-        <div className="bg-white rounded-xl border border-[#E2E8F0] shadow-sm">
-          <div className="flex items-center gap-2 px-5 py-4 border-b border-[#E2E8F0]">
-            <span className="material-symbols-outlined text-[#0A2540] text-[20px]">fact_check</span>
-            <h2 className="text-[15px] font-semibold text-[#0A2540]">Evaluation Criteria</h2>
-            <span className="ml-auto text-[11px] text-[#64748B] font-mono-code">GET /evaluation/me/criteria</span>
-          </div>
+      {error && <ErrorPanel status={error.status} message={error.message} onRetry={() => void load()} />}
+      {loading && <div className="flex justify-center py-12"><LoadingSpinner label="Loading your work…" /></div>}
+      {!loading && !error && <>
+        <section className="grid grid-cols-1 gap-space-sm sm:grid-cols-2 xl:grid-cols-4" aria-label="Work summary">
+          <StatCard label="Pending assignments" count={pending.length} icon="assignment" tone="bg-status-action-bg text-status-action-text" />
+          <StatCard label="In progress" count={inProgress.length} icon="pending_actions" tone="bg-status-review-bg text-status-review-text" />
+          <StatCard label="Submitted scorecards" count={submitted.length} icon="task_alt" tone="bg-status-approved-bg text-status-approved-text" />
+          <StatCard label="Project reviews to decide" count={awaitingProjectDecision.length} icon="rate_review" tone="bg-surface-muted text-ashoka-blue" />
+        </section>
 
-          {criteriaLoading && <div className="p-8 flex justify-center"><LoadingSpinner label="Loading criteria…" /></div>}
-          {criteriaError && !criteriaLoading && <ErrorPanel message={criteriaError} onRetry={loadCriteria} compact />}
-
-          {!criteriaLoading && !criteriaError && criteria.length === 0 && (
-            <div className="p-8 text-center text-[13px] text-[#64748B]">No criteria assigned yet.</div>
-          )}
-
-          {!criteriaLoading && criteria.length > 0 && (
-            <div className="divide-y divide-[#E2E8F0]">
-              {criteria.map((c) => (
-                <div key={c.key} className="px-5 py-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[14px] font-semibold text-[#0A2540]">{c.label}</span>
-                        <span className="font-mono-code text-[11px] bg-[#F1F5F9] text-[#475569] px-1.5 py-0.5 rounded border border-[#E2E8F0]">{c.key}</span>
-                      </div>
-                      <p className="text-[12px] text-[#64748B]">{c.description}</p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <div className="text-[11px] text-[#64748B]">Max Score</div>
-                      <div className="text-[18px] font-bold text-[#0A2540]">{c.maxScore}</div>
-                    </div>
-                  </div>
-                  {c.existingScore != null && (
-                    <div className="mt-2 flex items-center gap-2">
-                      <span className="text-[12px] text-[#059669] font-semibold">Score: {c.existingScore}/{c.maxScore}</span>
-                      {c.existingComment && <span className="text-[12px] text-[#64748B] truncate">{c.existingComment}</span>}
-                    </div>
-                  )}
-                </div>
-              ))}
+        <section className="rounded-xl border border-border-hairline bg-surface-crisp p-space-base">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="font-headline-sm text-text-primary">Next deadline</h2>
+              {nextDeadline ? <p className="mt-1 text-sm text-text-secondary">{nextDeadline.item.problemTitle || 'Assigned problem'} · {dateLabel(nextDeadline.deadline)}</p> : <p className="mt-1 text-sm text-text-secondary">No upcoming deadline is available for your active assignments.</p>}
             </div>
-          )}
-        </div>
-      </div>
-    </div>
+            <Link to="/evaluator/assignments" className="text-sm font-semibold text-ashoka-blue hover:underline">Open assignments</Link>
+          </div>
+        </section>
+
+        <section className="overflow-hidden rounded-xl border border-border-hairline bg-surface-crisp">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-hairline p-space-base">
+            <div><h2 className="font-headline-sm text-text-primary">Recent activity</h2><p className="mt-1 text-sm text-text-secondary">Latest assignment and project-review updates.</p></div>
+            <Link to="/evaluator/project-reviews" className="text-sm font-semibold text-ashoka-blue hover:underline">View project reviews</Link>
+          </div>
+          {recentActivity.length ? <ul className="divide-y divide-border-hairline">
+            {recentActivity.map((item) => <li key={item.key} className="flex flex-wrap items-center justify-between gap-3 p-space-base">
+              <div className="min-w-0"><p className="text-xs font-semibold uppercase tracking-wide text-text-muted">{item.label}</p><Link to={item.href} className="mt-1 block truncate font-semibold text-ashoka-blue hover:underline">{item.title}</Link><time className="mt-1 block text-xs text-text-secondary">{dateLabel(item.date)}</time></div>
+              <StatusBadge status={item.status} />
+            </li>)}
+          </ul> : <p className="p-space-lg text-center text-sm text-text-secondary">No evaluator activity is available yet.</p>}
+        </section>
+      </>}
+    </main>
   );
 }

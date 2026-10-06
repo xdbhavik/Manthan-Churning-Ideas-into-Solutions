@@ -1,544 +1,144 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link, useParams } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '../../app/providers/AuthProvider';
 import { useToast } from '../../app/providers/ToastProvider';
 import { getErrorMessage } from '../../services/apiClient';
 import * as portal from '../../services/portalService';
-import { useSubmission } from '../../hooks/usePortalQueries';
-import { Button, LinkButton, Card, Tabs } from '../../components/ui';
+import { useMySubmissions, useProblem } from '../../hooks/usePortalQueries';
+import { Button, Card, LinkButton } from '../../components/ui';
 
-import { motion } from 'framer-motion';
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
 
-const checklistItemsData = [
-  { id: 'mod-check-1', label: 'LoRa Payload Specs', desc: 'Clarify LoRa packet payload compression spec and dropped frame fallbacks.', type: 'Spec Doc' },
-  { id: 'mod-check-2', label: 'Firmware Test Vectors', desc: 'Update test vector documentation and edge sample logs in Git repository.', type: 'Git /tests' },
-  { id: 'mod-check-3', label: 'Revised Architecture PDF', desc: 'Re-upload revised Technical Architecture PDF with annotated schematics (<50 MB).', type: 'Artifact' },
-] as const;
+function display(value: unknown): string {
+  if (Array.isArray(value)) return value.map(item => String(item)).join(', ');
+  if (value === null || value === undefined || value === '') return 'Not provided';
+  return String(value);
+}
 
 export default function SubmissionDetailPage() {
   const { submissionId } = useParams<{ submissionId: string }>();
-  const queryClient = useQueryClient();
   const { authed } = useAuth();
   const toast = useToast();
-  const { data: submission, isLoading, isError, error, refetch } = useSubmission(submissionId, authed);
-  const [activeTab, setActiveTab] = useState<'timeline' | 'files' | 'repo' | 'audit'>('timeline');
-  const [checklistProgress, setChecklistProgress] = useState<Record<string, boolean>>({});
+  const client = useQueryClient();
+  const { data: submissions = [], isLoading, isError, error, refetch } = useMySubmissions(authed);
+  const submission = submissions.find(item => item.submissionId === submissionId);
+  const { data: problem } = useProblem(submission?.problemId, authed);
+  const details = asRecord(submission?.projectDetails);
+  const student = asRecord(details.studentDetails);
+  const teamDetails = asRecord(details.teamDetails);
+  const technical = asRecord(details.technicalDetails);
+  const projectLinks = asRecord(details.projectLinks);
+  const rawLinks = [
+    ...(submission?.links ?? []),
+    ...Object.entries(projectLinks).filter(([, url]) => typeof url === 'string' && url.trim()).map(([label, url]) => ({ label, url: String(url) })),
+  ];
+  const links = rawLinks.filter((link, index) => rawLinks.findIndex(other => other.url === link.url) === index);
+  const isEditable = submission?.status === 'DRAFT' || submission?.status === 'RETURNED';
+  const needsCommit = !!submission?.githubUrl && !submission.commitSha;
+  const hasArtifact = !!(submission?.title || submission?.summary || submission?.githubUrl || submission?.links.length || submission?.files.length);
+  const [submittedRound, setSubmittedRound] = useState<number | null>(null);
 
   const submit = useMutation({
     mutationFn: () => portal.submitSubmission(submissionId!),
-    onSuccess: () => {
-      toast.notify('Submitted for review', 'success');
-      queryClient.invalidateQueries({ queryKey: ['portal', 'submissions'] });
-      queryClient.invalidateQueries({ queryKey: ['portal', 'submissions', submissionId] });
+    onSuccess: async result => {
+      if (result.status !== 'UNDER_REVIEW') {
+        toast.notify('Submission was saved, but evaluation has not started yet.', 'error');
+        return;
+      }
+      setSubmittedRound(result.reviewRound);
+      toast.notify('Solution submitted for evaluation.', 'success');
+      await Promise.all([
+        client.invalidateQueries({ queryKey: ['portal', 'submissions'] }),
+      ]);
+      await refetch();
     },
-    onError: (e) => toast.notify(getErrorMessage(e), 'error'),
+    onError: error => toast.notify(getErrorMessage(error), 'error'),
   });
 
-  if (isLoading) {
-    return (
-      <div className="max-w-[1600px] mx-auto w-full px-space-md md:px-space-lg py-space-md space-y-4">
-        <div className="h-6 w-48 rounded skeleton-shimmer" />
-        <div className="h-40 rounded-xl skeleton-shimmer" />
-        <div className="h-80 rounded-xl skeleton-shimmer" />
-      </div>
-    );
-  }
+  if (isLoading) return <main className="mx-auto max-w-5xl space-y-4 px-4 py-8"><div className="h-10 rounded skeleton-shimmer" /><div className="h-64 rounded-xl skeleton-shimmer" /></main>;
+  if (!submission) return <main className="mx-auto max-w-3xl px-4 py-12 text-center"><h1 className="text-xl font-bold text-on-surface">{isError ? 'Could not load your submissions' : 'Submission not found in your submissions'}</h1><p className="mt-2 text-sm text-on-surface-variant">{error instanceof Error ? error.message : 'This submission may have been removed or is not available to your account.'}</p><div className="mt-5 flex justify-center gap-3"><Button onClick={() => refetch()} variant="primary">Retry</Button><LinkButton to="/app/submissions" variant="secondary">My submissions</LinkButton></div></main>;
 
-  if (isError || !submission) {
-    return (
-      <div className="max-w-[1600px] mx-auto w-full px-space-md md:px-space-lg py-space-md text-center">
-        <div className="material-symbols-outlined text-state-returned-text text-4xl">error</div>
-        <p className="mt-3 font-semibold text-state-returned-text">Could not load this submission.</p>
-        <p className="text-sm text-on-surface-variant-weak mt-1">{error instanceof Error ? error.message : 'Unknown error'}</p>
-        <div className="mt-5 flex justify-center gap-2">
-          <Button onClick={() => refetch()} variant="primary">Retry</Button>
-          <LinkButton to="/app/submissions" variant="secondary">Back to My Submissions</LinkButton>
-        </div>
-      </div>
-    );
-  }
+  const screenshots = submission.files.filter(file => file.contentType?.startsWith('image/'));
+  const artifacts = submission.files.filter(file => !file.contentType?.startsWith('image/'));
 
-  const getChecklistProgress = () => {
-    const checked = Object.values(checklistProgress).filter(Boolean).length;
-    return checked;
-  };
+  return <>
+    <main className="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="flex flex-wrap items-center justify-between gap-3"><Link to="/app/submissions" className="text-sm font-semibold text-primary">← My submissions</Link><span className="rounded-full bg-surface-container px-3 py-1 text-sm font-semibold text-on-surface">{submission.status.replaceAll('_', ' ')}</span></div>
+    <header><p className="text-xs font-bold uppercase tracking-wide text-primary">Solution submission · Round {submission.reviewRound}</p><h1 className="mt-1 text-3xl font-bold text-on-surface">{submission.title || 'Untitled solution'}</h1><p className="mt-2 text-sm text-on-surface-variant">{problem?.title ?? 'Problem statement'} · Created {new Date(submission.submittedAt ?? '').toString() === 'Invalid Date' ? 'as a draft' : new Date(submission.submittedAt!).toLocaleString()}</p></header>
 
-  return (
-    <div className="w-full max-w-[1600px] mx-auto px-space-md sm:px-space-lg lg:px-space-xl py-space-lg space-y-space-lg">
-      {/* Top Action Breadcrumb & Action Cluster */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-space-md">
-        <div className="flex items-center gap-space-sm min-w-0">
-          <LinkButton
-            to="/app/submissions"
-            variant="ghost"
-            className="inline-flex items-center gap-space-xs font-headline-sm text-headline-sm text-on-surface-variant-weak hover:text-primary transition-colors group"
-          >
-            <span className="material-symbols-outlined text-[18px] group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
-            <span>Back to My Submissions</span>
-          </LinkButton>
-          <span className="text-on-surface-variant-weak font-label-mono-sm text-label-mono-sm">/</span>
-          <div className="inline-flex items-center gap-space-xs bg-surface-container-high px-space-sm py-0.5 rounded-full">
-            <span className="material-symbols-outlined text-[14px] text-primary">tag</span>
-            <span className="font-label-mono-sm text-label-mono-sm text-primary uppercase">SUBMISSION</span>
+    <Card variant="default" className="space-y-4">
+      <div className="flex flex-wrap items-start justify-between gap-3"><div><h2 className="text-lg font-bold text-on-surface">Solution overview</h2><p className="mt-1 whitespace-pre-line text-sm text-on-surface-variant">{submission.summary || 'No short description provided.'}</p></div><a href={`/problems/${submission.problemId}`} target="_blank" rel="noreferrer" className="text-sm font-semibold text-primary">View problem ↗</a></div>
+      {details.problemSolved ? <DetailRow label="Problem solved" value={display(details.problemSolved)} /> : null}
+      {details.keyFeatures ? <DetailRow label="Key features" value={display(details.keyFeatures)} /> : null}
+      {details.innovationUsp ? <DetailRow label="Innovation / USP" value={display(details.innovationUsp)} /> : null}
+      {details.targetUsers ? <DetailRow label="Target users" value={display(details.targetUsers)} /> : null}
+      {details.expectedImpact ? <DetailRow label="Expected impact" value={display(details.expectedImpact)} /> : null}
+    </Card>
+
+    <Card variant="default" className="space-y-4">
+      <h2 className="text-lg font-bold text-on-surface">Student and team</h2>
+      <div className="grid gap-3 sm:grid-cols-2"><DetailRow label="Student / team lead" value={display(student.teamLeaderName)} /><DetailRow label="College / university" value={display(student.collegeUniversity)} /><DetailRow label="Email" value={display(student.email)} /><DetailRow label="Contact number" value={display(student.contactNumber)} /></div>
+      {submission.team && <div className="rounded-lg bg-surface-container-low p-4"><div className="flex flex-wrap justify-between gap-2"><h3 className="font-semibold text-on-surface">{submission.team.name}</h3><span className="text-sm text-on-surface-variant">Team submission</span></div><ul className="mt-3 flex flex-wrap gap-2">{submission.team.members.map(member => <li key={member.participantId} className="rounded-full bg-surface-card px-3 py-1 text-sm text-on-surface">{member.fullName}</li>)}</ul></div>}
+      {!submission.team && <p className="text-sm text-on-surface-variant">Individual submission</p>}
+      {!submission.team && teamDetails.submissionType === 'TEAM' && <p className="text-xs text-on-surface-variant">Team membership data is saved with this submission.</p>}
+    </Card>
+
+    {submission.status === 'ACCEPTED' && submission.reviewScorecard && <Card variant="default" className="space-y-4 border border-emerald-200">
+      <div className="flex flex-wrap items-start justify-between gap-3"><div><h2 className="text-lg font-bold text-on-surface">Evaluator scorecard</h2><p className="mt-1 text-sm text-on-surface-variant">Final score for your accepted solution.</p></div><div className="rounded-xl bg-emerald-50 px-4 py-2 text-right"><p className="text-xs font-semibold uppercase tracking-wide text-emerald-800">Total score</p><p className="text-2xl font-bold text-emerald-900">{submission.reviewScorecard.totalScore} <span className="text-base font-medium">/ {submission.reviewScorecard.maxScore}</span></p></div></div>
+      <div className="divide-y divide-border-subtle rounded-lg border border-border-subtle">{submission.reviewScorecard.criteria.map(criterion => {
+        const result = submission.reviewScorecard!.criteriaScores[criterion.key];
+        return <div key={criterion.key} className="flex flex-wrap items-start justify-between gap-3 p-3"><div className="min-w-0"><h3 className="font-semibold text-on-surface">{criterion.label}</h3>{criterion.description && <p className="mt-1 text-sm text-on-surface-variant">{criterion.description}</p>}{result?.comment && <p className="mt-2 whitespace-pre-line text-sm text-on-surface-variant">{result.comment}</p>}</div><span className="shrink-0 rounded-full bg-surface-container-low px-3 py-1 text-sm font-bold text-on-surface">{result?.score ?? '—'} / {criterion.maxScore}</span></div>;
+      })}</div>
+      {submission.reviewScorecard.overallRemarks && <div className="rounded-lg bg-surface-container-low p-4"><h3 className="text-sm font-bold text-on-surface">Evaluator remarks</h3><p className="mt-1 whitespace-pre-line text-sm text-on-surface-variant">{submission.reviewScorecard.overallRemarks}</p></div>}
+      {submission.reviewScorecard.submittedAt && <p className="text-xs text-on-surface-variant">Scorecard submitted {new Date(submission.reviewScorecard.submittedAt).toLocaleString()}</p>}
+    </Card>}
+
+    <Card variant="default" className="space-y-4">
+      <h2 className="text-lg font-bold text-on-surface">Technology details</h2>
+      <div className="grid gap-3 sm:grid-cols-2">{([['frontend','Frontend'],['backend','Backend'],['database','Database'],['aiMl','AI / ML'],['apis','APIs / external services'],['deployment','Deployment platform'],['architectureDiagramUrl','Architecture diagram']] as const).map(([key, label]) => <DetailRow key={key} label={label} value={display(technical[key])} url={key === 'architectureDiagramUrl'} />)}</div>
+    </Card>
+
+    <Card variant="default" className="space-y-4">
+      <h2 className="text-lg font-bold text-on-surface">Repository and project links</h2>
+      {submission.githubUrl ? <div className="rounded-lg bg-surface-container-low p-4"><div className="flex flex-wrap items-center justify-between gap-2"><a className="break-all font-semibold text-primary" href={submission.githubUrl} target="_blank" rel="noreferrer">{submission.githubUrl} ↗</a><span className="rounded bg-surface-card px-2 py-1 font-mono text-xs">Branch: {submission.branch || 'main'}</span></div><p className="mt-2 break-all font-mono text-xs text-on-surface-variant">Commit: {submission.commitSha || 'Not pinned yet'}</p></div> : <p className="text-sm text-on-surface-variant">No GitHub repository attached.</p>}
+      {links.length ? <ul className="divide-y divide-border-subtle">{links.map((link, index) => <li key={`${link.url}-${index}`} className="flex flex-wrap items-center justify-between gap-2 py-3"><span className="text-sm font-medium text-on-surface">{link.label}</span><a href={link.url} target="_blank" rel="noreferrer" className="max-w-full break-all text-sm font-semibold text-primary">{link.url} ↗</a></li>)}</ul> : <p className="text-sm text-on-surface-variant">No additional project links attached.</p>}
+    </Card>
+
+    <Card variant="default" className="space-y-4">
+      <div><h2 className="text-lg font-bold text-on-surface">Attached files ({submission.files.length})</h2><p className="mt-1 text-sm text-on-surface-variant">Documentation, presentations, and screenshots uploaded with this draft.</p></div>
+      {submission.files.length === 0 ? <p className="rounded-lg bg-surface-container-low p-4 text-sm text-on-surface-variant">No files attached.</p> : <ul className="space-y-2">{submission.files.map(file => <li key={file.fileId} className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-surface-container-low p-3"><div className="min-w-0"><p className="break-all text-sm font-semibold text-on-surface">{file.originalName}</p><p className="text-xs text-on-surface-variant">{file.contentType || 'File'} · {(file.sizeBytes / 1024 / 1024).toFixed(1)} MB · SHA-256 {file.sha256.slice(0, 12)}…</p></div><Button variant="secondary" size="sm" onClick={() => portal.downloadFile(file.fileId, file.originalName)}>Download</Button></li>)}</ul>}
+      {screenshots.length > 0 && <p className="text-xs text-on-surface-variant">{screenshots.length} image(s) attached. Download each image to view.</p>}
+      {artifacts.length > 0 && <p className="text-xs text-on-surface-variant">{artifacts.length} document / artifact file(s) attached.</p>}
+    </Card>
+
+    {submission.decisionComment && <Card variant="default" className="space-y-2"><h2 className="font-bold text-on-surface">Evaluator feedback</h2><p className="whitespace-pre-line text-sm text-on-surface-variant">{submission.decisionComment}</p></Card>}
+
+    {isEditable && <Card variant="default" className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-bold text-on-surface">Ready to submit for evaluation?</h2><p className="text-sm text-on-surface-variant">You can edit the solution and attachments before sending it for review.</p>{needsCommit && <p className="mt-1 text-sm font-semibold text-state-returned-text">Add a commit SHA in the GitHub section before submitting.</p>}{!hasArtifact && <p className="mt-1 text-sm font-semibold text-state-returned-text">Add a solution title, description, project link, or file first.</p>}</div><div className="flex flex-wrap gap-2"><LinkButton to={`/app/submissions/${submission.submissionId}/edit`} variant="secondary">Edit draft</LinkButton><Button variant="primary" disabled={submit.isPending || needsCommit || !hasArtifact} onClick={() => submit.mutate()}>{submit.isPending ? 'Submitting…' : 'Submit for evaluation'}</Button></div></Card>}
+    </main>
+    <AnimatePresence>
+      {submittedRound !== null && <motion.div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm" role="presentation" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+        <motion.section role="dialog" aria-modal="true" aria-labelledby="submit-success-title" className="relative w-full max-w-md overflow-hidden rounded-3xl bg-surface-card p-8 text-center shadow-2xl" initial={{ opacity: 0, y: 24, scale: 0.92 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: 0.96 }} transition={{ type: 'spring', stiffness: 260, damping: 22 }}>
+          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-300 via-primary to-sky-300" />
+          <div className="relative mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+            <motion.svg viewBox="0 0 48 48" className="h-12 w-12" fill="none" initial={{ scale: 0.5, rotate: -25 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 15, delay: 0.12 }} aria-hidden="true">
+              <motion.path d="M12 25.5 20 33l16-18" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.45, delay: 0.25 }} />
+            </motion.svg>
+            {[0, 1, 2, 3, 4, 5].map((spark, index) => <motion.span key={spark} className={`absolute h-2 w-2 rounded-full ${index % 2 ? 'bg-primary' : 'bg-emerald-400'}`} style={{ left: `${8 + index * 16}%`, top: index % 2 ? '5%' : '88%' }} initial={{ opacity: 0, scale: 0, y: 5 }} animate={{ opacity: [0, 1, 0], scale: [0, 1, 0.5], y: index % 2 ? -15 : 15 }} transition={{ duration: 0.85, delay: 0.18 + index * 0.06 }} />)}
           </div>
-        </div>
-        <div className="flex items-center gap-space-sm self-start sm:self-auto">
-          <Button variant="secondary" size="sm" className="inline-flex items-center gap-space-xs h-10 px-space-md rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container font-headline-sm text-headline-sm transition-colors shadow-sm">
-            <span className="material-symbols-outlined text-[18px]">history</span>
-            <span>Diff History</span>
-          </Button>
-          <Button
-            variant="primary"
-            className="inline-flex items-center gap-space-xs h-10 px-space-md rounded-lg bg-primary-container hover:bg-state-submitted-text text-on-primary font-headline-sm text-headline-sm transition-all shadow-md hover:shadow-lg active:scale-95"
-            onClick={() => submit.mutate()}
-            disabled={submit.isPending || !submission?.commitSha}
-          >
-            <span className="material-symbols-outlined text-[18px]">edit_document</span>
-            <span>Edit & Resubmit Solution</span>
-            <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-          </Button>
-        </div>
-      </div>
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">Submission complete</p>
+          <h2 id="submit-success-title" className="mt-2 text-2xl font-bold text-on-surface">Solution submitted successfully</h2>
+          <p className="mt-3 text-sm leading-6 text-on-surface-variant">Your solution is now <strong className="text-on-surface">under review</strong>. Evaluators can review it in Round {submittedRound}.</p>
+          <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row"><Button variant="primary" onClick={() => setSubmittedRound(null)}>View submission</Button><LinkButton to="/app/submissions" variant="secondary">My submissions</LinkButton></div>
+        </motion.section>
+      </motion.div>}
+    </AnimatePresence>
+  </>;
+}
 
-      {/* Title & Problem Statement Banner */}
-      <div className="relative overflow-hidden rounded-xl bg-surface-card p-space-lg sm:p-space-xl shadow-sm">
-        <div className="absolute -right-16 -top-16 w-64 h-64 bg-state-review-bg/50 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-space-lg">
-          <div className="space-y-space-xs max-w-3xl">
-            <div className="flex flex-wrap items-center gap-space-sm">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-state-review-bg text-state-review-text font-label-mono-sm text-label-mono-sm">
-                <span className="w-2 h-2 rounded-full bg-state-review-text animate-pulse"></span>
-                RETURNED · CHANGES REQUESTED
-              </span>
-              <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">ID: {submission.submissionId?.slice(0, 12).toUpperCase()}</span>
-              <span className="inline-flex items-center gap-1 font-label-mono-sm text-label-mono-sm text-state-accepted-text bg-state-accepted-bg px-2 py-0.5 rounded-full">
-                <span className="material-symbols-outlined text-[14px]">verified</span> Integrity Verified
-              </span>
-            </div>
-            <h1 className="font-display-lg text-display-lg text-on-surface tracking-tight">
-              {submission.title || 'Untitled submission'}
-            </h1>
-            <div className="flex items-start gap-space-xs pt-space-xs">
-              <span className="material-symbols-outlined text-on-surface-variant-weak text-[20px] shrink-0 mt-0.5">account_tree</span>
-              <p className="font-body-md text-body-md text-on-surface-variant-weak">
-                <span className="font-headline-sm text-headline-sm text-on-surface">Problem Statement:</span>
-                Decentralized Cold-Chain Telemetry and Spoilage Prediction for Perishable Produce
-                <span className="inline-block mx-1.5 text-outline">•</span>
-                <span className="text-primary font-headline-sm text-headline-sm">Ministry of Agriculture & Farmers Welfare</span>
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-space-md bg-surface-canvas p-space-md rounded-xl shrink-0">
-            <div className="relative w-16 h-16 flex items-center justify-center">
-              <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 36 36">
-                <path className="text-border-subtle" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="3.5" />
-                <path className="text-state-review-text" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeDasharray="72, 100" strokeLinecap="round" strokeWidth="3.5" />
-              </svg>
-              <span className="absolute font-headline-md text-headline-md text-on-surface">72%</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="font-headline-sm text-headline-sm text-on-surface">Review Stage 1</span>
-              <span className="font-body-sm text-body-sm text-on-surface-variant-weak">3 criteria pending rework</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Prominent Alert Banner */}
-      <div className="mt-space-lg rounded-xl bg-state-review-bg p-space-md flex items-start gap-space-md">
-        <div className="p-2 rounded-lg bg-state-review-text/10 text-state-review-text shrink-0 mt-0.5">
-          <span className="material-symbols-outlined text-[24px]">assignment_late</span>
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-            <p className="font-headline-sm text-headline-sm text-state-review-text">Action Required: Substantive Revisions Demanded</p>
-            <span className="font-label-mono-sm text-label-mono-sm text-state-review-text">Deadline: 19 Oct 2024, 23:59 IST</span>
-          </div>
-          <p className="font-body-md text-body-md text-on-surface mt-1">
-            Your submission has been reviewed by the assigned problem evaluator and returned for necessary modifications before final acceptance into Round 2 ranking.
-          </p>
-        </div>
-      </div>
-
-      {/* Official Evaluator Decision & Comments */}
-      <div className="bg-surface-card rounded-xl shadow-md overflow-hidden">
-        <div className="p-space-lg bg-surface-card flex flex-col md:flex-row md:items-center justify-between gap-space-md">
-          <div className="flex items-center gap-space-md">
-            <div className="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center text-primary">
-              <span className="material-symbols-outlined text-[28px]">rate_review</span>
-            </div>
-            <div>
-              <h2 className="font-headline-md text-headline-md text-on-surface">Official Evaluator Decision & Comments</h2>
-              <div className="flex flex-wrap items-center gap-x-space-md gap-y-1 mt-1 text-on-surface-variant-weak font-label-mono-sm text-label-mono-sm">
-                <span className="inline-flex items-center gap-1 text-primary">
-                  <span className="material-symbols-outlined text-[15px]">badge</span>
-                  Assigned Subject Matter Evaluator #EV-402
-                </span>
-                <span>•</span>
-                <span className="text-on-surface-variant-weak">Dept of Agriculture Panel</span>
-                <span>•</span>
-                <span className="inline-flex items-center gap-1 text-on-surface-variant-weak">
-                  <span className="material-symbols-outlined text-[15px]">schedule</span>
-                  14 Oct 2024 at 16:30 IST
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="inline-flex items-center gap-space-xs bg-state-review-bg text-state-review-text px-space-md py-1.5 rounded-lg font-headline-sm text-headline-sm">
-            <span className="material-symbols-outlined text-[18px]">sync_problem</span>
-            <span>Review Round 1 · Needs Work</span>
-          </div>
-        </div>
-        <div className="p-space-lg sm:p-space-xl space-y-space-lg">
-          <div className="rounded-xl bg-surface-canvas p-space-lg relative">
-            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-state-review-text rounded-l-xl"></div>
-            <div className="flex items-start gap-space-md">
-              <span className="material-symbols-outlined text-on-surface-variant-weak text-[24px] shrink-0">format_quote</span>
-              <div className="space-y-space-sm flex-1">
-                <p className="font-body-lg text-body-lg text-on-surface leading-relaxed">
-                  "The predictive thermal modeling and offline caching logic are well architected. However, the telemetry packet format documentation does not define the compression ratios or fallback behavior when the LoRa gateway drops packets. Please update the technical brief PDF and provide explicit test vectors in the pinned commit before resubmitting for final round scoring."
-                </p>
-                <div className="flex items-center gap-space-md text-on-surface-variant-weak font-body-sm text-body-sm pt-space-xs">
-                  <span>Evaluator Rubric Score: <strong className="text-on-surface font-headline-sm">28 / 40</strong> (Pass threshold: 30)</span>
-                  <span>•</span>
-                  <span className="text-state-review-text font-headline-sm">Eligibility: Conditionally Active</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="space-y-space-md">
-            <div className="flex items-center justify-between">
-              <h3 className="font-headline-sm text-headline-sm text-on-surface uppercase tracking-wider flex items-center gap-space-xs">
-                <span className="material-symbols-outlined text-state-review-text text-[20px]">fact_check</span>
-                Checklist of Requested Modifications ({getChecklistProgress()}/3 Completed)
-              </h3>
-              <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">Mandatory for Final Acceptance</span>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-space-md">
-              {checklistItemsData.map((item) => (
-                <label
-                  key={item.id}
-                  className="group relative flex flex-col justify-between p-space-md rounded-xl bg-surface-canvas hover:bg-surface-container-low transition-colors cursor-pointer shadow-sm"
-                >
-                  <div className="flex items-start gap-space-sm">
-                    <input
-                      type="checkbox"
-                      id={item.id}
-                      checked={checklistProgress[item.id] || false}
-                      onChange={(e) => setChecklistProgress((_prev) => ({ ...checklistProgress, [item.id]: e.target.checked }))}
-                      className="mt-1 h-4 w-4 rounded text-primary focus:ring-primary"
-                    />
-                    <div className="space-y-1">
-                      <span className="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">{item.label}</span>
-                      <p className="font-body-sm text-body-sm text-on-surface-variant-weak">{item.desc}</p>
-                    </div>
-                  </div>
-                  <div className="mt-space-md pt-space-sm flex items-center justify-between font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">
-                    <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">{item.type === 'Spec Doc' ? 'description' : item.type === 'Git /tests' ? 'commit' : 'cloud_upload'}</span> {item.type}</span>
-                    <span className="text-state-review-text">Pending</span>
-                  </div>
-                </label>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Navigation Tabs */}
-      <motion.div
-        className="flex items-center gap-space-xs bg-surface-container-low p-1.5 rounded-xl self-start"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.2 }}
-      >
-        <Tabs
-          tabs={[
-            { id: 'timeline', label: 'Overview & Timeline' },
-            { id: 'files', label: 'Project Files', badge: submission.files?.length ?? 0 },
-            { id: 'repo', label: 'Code Repository' },
-            { id: 'audit', label: 'Evaluation Audit' },
-          ]}
-          activeTab={activeTab}
-          onChange={(tabId) => setActiveTab(tabId as 'timeline' | 'files' | 'repo' | 'audit')}
-          variant="pills"
-        />
-      </motion.div>
-
-      {/* MAIN TWO-COLUMN WORKSPACE CANVAS */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-space-xl">
-        {/* Left Column: Interactive Timeline & Telemetry Spec (7 Cols) */}
-        <div className="xl:col-span-7 space-y-space-lg">
-          {/* Interactive Submission Lifecycle Timeline */}
-          <Card variant="default" className="space-y-space-lg">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-space-sm">
-                <div className="p-2 rounded-lg bg-surface-container-low text-primary">
-                  <span className="material-symbols-outlined text-[20px]">timeline</span>
-                </div>
-                <h3 className="font-headline-md text-headline-md text-on-surface">Lifecycle Progress Audit</h3>
-              </div>
-              <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">Lifecycle Audit Log</span>
-            </div>
-            <div className="relative pl-6 space-y-space-lg">
-              <div className="absolute left-[11px] top-3 bottom-4 w-0.5 bg-border-subtle"></div>
-              {[
-                { label: 'Draft Created', time: '10 Oct 2024 • 10:15 AM IST', desc: 'Repository initialized by Yogesh Ghule with baseline FreeRTOS firmware and prototype architecture docs.', completed: true, current: false },
-                { label: 'Submitted for Review', time: '11 Oct 2024 • 18:40 PM IST', desc: 'Formal submission lock engaged. Cryptographic hash stamped and payload forwarded to Ministry panel.', completed: true, current: false },
-                { label: 'Under Evaluation', time: '12 Oct 2024 • 11:20 AM IST', desc: 'Routed to Lead Evaluator #EV-402 (Dept of Agriculture). Hardware benchmarks and code tests initiated.', completed: true, current: false },
-                { label: 'Changes Requested / Returned', time: '14 Oct 2024 • 16:30 PM IST', desc: 'Evaluation report published with 3 requested items. Submission status converted to interactive editing state.', completed: true, current: true, status: 'returned' },
-                { label: 'Resubmission Pending Review Round 2', time: 'Scheduled Post-Upload', desc: 'Evaluation committee will re-convene within 24 hours of resubmission to verify requested changes.', completed: false, current: false },
-              ].map((node, idx) => (
-                <motion.div
-                  key={idx}
-                  className={`relative flex items-start gap-space-md group ${node.current ? '' : 'opacity-60'}`}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: 0.1 + idx * 0.05 }}
-                >
-                  <span className={`absolute -left-6 top-1 w-6 h-6 rounded-full flex items-center justify-center shadow-sm ring-4 ring-surface-card ${node.completed ? 'bg-state-accepted-bg text-state-accepted-text' : node.current ? `bg-${node.status === 'returned' ? 'state-review' : 'state-review'}-text` : 'bg-surface-card border-2 border-border-subtle text-on-surface-variant-weak'}`}>
-                    {node.completed ? (
-                      <span className="material-symbols-outlined text-[14px]">check</span>
-                    ) : node.current ? (
-                      <span className="material-symbols-outlined text-[14px]">priority_high</span>
-                    ) : (
-                      <span className="material-symbols-outlined text-[14px]">schedule</span>
-                    )}
-                  </span>
-                  <div className={`flex-1 ${node.current ? 'bg-state-review-bg/40' : 'bg-surface-canvas'} p-space-md rounded-xl ${node.current ? 'shadow-sm' : ''}`}>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                      <span className={`font-headline-sm text-headline-sm ${node.current ? 'text-state-review-text' : 'text-on-surface'}`}>
-                        {node.label}
-                      </span>
-                      <span className={`font-label-mono-sm text-label-mono-sm ${node.current ? 'text-state-review-text font-bold' : 'text-on-surface-variant-weak'}`}>
-                        {node.time}
-                      </span>
-                    </div>
-                    <p className="font-body-sm text-body-sm text-on-surface-variant-weak mt-1">
-                      {node.desc}
-                    </p>
-                    {node.current && (
-                      <div className="mt-space-sm pt-space-xs flex items-center gap-space-xs font-label-mono-sm text-label-mono-sm text-state-review-text">
-                        <span className="w-2 h-2 rounded-full bg-state-review-text"></span>
-                        Active Stage: Author Revision in Progress
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </Card>
-          {/* Technical Solution Brief Preview Card */}
-          <Card variant="default" className="space-y-space-md">
-            <div className="flex items-center justify-between">
-              <h4 className="font-headline-sm text-headline-sm text-on-surface flex items-center gap-space-xs">
-                <span className="material-symbols-outlined text-primary text-[20px]">architecture</span>
-                System Architecture & Telemetry Matrix
-              </h4>
-              <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">v1.2-rc4</span>
-            </div>
-            <Card variant="outlined" className="p-space-md space-y-space-sm">
-              <p className="font-body-md text-body-md text-on-surface">
-                The Sentinel node records ambient temp (-40°C to +85°C), RH (0-100%), volatile ethylene emissions, and multi-axis vibrational telemetry on a 30-second interval, cached in ferroelectric RAM (FRAM).
-              </p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-space-sm pt-space-xs">
-                <Card variant="outlined" className="p-space-sm">
-                  <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak block">FREQUENCY</span>
-                  <span className="font-headline-sm text-headline-sm text-primary">868 MHz LoRa</span>
-                </Card>
-                <Card variant="outlined" className="p-space-sm">
-                  <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak block">PAYLOAD BUDGET</span>
-                  <span className="font-headline-sm text-headline-sm text-primary">51 Bytes/frame</span>
-                </Card>
-                <Card variant="outlined" className="p-space-sm">
-                  <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak block">OFFLINE BUFFER</span>
-                  <span className="font-headline-sm text-headline-sm text-primary">72 Hours Local</span>
-                </Card>
-                <Card variant="outlined" className="p-space-sm">
-                  <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak block">ENCRYPTION</span>
-                  <span className="font-headline-sm text-headline-sm text-primary">AES-128 GCM</span>
-                </Card>
-              </div>
-            </Card>
-          </Card>
-        </div>
-
-        {/* Right Column: Metadata Grid, Artifacts & Team (5 Cols) */}
-        <div className="xl:col-span-5 space-y-space-lg">
-          {/* Attached Files & Integrity Verification */}
-          <Card variant="default" className="space-y-space-md">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-space-xs">
-                <span className="material-symbols-outlined text-primary text-[20px]">folder</span>
-                <h3 className="font-headline-sm text-headline-sm text-on-surface">Attached Submission Artifacts ({submission.files?.length ?? 0})</h3>
-              </div>
-              <Button variant="ghost" size="sm" className="text-primary hover:text-state-submitted-text font-label-mono-sm text-label-mono-sm flex items-center gap-0.5" onClick={() => {}}>
-                <span className="material-symbols-outlined text-[16px]">download</span>
-                <span>All (.ZIP)</span>
-              </Button>
-            </div>
-            <div className="space-y-space-xs">
-              {submission.files?.map((file, idx) => (
-                <motion.div
-                  key={file.fileId}
-                  className={`p-space-sm rounded-xl flex items-center justify-between gap-space-sm ${idx === 0 ? 'bg-state-review-bg/30' : 'bg-surface-canvas'}`}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: 0.1 + idx * 0.05 }}
-                >
-                  <div className="flex items-center gap-space-sm min-w-0">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${idx === 0 ? 'bg-state-review-bg text-state-review-text' : 'bg-surface-container text-primary'}`}>
-                      <span className="material-symbols-outlined text-[20px]">{idx === 0 ? 'picture_as_pdf' : idx === 1 ? 'memory' : 'table_chart'}</span>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-headline-sm text-headline-sm text-on-surface truncate">{file.originalName}</span>
-                        {idx === 0 && <span className="px-1.5 py-0.2 rounded bg-state-review-text text-on-primary font-label-mono-sm text-[10px]">UPDATE REQ</span>}
-                      </div>
-                      <div className="flex items-center gap-space-xs font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">
-                        <span>{file.sizeBytes ? `${(file.sizeBytes / 1024 / 1024).toFixed(1)} MB` : '~2.5 MB'}</span>
-                        <span>•</span>
-                        <span className={idx === 0 ? 'text-state-review-text' : 'text-state-accepted-text'}>{idx === 0 ? 'Needs revision' : 'Valid'}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="sm" className="p-1.5 text-on-surface-variant-weak hover:text-primary transition-colors">
-                    <span className="material-symbols-outlined text-[18px]">download</span>
-                  </Button>
-                </motion.div>
-              ))}
-            </div>
-            <Card variant="outlined" className="p-space-sm flex items-start gap-space-sm">
-              <span className="material-symbols-outlined text-state-accepted-text text-[20px] shrink-0 mt-0.5">verified_user</span>
-              <div className="space-y-0.5">
-                <p className="font-headline-sm text-headline-sm text-on-surface">Cryptographic Integrity Seal</p>
-                <p className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">SHA-256 seal verified on all raw assets at upload boundary.</p>
-                <div className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak break-all pt-1 select-all">
-                  {submission.files?.[0]?.sha256 || 'a983b92ec849202f54a88f7129cd8a1b327b87c093a021'}
-                </div>
-              </div>
-            </Card>
-          </Card>
-
-          {/* Git Code Repository & Pinned Commit */}
-          <Card variant="default" className="space-y-space-md">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-space-xs">
-                <span className="material-symbols-outlined text-primary text-[20px]">code</span>
-                <h3 className="font-headline-sm text-headline-sm text-on-surface">Linked Codebase</h3>
-              </div>
-              <span className="px-2 py-0.5 rounded bg-surface-container text-on-surface font-label-mono-sm text-label-mono-sm">Public</span>
-            </div>
-            <Card variant="outlined" className="p-space-md space-y-space-sm">
-              <div className="flex items-center justify-between">
-                <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">GITHUB REPOSITORY</span>
-                <LinkButton to="https://github.com/cryotrackers/coldchain-telemetry" target="_blank" variant="ghost" size="sm" className="inline-flex items-center gap-1 font-label-mono-sm text-label-mono-sm text-primary hover:underline">
-                  cryotrackers/coldchain-telemetry
-                  <span className="material-symbols-outlined text-[14px]">open_in_new</span>
-                </LinkButton>
-              </div>
-              <div className="flex items-center justify-between pt-space-xs">
-                <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">PINNED AUDIT COMMIT</span>
-                <div className="inline-flex items-center gap-space-xs bg-surface-card px-2.5 py-1 rounded font-label-mono-sm text-label-mono-sm text-on-surface shadow-xs">
-                  <span className="material-symbols-outlined text-[14px] text-on-surface-variant-weak">commit</span>
-                  <span className="font-bold">{submission.commitSha?.slice(0, 7) || '7b29ec4'}</span>
-                  <Button variant="ghost" size="sm" className="text-on-surface-variant-weak hover:text-on-surface transition-colors" onClick={() => navigator.clipboard.writeText(submission.commitSha || '7b29ec4')}>
-                    <span className="material-symbols-outlined text-[14px]">content_copy</span>
-                  </Button>
-                </div>
-              </div>
-              <div className="pt-space-xs">
-                <div className="flex items-center justify-between font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak pb-1">
-                  <span>Repository Health Check</span>
-                  <span className="text-state-accepted-text">CI Passing (18 tests)</span>
-                </div>
-                <div className="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
-                  <motion.div
-                    className="w-5/6 h-full bg-state-accepted-text rounded-full"
-                    initial={{ width: 0 }}
-                    animate={{ width: '83.33%' }}
-                    transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                  />
-                </div>
-              </div>
-            </Card>
-          </Card>
-
-          {/* Team Metadata & Roles */}
-          <Card variant="default" className="space-y-space-md">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-space-xs">
-                <span className="material-symbols-outlined text-primary text-[20px]">groups</span>
-                <h3 className="font-headline-sm text-headline-sm text-on-surface">Team CryoTrackers</h3>
-              </div>
-              <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">3 Members</span>
-            </div>
-            <div className="space-y-space-sm">
-              <div className="flex items-center justify-between p-space-sm rounded-lg bg-surface-canvas">
-                <div className="flex items-center gap-space-sm min-w-0">
-                  <img alt="Yogesh Ghule" className="w-8 h-8 rounded-full object-cover shrink-0" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXE1lY36f_erOMfcaU3wYiYE6m2bxHeOoQU2dT83Vohp-XhnVz9wDh05qGQipkJnQ8zv0wzEi9L4I3PAiqEJM4DpJiCDDXcLUsBEXzYTgCJ5QHRWKOs_sblF1iStKoywU9xfYRiRwrnJjnARUhhT3Gt0-RRcvmTGGfTlrFqmUVyxRM4myDtzWNTmDo4T2Mr_gUR767YxQZ-zdFGlGHAJZxdlURPBijpOnnycmmdCr1s865Q8oWLP9nmg" />
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-headline-sm text-headline-sm text-on-surface truncate">Yogesh Ghule</span>
-                      <span className="px-1.5 py-0.5 rounded bg-surface-container text-primary font-label-mono-sm text-[10px]">YOU</span>
-                    </div>
-                    <span className="font-body-sm text-body-sm text-on-surface-variant-weak">Team Lead & Embedded Arch</span>
-                  </div>
-                </div>
-                <span className="font-label-mono-sm text-label-mono-sm text-state-accepted-text flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-state-accepted-text"></span> Active
-                </span>
-              </div>
-              <div className="flex items-center justify-between p-space-sm rounded-lg bg-surface-canvas">
-                <div className="flex items-center gap-space-sm min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-secondary-container text-on-secondary flex items-center justify-center font-headline-sm text-headline-sm shrink-0">RS</div>
-                  <div className="min-w-0">
-                    <span className="font-headline-sm text-headline-sm text-on-surface truncate block">Rahul Sharma</span>
-                    <span className="font-body-sm text-body-sm text-on-surface-variant-weak">Firmware & LoRa Developer</span>
-                  </div>
-                </div>
-                <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">Verified</span>
-              </div>
-              <div className="flex items-center justify-between p-space-sm rounded-lg bg-surface-canvas">
-                <div className="flex items-center gap-space-sm min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-headline-sm text-headline-sm shrink-0">AP</div>
-                  <div className="min-w-0">
-                    <span className="font-headline-sm text-headline-sm text-on-surface truncate block">Amit Patel</span>
-                    <span className="font-body-sm text-body-sm text-on-surface-variant-weak">ML Spoilage Model Specialist</span>
-                  </div>
-                </div>
-                <span className="font-label-mono-sm text-label-mono-sm text-on-surface-variant-weak">Verified</span>
-              </div>
-            </div>
-          </Card>
-        </div>
-      </div>
-
-      {/* Resubmission Sticky Banner / Callout */}
-      <Card variant="default" className="flex flex-col sm:flex-row items-center justify-between gap-space-md">
-        <div className="flex items-center gap-space-md">
-          <div className="p-2.5 rounded-xl bg-surface-container text-primary">
-            <span className="material-symbols-outlined text-[24px]">published_with_changes</span>
-          </div>
-          <div>
-            <h4 className="font-headline-sm text-headline-sm text-on-surface">Ready to upload updated documentation?</h4>
-            <p className="font-body-sm text-body-sm text-on-surface-variant-weak">Editing unlocks file upload replacements and enables pushing an updated pinned commit.</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-space-sm w-full sm:w-auto">
-          <Button variant="secondary" className="w-full sm:w-auto px-space-md py-2.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-headline-sm text-headline-sm transition-colors">
-            Download Feedback Brief
-          </Button>
-          <Button
-            variant="primary"
-            className="w-full sm:w-auto px-space-lg py-2.5 rounded-lg bg-primary-container hover:bg-state-submitted-text text-on-primary font-headline-sm text-headline-sm transition-all shadow-md"
-            onClick={() => submit.mutate()}
-            disabled={submit.isPending || !submission?.commitSha}
-          >
-            Begin Resubmission Flow →
-          </Button>
-        </div>
-      </Card>
-    </div>
-  );
+function DetailRow({ label, value, url = false }: { label: string; value: string; url?: boolean }) {
+  return <div className="min-w-0"><p className="text-xs font-semibold uppercase tracking-wide text-on-surface-variant">{label}</p>{url && value !== 'Not provided' ? <a className="mt-1 block break-all text-sm font-semibold text-primary" href={value} target="_blank" rel="noreferrer">{value} ↗</a> : <p className="mt-1 break-words text-sm text-on-surface">{value}</p>}</div>;
 }

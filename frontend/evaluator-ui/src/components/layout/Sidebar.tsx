@@ -5,14 +5,11 @@ interface NavItem {
   to: string;
   label: string;
   icon: string;
-  badge?: string;
 }
 
 const EVALUATOR_NAV: NavItem[] = [
-  { to: '/evaluator/dashboard', label: 'Evaluation Desk', icon: 'dashboard' },
-  { to: '/evaluator/profile', label: 'Evaluator Profile', icon: 'badge' },
-  { to: '/evaluator/criteria', label: 'Criteria Matrix', icon: 'fact_check' },
-  { to: '/evaluator/assignments', label: 'Assigned Dossiers', icon: 'assignment', badge: 'Active' },
+  { to: '/evaluator/dashboard', label: 'My Work', icon: 'dashboard' },
+  { to: '/evaluator/assignments', label: 'Assigned Dossiers', icon: 'assignment' },
   { to: '/evaluator/project-reviews', label: 'Project Reviews', icon: 'rate_review' },
 ];
 
@@ -28,7 +25,6 @@ export default function Sidebar() {
   const phone = getPhone();
   const isEval = role === 'EVALUATOR';
   const navItems = isEval ? EVALUATOR_NAV : ADMIN_NAV;
-  const roleLabel = role ?? 'EVALUATOR';
 
   return (
     <aside className="fixed left-0 top-0 h-full w-64 bg-surface-crisp z-50 flex flex-col justify-between border-r border-border-hairline">
@@ -38,11 +34,9 @@ export default function Sidebar() {
           <span className="material-symbols-outlined text-ashoka-blue text-[22px]">verified_user</span>
           <div className="flex flex-col">
             <span className="font-label-md text-label-md text-ashoka-blue uppercase tracking-wider font-bold">
-              Evaluation Desk
+              Evaluator Portal
             </span>
-            <span className="font-mono-code text-[11px] text-text-muted">
-              {userId ? `ID: EVAL-${userId.substring(0, 6)}` : 'ID: EVAL-7729'}
-            </span>
+            {userId && <span className="font-mono-code text-[11px] text-text-muted">User {userId.substring(0, 8)}</span>}
           </div>
         </div>
 
@@ -55,7 +49,7 @@ export default function Sidebar() {
             <div className="flex items-center gap-space-xs">
               <span className="w-2 h-2 rounded-full bg-gov-emerald"></span>
               <span className="font-label-md text-label-md text-status-approved-text font-bold">
-                {roleLabel}
+                {role || 'Role unavailable'}
               </span>
             </div>
             <span className="material-symbols-outlined text-status-approved-text text-[16px]">lock</span>
@@ -79,11 +73,6 @@ export default function Sidebar() {
                 <span className="material-symbols-outlined text-[18px]">{item.icon}</span>
                 <span>{item.label}</span>
               </div>
-              {item.badge && (
-                <span className="px-1.5 py-0.5 rounded-full bg-surface-container font-mono-code text-[10px] text-ashoka-blue font-bold">
-                  {item.badge}
-                </span>
-              )}
             </NavLink>
           ))}
         </nav>
@@ -91,15 +80,11 @@ export default function Sidebar() {
 
       {/* Footer */}
       <div className="p-space-base border-t border-border-hairline bg-surface-subtle flex flex-col gap-space-xs">
-        <div className="flex items-center justify-between text-text-muted font-label-sm text-label-sm">
-          <span className="font-mono-code text-[11px] truncate max-w-[130px]" title={phone || userId || 'NODE-IN-BLR-01'}>
-            {phone ? `+91 ${phone}` : 'NODE-IN-BLR-01'}
+        {(phone || userId) && <div className="text-text-muted font-label-sm text-label-sm">
+          <span className="font-mono-code text-[11px] truncate block" title={phone || userId || undefined}>
+            {phone ? `+91 ${phone}` : `User ${userId?.substring(0, 8)}`}
           </span>
-          <span className="text-gov-emerald flex items-center gap-1 font-bold">
-            <span className="w-1.5 h-1.5 rounded-full bg-gov-emerald"></span>
-            SECURE
-          </span>
-        </div>
+        </div>}
         <div className="font-body-sm text-body-sm text-text-muted text-[11px]">
           National Statutory Evaluation Engine
         </div>

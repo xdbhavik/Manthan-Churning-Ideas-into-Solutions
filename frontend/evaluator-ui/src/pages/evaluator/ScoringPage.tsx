@@ -39,7 +39,6 @@ export default function ScoringPage() {
   const [acceptModal, setAcceptModal] = useState(false);
   const [declineModal, setDeclineModal] = useState(false);
   const [declineReason, setDeclineReason] = useState('');
-  const [evidenceModal, setEvidenceModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
@@ -302,25 +301,12 @@ export default function ScoringPage() {
           </div>
         </section>
 
-        {/* Fallback Advisory Notification */}
-        <div className="w-full px-space-base py-space-xs rounded-xl bg-surface-container-high text-on-surface flex items-center justify-between border border-surface-container-highest">
-          <div className="flex items-center gap-space-sm font-body-sm text-body-sm">
-            <span className="material-symbols-outlined text-ashoka-blue text-[18px]">verified</span>
-            <span>
-              <strong>Problem Registry:</strong> Problem service active. (If external catalog service fails, scoring remains unblocked via local cache snapshot v4).
-            </span>
-          </div>
-          <span className="font-mono-code text-[11px] text-text-muted uppercase tracking-wider font-bold">
-            SYNC-STATUS: OK
-          </span>
-        </div>
-
         {submitSuccess && (
           <div className="p-space-base bg-status-approved-bg border border-status-approved-border text-status-approved-text rounded-xl font-body-md flex items-center justify-between shadow-xs">
             <div className="flex items-center gap-space-sm font-bold">
               <span className="material-symbols-outlined text-[24px]">verified</span>
               <span>
-                Scorecard successfully submitted! Tamper-evident evaluation record sealed under SHA-256 statutory hash.
+                Scorecard submitted successfully.
               </span>
             </div>
             <button
@@ -343,30 +329,15 @@ export default function ScoringPage() {
                   <span className="px-2 py-0.5 rounded-full font-label-sm text-label-sm bg-status-approved-bg text-status-approved-text uppercase tracking-wider font-bold border border-status-approved-border">
                     REGISTERED
                   </span>
-                  <span className="px-2 py-0.5 rounded-full font-label-sm text-label-sm bg-status-action-bg text-status-action-text uppercase tracking-wider font-bold border border-status-action-border">
-                    HIGH URGENCY
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full font-label-sm text-label-sm bg-[#ffdad6] text-[#93000a] uppercase tracking-wider font-bold">
-                    CRITICAL SEVERITY
-                  </span>
                 </div>
                 <h2 className="font-headline-md text-headline-md text-ashoka-blue tracking-tight font-bold">
-                  {problem?.title || 'IoT-Enabled Micro-Aquifer Contamination Early Warning Network'}
+                  {problem?.title || 'Problem title unavailable'}
                 </h2>
               </div>
-              <button
-                type="button"
-                onClick={() => setEvidenceModal(true)}
-                className="shrink-0 inline-flex items-center gap-space-xs px-space-sm py-1.5 rounded-lg bg-surface-subtle hover:bg-surface-muted text-institutional-navy font-label-md text-label-md transition-colors border border-border-hairline cursor-pointer font-semibold"
-              >
-                <span className="material-symbols-outlined text-[18px]">attachment</span>
-                <span>Open evidence (3)</span>
-              </button>
             </div>
 
             <p className="text-text-secondary font-body-md text-body-md leading-relaxed">
-              {problem?.description ||
-                'Deployment of solar-powered LoRaWAN sensor probes in community open-wells and boreholes across drought-prone rural clusters to trace heavy metal and fluoride infiltration in real time. Designed to bypass high-latency central laboratory testing cycles with edge-computed alerts delivered directly to District Water Commissioners and Panchayati Raj engineers.'}
+              {problem?.description || 'Problem description unavailable.'}
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-space-sm pt-space-xs">
@@ -404,51 +375,6 @@ export default function ScoringPage() {
             </div>
           </div>
 
-          {/* 5.3 Advisory Analysis & Guidelines Panel (5 cols) */}
-          <div className="xl:col-span-5 bg-surface-crisp rounded-xl p-space-lg shadow-sm border border-border-hairline flex flex-col gap-space-md">
-            <div className="flex items-center justify-between border-b border-border-hairline pb-space-xs">
-              <div className="flex items-center gap-space-xs">
-                <span className="material-symbols-outlined text-ashoka-blue text-[20px]">psychology</span>
-                <span className="font-headline-sm text-headline-sm text-ashoka-blue font-bold">
-                  Statutory Advisory &amp; AI Analysis
-                </span>
-              </div>
-              <span className="font-mono-code text-[11px] px-2 py-0.5 rounded bg-status-review-bg text-status-review-text font-bold">
-                ADVISORY ENGINE
-              </span>
-            </div>
-
-            <div className="flex flex-col gap-space-xs text-body-sm">
-              <div className="p-space-sm rounded-lg bg-surface-subtle border border-border-hairline">
-                <span className="font-label-sm text-ashoka-blue uppercase font-bold block mb-1">
-                  Automated Feasibility Assessment
-                </span>
-                <p className="text-text-secondary text-[12px] leading-relaxed">
-                  Preliminary natural language parsing matches problem against National Nodal Registry category #ENV-WTR-2024. Recommended minimum threshold: 75/100 for fast-track pilot approval.
-                </p>
-              </div>
-
-              <div className="p-space-sm rounded-lg bg-surface-subtle border border-border-hairline">
-                <span className="font-label-sm text-gov-emerald uppercase font-bold block mb-1">
-                  Conflict of Interest Status
-                </span>
-                <p className="text-text-secondary text-[12px] leading-relaxed">
-                  No overlapping patents or direct familial/financial conflicts identified between Evaluator Node EVAL-7729 and submitter institution.
-                </p>
-              </div>
-
-              <div className="p-space-sm rounded-lg bg-surface-subtle border border-border-hairline">
-                <span className="font-label-sm text-text-primary uppercase font-bold block mb-1">
-                  Statutory Scoring Protocol
-                </span>
-                <ul className="text-text-secondary text-[12px] list-disc list-inside space-y-0.5">
-                  <li>Scores must be accompanied by technical justifications</li>
-                  <li>Final recommendation triggers automated cycle notification</li>
-                  <li>Sealed scorecards are non-repudiable on the gateway</li>
-                </ul>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* 5.4 Criteria Scorecard Form */}
@@ -578,7 +504,7 @@ export default function ScoringPage() {
                 </label>
                 <div className="h-11 px-space-md bg-surface-crisp rounded-lg border border-border-hairline flex items-center justify-between font-mono-code text-body-md font-bold text-ashoka-blue">
                   <span>Aggregate: {totalScore} / {totalMax}</span>
-                  <span className="text-gov-emerald">GRADE: {percentage >= 70 ? 'A (APPROVED)' : 'B (MARGINAL)'}</span>
+                  <span>{percentage}%</span>
                 </div>
               </div>
             </div>
@@ -597,10 +523,7 @@ export default function ScoringPage() {
             </div>
 
             <div className="flex items-center justify-between pt-space-xs">
-              <span className="font-body-sm text-body-sm text-text-muted flex items-center gap-1">
-                <span className="material-symbols-outlined text-[16px] text-gov-emerald">lock</span>
-                Submissions are cryptographically signed with your UIDAI session token.
-              </span>
+              <span className="font-body-sm text-body-sm text-text-muted">Review the score and recommendation before submitting.</span>
               <button
                 type="button"
                 onClick={() => setSubmitConfirm(true)}
@@ -645,74 +568,6 @@ export default function ScoringPage() {
                 className="px-space-md py-2 rounded-lg bg-ashoka-blue text-on-primary font-label-md hover:bg-institutional-navy font-bold shadow-sm cursor-pointer"
               >
                 {submitting ? 'Submitting…' : 'Confirm & Sign'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Evidence Viewer Modal */}
-      {evidenceModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
-          <div className="bg-surface-crisp rounded-xl max-w-lg w-full p-space-lg shadow-xl border border-border-hairline flex flex-col gap-space-md">
-            <div className="flex items-center justify-between border-b border-border-hairline pb-space-xs">
-              <div className="flex items-center gap-space-xs text-ashoka-blue">
-                <span className="material-symbols-outlined text-[20px]">attachment</span>
-                <h3 className="font-headline-sm text-headline-sm font-bold text-text-primary">
-                  Statutory Evidence Attachments (3)
-                </h3>
-              </div>
-              <button type="button" onClick={() => setEvidenceModal(false)} className="text-text-muted hover:text-text-primary">
-                <span className="material-symbols-outlined text-[18px]">close</span>
-              </button>
-            </div>
-            <div className="flex flex-col gap-space-sm">
-              <div className="p-space-sm bg-surface-subtle rounded-lg border border-border-hairline flex items-center justify-between">
-                <div className="flex items-center gap-space-sm">
-                  <span className="material-symbols-outlined text-ashoka-blue text-[20px]">description</span>
-                  <div className="flex flex-col">
-                    <span className="font-label-md text-label-md font-bold text-text-primary">
-                      Architecture_Schematic_LoRa_Aquifer.pdf
-                    </span>
-                    <span className="font-mono-code text-[11px] text-text-muted">4.2 MB · SHA-256 Verified</span>
-                  </div>
-                </div>
-                <span className="text-gov-emerald font-mono-code text-[11px] font-bold">VERIFIED</span>
-              </div>
-
-              <div className="p-space-sm bg-surface-subtle rounded-lg border border-border-hairline flex items-center justify-between">
-                <div className="flex items-center gap-space-sm">
-                  <span className="material-symbols-outlined text-ashoka-blue text-[20px]">table_chart</span>
-                  <div className="flex flex-col">
-                    <span className="font-label-md text-label-md font-bold text-text-primary">
-                      Field_Telemetry_Calibration_Readings.xlsx
-                    </span>
-                    <span className="font-mono-code text-[11px] text-text-muted">1.8 MB · IIT Madras Water Lab</span>
-                  </div>
-                </div>
-                <span className="text-gov-emerald font-mono-code text-[11px] font-bold">VERIFIED</span>
-              </div>
-
-              <div className="p-space-sm bg-surface-subtle rounded-lg border border-border-hairline flex items-center justify-between">
-                <div className="flex items-center gap-space-sm">
-                  <span className="material-symbols-outlined text-ashoka-blue text-[20px]">verified</span>
-                  <div className="flex flex-col">
-                    <span className="font-label-md text-label-md font-bold text-text-primary">
-                      Panchayat_Consent_Letter_Dharmapuri.pdf
-                    </span>
-                    <span className="font-mono-code text-[11px] text-text-muted">890 KB · Block Dev Officer Seal</span>
-                  </div>
-                </div>
-                <span className="text-gov-emerald font-mono-code text-[11px] font-bold">VERIFIED</span>
-              </div>
-            </div>
-            <div className="flex justify-end pt-space-xs">
-              <button
-                type="button"
-                onClick={() => setEvidenceModal(false)}
-                className="px-space-md py-1.5 rounded-lg bg-ashoka-blue text-on-primary font-label-md font-semibold"
-              >
-                Close Viewer
               </button>
             </div>
           </div>

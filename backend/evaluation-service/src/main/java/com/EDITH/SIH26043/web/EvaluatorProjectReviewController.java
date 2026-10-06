@@ -4,9 +4,12 @@ import com.EDITH.SIH26043.config.OpenApiConfig;
 import com.EDITH.SIH26043.enums.ProjectReviewStatus;
 import com.EDITH.SIH26043.security.AuthUser;
 import com.EDITH.SIH26043.service.ProjectReviewService;
+import com.EDITH.SIH26043.service.ProjectReviewScorecardService;
 import com.EDITH.SIH26043.web.dto.ProjectReviewDecisionRequest;
 import com.EDITH.SIH26043.web.dto.ProjectReviewDetailView;
 import com.EDITH.SIH26043.web.dto.ProjectReviewListItem;
+import com.EDITH.SIH26043.web.dto.ProjectReviewScorecardRequest;
+import com.EDITH.SIH26043.web.dto.ProjectReviewScorecardView;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -36,9 +40,11 @@ import java.util.UUID;
 public class EvaluatorProjectReviewController {
 
     private final ProjectReviewService service;
+    private final ProjectReviewScorecardService scorecardService;
 
-    public EvaluatorProjectReviewController(ProjectReviewService service) {
+    public EvaluatorProjectReviewController(ProjectReviewService service, ProjectReviewScorecardService scorecardService) {
         this.service = service;
+        this.scorecardService = scorecardService;
     }
 
     @Operation(summary = "🗂️ My project-review queue",
@@ -64,6 +70,21 @@ public class EvaluatorProjectReviewController {
     public ProjectReviewDetailView detail(@AuthenticationPrincipal AuthUser me,
                                           @PathVariable UUID projectReviewId) {
         return service.detail(me.getUserId(), projectReviewId);
+    }
+
+    @Operation(summary = "📊 Project solution scorecard", description = "Reads the single independent scorecard for this submitted project, including its saved draft and pool criteria.")
+    @GetMapping("/{projectReviewId}/scorecard")
+    public ProjectReviewScorecardView scorecard(@AuthenticationPrincipal AuthUser me,
+                                                @PathVariable UUID projectReviewId) {
+        return scorecardService.get(me.getUserId(), projectReviewId);
+    }
+
+    @Operation(summary = "💾 Save or submit project solution scorecard", description = "Saves a resumable draft or submits the one project scorecard. It does not transition or mutate the problem evaluation cycle.")
+    @PutMapping("/{projectReviewId}/scorecard")
+    public ProjectReviewScorecardView saveScorecard(@AuthenticationPrincipal AuthUser me,
+                                                     @PathVariable UUID projectReviewId,
+                                                     @Valid @RequestBody ProjectReviewScorecardRequest body) {
+        return scorecardService.save(me.getUserId(), projectReviewId, body);
     }
 
     @Operation(summary = "⚖️ Decide a project review",

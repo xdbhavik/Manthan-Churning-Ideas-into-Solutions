@@ -79,6 +79,11 @@ public class ProjectReview {
     @Column(name = "files", nullable = false)
     private List<Map<String, Object>> files = new ArrayList<>();
 
+    /** Snapshot of problem, submitter/team and structured solution details. */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "context", nullable = false)
+    private Map<String, Object> context = new java.util.LinkedHashMap<>();
+
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "status", nullable = false, columnDefinition = "project_review_status")
     private ProjectReviewStatus status = ProjectReviewStatus.ASSIGNED;
@@ -112,6 +117,9 @@ public class ProjectReview {
         }
         if (files == null) {
             files = new ArrayList<>();
+        }
+        if (context == null) {
+            context = new java.util.LinkedHashMap<>();
         }
     }
 }

@@ -144,10 +144,7 @@ export default function AssignmentsPage() {
         <div className="flex flex-col">
           <div className="flex items-center gap-space-sm mb-space-2xs">
             <span className="font-mono-code text-[11px] px-space-xs py-0.5 rounded bg-surface-container-high text-ashoka-blue font-semibold uppercase tracking-wider">
-              SEC-GATEWAY: STATUTORY-EVAL
-            </span>
-            <span className="font-body-sm text-body-sm text-text-muted">
-              Node Session Active: EVAL-7729
+              EVALUATOR WORK QUEUE
             </span>
           </div>
           <div className="flex items-baseline gap-space-sm">
@@ -467,13 +464,6 @@ export default function AssignmentsPage() {
                     <span className="text-text-muted text-[11px] block uppercase font-bold">Pool Decision</span>
                     <span className="font-mono-code text-ashoka-blue font-bold">
                       {isAccepted ? 'Accepted' : item.status === 'REJECTED' ? 'Rejected' : 'Awaiting decision'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-text-muted text-[11px] block uppercase font-bold">Node Compliance</span>
-                    <span className="font-label-sm text-gov-emerald flex items-center gap-1 font-bold">
-                      <span className="w-1.5 h-1.5 rounded-full bg-gov-emerald"></span>
-                      UIDAI VERIFIED
                     </span>
                   </div>
                 </div>

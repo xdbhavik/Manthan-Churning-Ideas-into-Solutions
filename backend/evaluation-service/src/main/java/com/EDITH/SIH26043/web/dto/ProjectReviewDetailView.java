@@ -26,8 +26,19 @@ public record ProjectReviewDetailView(
         String decisionComment,
         List<ProjectReviewFile> files,
         Instant createdAt,
-        Instant decidedAt
+        Instant decidedAt,
+        java.util.Map<String, Object> context
 ) {
+    public ProjectReviewDetailView(UUID projectReviewId, UUID submissionId, UUID problemId,
+                                   UUID cycleId, String problemTitle, String submissionTitle,
+                                   String summary, String githubUrl, List<Map<String, String>> links,
+                                   Integer round, String status, String decisionComment,
+                                   List<ProjectReviewFile> files, Instant createdAt, Instant decidedAt) {
+        this(projectReviewId, submissionId, problemId, cycleId, problemTitle, submissionTitle,
+                summary, githubUrl, links, round, status, decisionComment, files,
+                createdAt, decidedAt, java.util.Map.of());
+    }
+
     public record ProjectReviewFile(
             UUID fileId,
             String fileName,

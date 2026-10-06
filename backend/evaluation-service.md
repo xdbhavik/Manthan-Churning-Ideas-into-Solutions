@@ -625,10 +625,11 @@ cross-service role validation (`GET /internal/users/{id}`), evidence surfacing t
   created a coupling that had to be fixed: `ProjectReviewService.createInternal` used to take the
   *first* `SUBMITTED` assignment as the reviewer, and on an all-`AUTO` cycle that could be a system
   profile — a reviewer nobody can log in as, parking the student's submission in `UNDER_REVIEW`
-  forever. The resolver now prefers the first `SUBMITTED` assignment whose profile is **not**
-  `is_system`, falls back to the least-loaded active **human** of any pool when the whole cycle was
-  AI-scored, and only then 409s. The fallback deliberately ignores `max_workload`: one project over
-  capacity beats a submission stuck forever.
+  forever. The resolver prefers a `SUBMITTED` human assignment from the problem's source-bucket
+  pool. If that pool has no submitted human assignment, it assigns the project to the least-loaded
+  active human **in that same pool**; it never sends the project to another pool or a system AI
+  profile. The fallback deliberately ignores `max_workload`: one project over capacity beats a
+  submission stuck forever. If the matching pool has no active human, it returns a clear 409.
 - **Late pooling is now recoverable.** A `MANUAL` pool with no eligible human is skipped, and
   because `EVALUATION_IN_PROGRESS → ROUTING` only happens when nothing is open, the old design
   could not fill it afterwards. `routeAllPools` accepts `EVALUATION_IN_PROGRESS` and skips pools

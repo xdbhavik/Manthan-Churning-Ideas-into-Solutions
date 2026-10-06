@@ -145,6 +145,12 @@ function SubmissionCard({ submission, index }: { submission: Submission; index: 
             </div>
           </div>
         )}
+        {status === 'ACCEPTED' && submission.reviewScorecard && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+            <div><p className="text-xs font-bold uppercase tracking-wide text-emerald-800">Evaluator score</p><p className="mt-0.5 text-xl font-bold text-emerald-950">{submission.reviewScorecard.totalScore} <span className="text-sm font-semibold">/ {submission.reviewScorecard.maxScore}</span></p></div>
+            <LinkButton to={`/app/submissions/${submission.submissionId}`} variant="secondary" size="sm">View score breakdown</LinkButton>
+          </div>
+        )}
         <div className="flex flex-wrap items-center justify-between gap-space-sm pt-space-xs">
           <div className="flex items-center gap-space-xs text-on-surface-variant-weak font-label-mono-sm text-label-mono-sm">
             {status === 'RETURNED' && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-error"></span> Review window closes in 4 days</span>}
@@ -165,29 +171,29 @@ function SubmissionCard({ submission, index }: { submission: Submission; index: 
           <div className="flex items-center gap-space-sm">
             {status === 'RETURNED' && (
               <>
-                <Button variant="secondary" size="sm" className="px-space-md h-9 rounded-lg bg-surface-card hover:bg-surface-container-low text-on-surface font-headline-sm text-headline-sm transition-colors shadow-sm">
+                <LinkButton to={`/app/submissions/${submission.submissionId}`} variant="secondary" size="sm" className="px-space-md h-9 rounded-lg bg-surface-card hover:bg-surface-container-low text-on-surface font-headline-sm text-headline-sm transition-colors shadow-sm">
                   Inspect Feedback & Files
-                </Button>
-                <Button variant="destructive" size="sm" className="inline-flex items-center gap-space-xs px-space-md h-9 rounded-lg bg-state-review-text text-on-primary hover:opacity-90 font-headline-sm text-headline-sm shadow transition-all">
+                </LinkButton>
+                <LinkButton to={`/app/submissions/${submission.submissionId}/edit`} variant="destructive" size="sm" className="inline-flex items-center gap-space-xs px-space-md h-9 rounded-lg bg-state-review-text text-on-primary hover:opacity-90 font-headline-sm text-headline-sm shadow transition-all">
                   <span>Edit & Resubmit Submission</span>
                   <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-                </Button>
+                </LinkButton>
               </>
             )}
             {status === 'UNDER_REVIEW' && (
-              <Button variant="secondary" size="sm" className="px-space-md h-9 rounded-lg bg-surface-card hover:bg-surface-container-low text-on-surface font-headline-sm text-headline-sm transition-colors shadow-sm">
+              <LinkButton to={`/app/submissions/${submission.submissionId}`} variant="secondary" size="sm" className="px-space-md h-9 rounded-lg bg-surface-card hover:bg-surface-container-low text-on-surface font-headline-sm text-headline-sm transition-colors shadow-sm">
                 View Submission Dossier
-              </Button>
+              </LinkButton>
             )}
             {status === 'DRAFT' && (
               <>
                 <Button variant="destructive" size="sm" className="px-space-md h-9 rounded-lg bg-state-returned-bg text-state-returned-text hover:bg-state-returned-border/50 font-headline-sm text-headline-sm transition-colors">
                   Discard Draft
                 </Button>
-                <Button variant="primary" size="sm" className="inline-flex items-center gap-space-xs px-space-md h-9 rounded-lg bg-primary text-on-primary hover:bg-primary-container font-headline-sm text-headline-sm transition-all shadow-sm">
+                <LinkButton to={`/app/submissions/${submission.submissionId}/edit`} variant="primary" size="sm" className="inline-flex items-center gap-space-xs px-space-md h-9 rounded-lg bg-primary text-on-primary hover:bg-primary-container font-headline-sm text-headline-sm transition-all shadow-sm">
                   <span>Resume Wizard</span>
                   <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-                </Button>
+                </LinkButton>
               </>
             )}
             {status === 'ACCEPTED' && (
@@ -196,10 +202,10 @@ function SubmissionCard({ submission, index }: { submission: Submission; index: 
                   <span className="material-symbols-outlined text-[16px]">military_tech</span>
                   <span>Certificate</span>
                 </Button>
-                <Button variant="primary" size="sm" className="inline-flex items-center gap-space-xs px-space-md h-9 rounded-lg bg-primary-container text-on-primary hover:bg-primary font-headline-sm text-headline-sm transition-all shadow-sm">
+                <LinkButton to={`/app/submissions/${submission.submissionId}`} variant="primary" size="sm" className="inline-flex items-center gap-space-xs px-space-md h-9 rounded-lg bg-primary-container text-on-primary hover:bg-primary font-headline-sm text-headline-sm transition-all shadow-sm">
                   <span>View Final Accepted Dossier</span>
                   <span className="material-symbols-outlined text-[18px]">launch</span>
-                </Button>
+                </LinkButton>
               </>
             )}
           </div>
