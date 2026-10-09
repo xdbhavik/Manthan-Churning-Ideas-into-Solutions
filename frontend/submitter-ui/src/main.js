@@ -1408,7 +1408,7 @@ function populateWizardFromDraft(reg) {
   state.wizard.type = reg.sourceType;
   state.wizard.bucket = TYPE_SCHEMAS[reg.sourceType]?.bucket || 'GOVT';
   state.wizard.formData = reg.source || {};
-  state.wizard.documents = reg.documents || [];
+  state.wizard.documents = (reg.source && reg.source.documents) || [];
 }
 
 /* ---------------- Screen 4: Application Tracking ---------------- */
@@ -1553,7 +1553,7 @@ function openApplicationSnapshotModal() {
   `).join('');
 
   // Documents
-  const docs = reg.documents || [];
+  const docs = (reg.source && reg.source.documents) || [];
   const docsHtml = docs.length > 0 ? docs.map(d => `
     <div class="flex items-center justify-between p-3 rounded-lg bg-surface-subtle border border-border-hairline">
       <div class="flex items-center gap-3">
