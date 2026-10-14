@@ -302,7 +302,7 @@ async function api(method, path, { body, auth = true } = {}) {
   try {
     res = await fetch(url, { method, headers, body: payload });
   } catch (err) {
-    return { ok: false, status: 0, data: { detail: 'Network error or backend unreachable at ' + state.baseUrl } };
+    return { ok: false, status: 0, data: { detail: 'We could not reach the service. Please check your connection and try again.' } };
   }
 
   // Silent auto-refresh on 401
@@ -536,73 +536,94 @@ async function syncPortalState() {
   updateHeaderUser();
   stopTrackingPolling();
 
-  // Always check for existing source accounts first (backend is the single source of truth)
-  const accRes = await api('GET', '/source/accounts');
-  if (accRes.ok && Array.isArray(accRes.data) && accRes.data.length > 0) {
-    // User has an active, verified source account → approved KYC
-    state.activeSourceAccount = accRes.data[0];
-    // Update cached user kycStatus to match backend reality
-    if (state.user) state.user.kycStatus = 'VERIFIED';
-    localStorage.setItem('sih_portal_user', JSON.stringify(state.user));
-    updateHeaderUser();
-    renderCompletedScreen(state.activeSourceAccount);
-    showView('view-completed');
-    return;
-  }
+  try {
+    // Always check for existing source accounts first (backend is the single source of truth)
+    const accRes = await api('GET', '/source/accounts');
 
-  // No source account yet → check existing registrations
-  const mineRes = await api('GET', '/registration/mine');
-  if (mineRes.ok && Array.isArray(mineRes.data) && mineRes.data.length > 0) {
-    // Pick the most recent registration
-    const reg = mineRes.data[0];
-    state.activeRegistration = reg;
-    state.wizard.draftId = reg.registrationId;
-
-    switch (reg.status) {
-      case 'DRAFT':
-        state.wizard.step = 4;
-        populateWizardFromDraft(reg);
-        renderWizardStep();
-        showView('view-wizard');
-        break;
-      case 'SUBMITTED':
-      case 'UNDER_REVIEW':
-        await renderTrackingScreen(reg);
-        showView('view-tracking');
-        startTrackingPolling(reg.registrationId);
-        break;
-      case 'REJECTED':
-        await renderTrackingScreen(reg);
-        showView('view-tracking');
-        break;
-      case 'ACTION_REQUIRED':
-        await renderDeficiencyScreen(reg);
-        showView('view-deficiency');
-        break;
-      case 'APPROVED':
-        // Registration approved but source account not yet visible (race condition)
-        // Re-check source accounts
-        const accRes2 = await api('GET', '/source/accounts');
-        if (accRes2.ok && Array.isArray(accRes2.data) && accRes2.data.length > 0) {
-          state.activeSourceAccount = accRes2.data[0];
-          if (state.user) state.user.kycStatus = 'VERIFIED';
-          localStorage.setItem('sih_portal_user', JSON.stringify(state.user));
-          updateHeaderUser();
-        }
-        renderCompletedScreen(state.activeSourceAccount || { displayName: reg.source?.organizationName || 'Verified Source', sourceAccountId: reg.registrationId });
-        showView('view-completed');
-        break;
-      default:
-        // Unknown status → start fresh wizard
-        state.wizard.step = 1;
-        renderWizardStep();
-        showView('view-wizard');
+    // If the backend is unreachable (status 0) on both calls, show a friendly error
+    if (accRes.status === 0) {
+      toast('Connection lost. Please check your network and try again.', 'error');
+      // Stay on whatever view was previously shown — don't blank the screen
+      return;
     }
-  } else {
-    // No registration found → user must complete KYC first
-    state.wizard.step = 1;
-    renderWizardStep();
-    showView('view-wizard');
+
+    if (accRes.ok && Array.isArray(accRes.data) && accRes.data.length > 0) {
+      // User has an active, verified source account → approved KYC
+      state.activeSourceAccount = accRes.data[0];
+      // Update cached user kycStatus to match backend reality
+      if (state.user) state.user.kycStatus = 'VERIFIED';
+      localStorage.setItem('sih_portal_user', JSON.stringify(state.user));
+      updateHeaderUser();
+      renderCompletedScreen(state.activeSourceAccount);
+      showView('view-completed');
+      return;
+    }
+
+    // No source account yet → check existing registrations
+    const mineRes = await api('GET', '/registration/mine');
+    if (mineRes.ok && Array.isArray(mineRes.data) && mineRes.data.length > 0) {
+      // Pick the most recent registration
+      const reg = mineRes.data[0];
+      state.activeRegistration = reg;
+      state.wizard.draftId = reg.registrationId;
+
+      switch (reg.status) {
+        case 'DRAFT':
+          state.wizard.step = 4;
+          populateWizardFromDraft(reg);
+          renderWizardStep();
+          showView('view-wizard');
+          break;
+        case 'SUBMITTED':
+        case 'UNDER_REVIEW':
+          await renderTrackingScreen(reg);
+          showView('view-tracking');
+          startTrackingPolling(reg.registrationId);
+          break;
+        case 'REJECTED':
+          await renderTrackingScreen(reg);
+          showView('view-tracking');
+          break;
+        case 'ACTION_REQUIRED':
+          await renderDeficiencyScreen(reg);
+          showView('view-deficiency');
+          break;
+        case 'APPROVED': {
+          // Registration approved but source account not yet visible (race condition)
+          // Re-check source accounts
+          const accRes2 = await api('GET', '/source/accounts');
+          if (accRes2.ok && Array.isArray(accRes2.data) && accRes2.data.length > 0) {
+            state.activeSourceAccount = accRes2.data[0];
+            if (state.user) state.user.kycStatus = 'VERIFIED';
+            localStorage.setItem('sih_portal_user', JSON.stringify(state.user));
+            updateHeaderUser();
+          }
+          renderCompletedScreen(state.activeSourceAccount || { displayName: reg.source?.organizationName || 'Verified Source', sourceAccountId: reg.registrationId });
+          showView('view-completed');
+          break;
+        }
+        default:
+          // Unknown status → start fresh wizard
+          state.wizard.step = 1;
+          renderWizardStep();
+          showView('view-wizard');
+      }
+    } else {
+      // No registration found → user must complete KYC first
+      state.wizard.step = 1;
+      renderWizardStep();
+      showView('view-wizard');
+    }
+  } catch (err) {
+    // Unexpected JS error — log for debugging and show a friendly message
+    console.error('Portal state sync failed:', err);
+    toast('Something went wrong loading your account. Please refresh and try again.', 'error');
+    // If we have no active view yet (e.g. just logged in), send to wizard as a safe fallback
+    if (!state.activeView || state.activeView === 'view-otp' || state.activeView === 'view-auth') {
+      state.wizard.step = 1;
+      renderWizardStep();
+      showView('view-wizard');
+    }
   }
 }
 
@@ -1842,7 +1863,7 @@ function renderCompletedScreen(acc) {
   const accIdEl = document.getElementById('completed-acc-id');
   if (accIdEl) accIdEl.textContent = acc?.sourceAccountId || 'ACTIVE';
 
-  loadProblemDomains();
+  loadProblemDomainsForFiling();
 }
 
 function escapeHtml(str) {
@@ -2856,6 +2877,7 @@ function updateHeaderUser() {
   const avatarEl = document.getElementById('header-avatar-initials');
   const ddName = document.getElementById('dropdown-user-name');
   const ddPhone = document.getElementById('dropdown-user-phone');
+  const profileWrapper = document.getElementById('profile-dropdown-wrapper');
   const sidebar = document.getElementById('portal-sidebar');
   const sidebarToggle = document.getElementById('portal-sidebar-toggle');
   const main = document.getElementById('portal-main');
@@ -2875,9 +2897,10 @@ function updateHeaderUser() {
   if (!authenticated) togglePortalSidebar(false);
 
   if (authenticated) {
-    const phone = state.user.phone || state.otpPhone || '';
-    const role = state.user.role === 'SUBMITTER' ? 'Problem Submitter' : state.user.role;
-    const kycStatus = state.user.kycStatus || 'UNVERIFIED';
+    if (profileWrapper) profileWrapper.classList.remove('hidden');
+    const phone = String(state.user.phone || state.otpPhone || '');
+    const role = state.user.role === 'SUBMITTER' ? 'Problem Submitter' : (state.user.role || 'Guest');
+    const kycStatus = String(state.user.kycStatus || 'UNVERIFIED');
     const kycStatusDisplay = kycStatus === 'UNVERIFIED' ? 'Pending Verification' : kycStatus;
     const isVerified = kycStatus === 'VERIFIED';
 
@@ -2890,9 +2913,9 @@ function updateHeaderUser() {
     }
 
     if (userKyc) {
-      userKyc.textContent = isVerified ? '✓ Verified' : 'Unverified';
-      userKyc.className = `text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider ${
-        isVerified
+      userKyc.textContent = kycStatus === 'VERIFIED' ? '✓ VERIFIED' : kycStatus.replace(/_/g, ' ');
+      userKyc.className = `text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${
+        kycStatus === 'VERIFIED'
           ? 'bg-status-approved-bg text-status-approved-text'
           : 'bg-status-action-bg text-status-action-text'
       }`;
@@ -2902,6 +2925,7 @@ function updateHeaderUser() {
     if (ddName) ddName.textContent = state.activeSourceAccount?.displayName || `Submitter (${phone.slice(-4)})`;
     if (ddPhone) ddPhone.textContent = `+91 ${phone}`;
   } else {
+    if (profileWrapper) profileWrapper.classList.add('hidden');
     if (userRole) userRole.textContent = 'Guest';
     if (userPhone) userPhone.textContent = 'Not Logged In';
     if (userKyc) userKyc.className = 'hidden';
@@ -2916,7 +2940,7 @@ function renderProfilePage() {
   const user = state.user;
   if (!user) return;
 
-  const phone = user.phone || state.otpPhone || '—';
+  const phone = String(user.phone || state.otpPhone || '—');
   const kycStatus = user.kycStatus || 'UNVERIFIED';
   const kycStatusDisplay = kycStatus === 'UNVERIFIED' ? 'Pending Verification' : kycStatus;
   const isVerified = kycStatus === 'VERIFIED';

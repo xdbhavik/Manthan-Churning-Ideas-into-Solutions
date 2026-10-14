@@ -46,15 +46,37 @@
       inset: 0;
       z-index: 90;
     }
+    /* Strict Auth Screens Isolation: hide sidebar, header profile, mobile toggle */
+    body.on-auth-screen #nav-menu,
+    body.on-auth-screen #reviewer-sidebar-toggle,
+    body.on-auth-screen #sidebar-backdrop,
+    body.on-auth-screen #profile-btn-container {
+      display: none !important;
+    }
+    body:not(.reviewer-authenticated) #nav-menu,
+    body:not(.reviewer-authenticated) #reviewer-sidebar-toggle,
+    body:not(.reviewer-authenticated) #sidebar-backdrop,
+    body:not(.reviewer-authenticated) #profile-btn-container {
+      display: none !important;
+    }
+    body.on-auth-screen .screen-view.active > main,
+    body.on-auth-screen .screen-view.active > footer,
+    #screen-login > main,
+    #screen-otp > main,
+    #screen-access-denied > main {
+      width: 100% !important;
+      max-width: 100% !important;
+      margin-left: 0 !important;
+    }
     @media (min-width: 768px) {
-      body.reviewer-authenticated #nav-menu { display: flex !important; }
-      body.reviewer-authenticated .screen-view.active > main,
-      body.reviewer-authenticated .screen-view.active > footer { width: calc(100% - 16rem); margin-left: 16rem; }
+      body.reviewer-authenticated:not(.on-auth-screen) #nav-menu { display: flex !important; }
+      body.reviewer-authenticated:not(.on-auth-screen) .screen-view.active > main,
+      body.reviewer-authenticated:not(.on-auth-screen) .screen-view.active > footer { width: calc(100% - 16rem); margin-left: 16rem; }
     }
     @media (max-width: 767px) {
-      body.reviewer-authenticated #nav-menu:not(.is-open) { display: none !important; }
-      body.reviewer-authenticated #nav-menu.is-open { display: flex !important; }
-      body.reviewer-authenticated #reviewer-sidebar-toggle { display: flex !important; }
+      body.reviewer-authenticated:not(.on-auth-screen) #nav-menu:not(.is-open) { display: none !important; }
+      body.reviewer-authenticated:not(.on-auth-screen) #nav-menu.is-open { display: flex !important; }
+      body.reviewer-authenticated:not(.on-auth-screen) #reviewer-sidebar-toggle { display: flex !important; }
     }
   </style>
 
@@ -195,11 +217,7 @@
 
 <body class="bg-surface-subtle font-body-md text-text-primary min-h-screen antialiased selection:bg-ashoka-blue selection:text-white flex flex-col">
   <!-- Top Tricolor Ribbon -->
-  <div class="w-full fixed top-0 left-0 h-1 flex z-[60]">
-    <div class="h-full flex-1 bg-saffron-accent"></div>
-    <div class="h-full flex-1 bg-surface-crisp"></div>
-    <div class="h-full flex-1 bg-gov-emerald"></div>
-  </div>
+  <div class="w-full fixed top-0 left-0 h-1 z-[60] bg-gradient-to-r from-saffron-accent via-surface-crisp to-gov-emerald"></div>
 
   <!-- ========================================================================= -->
   <!-- GLOBAL HEADER (Visible on Dashboard and Detail screens)                   -->
@@ -225,10 +243,9 @@
         </div>
         <div class="flex flex-col">
           <div class="flex items-center gap-2">
-            <span class="font-bold text-ashoka-blue tracking-tight text-base sm:text-lg leading-tight">KYC Agent Case Management Portal</span>
-            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-status-submitted-bg text-status-submitted-text uppercase leading-none">Gov.in</span>
+            <span class="font-bold text-ashoka-blue tracking-tight text-base sm:text-lg leading-tight">Manthan</span>
           </div>
-          <span class="text-xs text-text-muted hidden sm:inline leading-tight">Statutory Review &amp; Verification Authority | सांविधानिक समीक्षा प्राधिकरण</span>
+          <span class="text-xs text-text-muted hidden sm:inline leading-tight">Churning Ideas into.....</span>
         </div>
       </div>
 
@@ -238,7 +255,7 @@
 
       <!-- User Profile / Session Status Button -->
       <div class="flex items-center gap-3">
-        <div class="relative" id="profile-btn-container">
+        <div class="relative hidden" id="profile-btn-container">
           <button type="button" onclick="toggleProfileDropdown()" id="profile-btn"
                   class="flex items-center gap-2 bg-surface-muted hover:bg-surface-container-low px-3 py-1.5 rounded-lg border border-border-hairline transition-colors cursor-pointer">
             <div class="w-7 h-7 rounded-full bg-ashoka-blue text-surface-crisp flex items-center justify-center text-xs font-bold" id="header-avatar-initials">
@@ -323,7 +340,7 @@
     <nav class="flex flex-col gap-1 p-3" aria-label="Main navigation">
       <a class="nav-link flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium" data-target="dashboard" href="#/dashboard" id="nav-link-dashboard">
         <span class="material-symbols-outlined text-[19px]">folder_supervised</span><span>Registration Queue</span>
-        <span class="ml-auto rounded-full bg-surface-muted px-2 py-0.5 text-[10px] font-bold text-institutional-navy" id="nav-reg-count">4</span>
+        <span class="ml-auto rounded-full bg-surface-muted px-2 py-0.5 text-[10px] font-bold text-institutional-navy" id="nav-reg-count">0</span>
       </a>
       <a class="nav-link flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium" data-target="problem-queue" href="#/problem-queue" id="nav-link-problem-queue">
         <span class="material-symbols-outlined text-[19px]">verified_user</span><span>Source Verification</span>
@@ -378,29 +395,12 @@
                 </svg>
                 <span class="font-mono text-sm font-semibold text-text-primary">+91</span>
               </div>
-              <input autocomplete="tel-national" class="w-full h-11 px-3.5 bg-transparent font-mono text-sm text-text-primary placeholder:text-text-muted focus:outline-none min-w-0" id="mobile-number" inputmode="numeric" maxlength="11" placeholder="98298 58790" type="tel" value="98298 58790"/>
-              <div class="px-3 text-gov-emerald opacity-100 transition-opacity shrink-0" id="mobile-check-icon">
+              <input autocomplete="tel-national" class="w-full h-11 px-3.5 bg-transparent font-mono text-sm text-text-primary placeholder:text-text-muted focus:outline-none min-w-0" id="mobile-number" inputmode="numeric" maxlength="11" placeholder="Enter 10-digit mobile" type="tel" value=""/>
+              <div class="px-3 text-gov-emerald opacity-0 transition-opacity shrink-0" id="mobile-check-icon">
                 <span class="material-symbols-outlined text-base">check_circle</span>
               </div>
             </div>
-            <div class="flex items-center justify-between text-xs pt-1">
-              <span class="text-text-muted">6-digit OTP will be requested from Gateway</span>
-              <button type="button" onclick="fillReviewerDemo()" class="text-institutional-navy font-bold hover:underline cursor-pointer">
-                Fill Demo (9829858790)
-              </button>
-            </div>
-          </div>
 
-          <!-- System Connectivity Status Pill -->
-          <div class="px-3 py-2 bg-surface-subtle/90 rounded-lg border border-border-hairline text-xs flex items-center justify-between">
-            <span class="text-text-muted flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-[15px] text-institutional-navy">cloud_done</span>
-              <span>Network Status:</span>
-            </span>
-            <span id="gateway-status-pill" class="font-mono text-[11px] font-semibold text-gov-emerald flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-gov-emerald animate-pulse"></span>
-              <span>Systems Online</span>
-            </span>
           </div>
 
           <button class="w-full h-11 bg-ashoka-blue hover:bg-institutional-navy active:bg-primary text-on-primary font-semibold text-sm rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer mt-1" id="btn-request-otp" type="submit">
@@ -409,14 +409,6 @@
           </button>
         </form>
 
-        <!-- Statutory Notice Footer inside Card -->
-        <div class="mt-6 pt-4 border-t border-border-hairline flex items-center justify-between text-xs text-text-muted flex-wrap gap-2">
-          <span class="flex items-center gap-1">
-            <span class="material-symbols-outlined text-[15px] text-gov-emerald">lock</span>
-            256-Bit TLS Protected
-          </span>
-          <span class="font-mono text-[10px]">RCMS-IND-04</span>
-        </div>
       </div>
     </main>
   </section>
@@ -657,12 +649,12 @@
                 <!-- Explicit Status Filter Dropdown -->
                 <div class="relative min-w-full sm:min-w-[200px]">
                   <select class="w-full h-10 pl-3 sm:pl-space-md pr-8 bg-surface-subtle text-text-primary font-label-md text-xs sm:text-label-md rounded-lg appearance-none cursor-pointer focus:outline-none focus:bg-surface-crisp focus:shadow-md transition-all border border-transparent focus:border-border-hairline" id="status-filter" onchange="filterQueueRows()">
-                    <option value="ALL">All Statuses (Active)</option>
-                    <option value="SUBMITTED">SUBMITTED</option>
-                    <option value="UNDER_REVIEW">UNDER_REVIEW</option>
-                    <option value="ACTION_REQUIRED">ACTION_REQUIRED</option>
-                    <option value="APPROVED">APPROVED</option>
-                    <option value="REJECTED">REJECTED</option>
+                    <option value="ALL">All Statuses</option>
+                    <option value="SUBMITTED">Pending Review</option>
+                    <option value="UNDER_REVIEW">Under Review</option>
+                    <option value="ACTION_REQUIRED">Action Required</option>
+                    <option value="APPROVED">Approved</option>
+                    <option value="REJECTED">Rejected</option>
                   </select>
                   <span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none text-[18px]">expand_more</span>
                 </div>
@@ -869,7 +861,7 @@
                 </div>
                 <p class="font-body-sm text-xs text-text-muted mb-2">Registration data received from the submitter.</p>
                 <div id="raw-json-container" class="hidden">
-                  <pre class="bg-[#0b1c30] text-[#85f8c4] p-4 rounded-lg font-mono-code text-[11px] sm:text-[12px] leading-relaxed overflow-x-auto shadow-inner border border-white/10" id="raw-json-block">// Real database JSON payload will appear here when loaded</pre>
+                  <pre class="bg-[#0b1c30] text-[#85f8c4] p-4 rounded-lg font-mono-code text-[11px] sm:text-[12px] leading-relaxed overflow-x-auto shadow-inner border border-white/10" id="raw-json-block">// Data will appear here when loaded</pre>
                 </div>
               </div>
 
@@ -905,14 +897,14 @@
                 <div class="relative pl-6 flex flex-col gap-4 before:content-[''] before:absolute before:left-2 before:top-2 before:bottom-2 before:w-[2px] before:bg-surface-container" id="audit-trail-container"><p class="font-body-sm text-xs text-text-muted">Loading live audit trail...</p></div></div></div>
             </div>
 
-            <!-- RIGHT PANE: Statutory Decision Module (Sticky Review Form) -->
+            <!-- RIGHT PANE: Reviewer Decision Module (Sticky Review Form) -->
             <div class="lg:col-span-5 flex flex-col gap-6 lg:sticky lg:top-20">
               <div class="bg-surface-crisp rounded-xl p-4 sm:p-6 shadow-md border border-border-hairline">
                 <!-- Module Header -->
                 <div class="flex items-center justify-between pb-3 sm:pb-space-base bg-surface-subtle p-3 sm:p-space-base rounded-lg mb-4 border border-border-hairline">
                   <div>
-                    <span class="font-label-sm text-[10px] sm:text-label-sm uppercase tracking-wider text-text-muted block">Quasi-Judicial Action</span>
-                    <h2 class="font-headline-md text-base sm:text-headline-md text-primary font-bold">Statutory Decision Module</h2>
+                    <span class="font-label-sm text-[10px] sm:text-label-sm uppercase tracking-wider text-text-muted block">Verification Decision</span>
+                    <h2 class="font-headline-md text-base sm:text-headline-md text-primary font-bold">Reviewer Decision</h2>
                   </div>
                   <div class="w-8 h-8 rounded-full bg-institutional-navy text-on-primary flex items-center justify-center shrink-0">
                     <span class="material-symbols-outlined text-[18px]">gavel</span>
@@ -920,21 +912,21 @@
                 </div>
 
                 <!-- Section Instruction -->
-                <p class="font-body-sm text-xs sm:text-body-sm text-text-secondary mb-4 leading-relaxed">Choose an outcome for this registration. A comment is required when requesting changes or rejecting it.</p>
+                <p class="font-body-sm text-xs sm:text-body-sm text-text-secondary mb-4 leading-relaxed">Select an action for this registration. You can approve the organization, request corrections from the applicant, or decline the application.</p>
 
                 <!-- Action Button Triad -->
                 <div class="grid grid-cols-3 gap-1.5 sm:gap-2 mb-4 sm:mb-6" id="action-selector-group">
                   <!-- Approve Button -->
-                  <button class="decision-tab flex flex-col items-center justify-center p-2 sm:p-3 rounded-lg bg-surface-subtle hover:bg-surface-container transition-all text-center group cursor-pointer border border-border-hairline" id="btn-approve" onclick="selectDecision('APPROVE')" type="button">
+                  <button class="decision-tab flex flex-col items-center justify-center p-2 sm:p-3 rounded-lg bg-status-approved-bg text-status-approved-text shadow-sm transition-all text-center cursor-pointer border border-status-approved-border" id="btn-approve" onclick="selectDecision('APPROVE')" type="button">
                     <span class="material-symbols-outlined text-[20px] sm:text-[24px] text-gov-emerald mb-1">check_circle</span>
-                    <span class="font-label-md text-xs sm:text-label-md text-text-primary font-bold block truncate w-full">Approve</span>
-                    <span class="font-label-sm text-[9px] sm:text-[10px] text-text-muted mt-0.5 leading-tight block truncate w-full">Provision</span>
+                    <span class="font-label-md text-xs sm:text-label-md font-bold block truncate w-full">Approve</span>
+                    <span class="font-label-sm text-[9px] sm:text-[10px] text-gov-emerald mt-0.5 leading-tight block truncate w-full">Activate</span>
                   </button>
-                  <!-- Request Action Button (Preselected) -->
-                  <button class="decision-tab flex flex-col items-center justify-center p-2 sm:p-3 rounded-lg bg-status-action-bg text-status-action-text shadow-sm transition-all text-center cursor-pointer border border-status-action-border" id="btn-request" onclick="selectDecision('REQUEST_ACTION')" type="button">
-                    <span class="material-symbols-outlined text-[20px] sm:text-[24px] text-saffron-accent mb-1">replay</span>
-                    <span class="font-label-md text-xs sm:text-label-md font-bold block truncate w-full">Request Action</span>
-                    <span class="font-label-sm text-[9px] sm:text-[10px] text-saffron-accent mt-0.5 leading-tight block truncate w-full">Deficiency</span>
+                  <!-- Request Action Button -->
+                  <button class="decision-tab flex flex-col items-center justify-center p-2 sm:p-3 rounded-lg bg-surface-subtle hover:bg-surface-container transition-all text-center group cursor-pointer border border-border-hairline" id="btn-request" onclick="selectDecision('REQUEST_ACTION')" type="button">
+                    <span class="material-symbols-outlined text-[20px] sm:text-[24px] text-saffron-accent mb-1">edit_note</span>
+                    <span class="font-label-md text-xs sm:text-label-md text-text-primary font-bold block truncate w-full">Request Action</span>
+                    <span class="font-label-sm text-[9px] sm:text-[10px] text-text-muted mt-0.5 leading-tight block truncate w-full">Need Changes</span>
                   </button>
                   <!-- Reject Button -->
                   <button class="decision-tab flex flex-col items-center justify-center p-2 sm:p-3 rounded-lg bg-surface-subtle hover:bg-surface-container transition-all text-center group cursor-pointer border border-border-hairline" id="btn-reject" onclick="selectDecision('REJECT')" type="button">
@@ -944,11 +936,11 @@
                   </button>
                 </div>
 
-                <!-- Dynamic Consequence / Impact Banner -->
-                <div class="p-3.5 sm:p-space-base rounded-lg bg-status-action-bg text-status-action-text mb-4 flex items-start gap-2.5 sm:gap-space-sm border border-status-action-border" id="consequence-box">
-                  <span class="material-symbols-outlined text-[18px] sm:text-[20px] shrink-0 text-saffron-accent mt-0.5">info</span>
-                  <div class="text-xs sm:text-body-sm font-body-sm leading-relaxed" id="consequence-text">
-                    <strong class="font-bold">State transition:</strong> Registration status will change to <span class="font-mono-code font-bold">ACTION_REQUIRED</span>.
+                <!-- Dynamic Impact Banner -->
+                <div class="p-3 sm:p-3.5 rounded-lg bg-status-approved-bg text-status-approved-text mb-4 flex items-start gap-2.5 sm:gap-3 border border-status-approved-border" id="consequence-box">
+                  <span class="material-symbols-outlined text-[20px] shrink-0 text-gov-emerald mt-0.5">verified</span>
+                  <div class="text-xs sm:text-body-sm leading-relaxed" id="consequence-text">
+                    <strong class="font-bold">Approve Organization:</strong> The entity will be verified and authorized. Their account will be activated immediately to submit problem statements.
                   </div>
                 </div>
 
@@ -958,23 +950,23 @@
                   <div class="flex flex-col gap-1.5">
                     <div class="flex items-center justify-between">
                       <label class="font-label-md text-xs sm:text-label-md text-text-primary font-semibold flex items-center gap-1" for="reviewer-remarks">
-                        Reviewer comment
-                        <span class="text-saffron-accent font-bold" id="mandatory-asterisk">*</span>
+                        <span id="remarks-label-text">Reviewer remarks (Optional)</span>
+                        <span class="text-saffron-accent font-bold hidden" id="mandatory-asterisk">*</span>
                       </label>
                       <span class="font-mono-code text-[10px] sm:text-[11px] text-text-muted" id="char-counter">0 / 1000 chars</span>
                     </div>
-                    <textarea class="w-full rounded-lg p-3 font-body-md text-xs sm:text-body-md text-text-primary bg-surface-crisp border border-border-hairline focus:border-institutional-navy focus:outline-none focus:bg-surface-crisp transition-colors resize-none shadow-sm" id="reviewer-remarks" oninput="handleRemarksInput()" placeholder="Add a comment for this decision..." rows="4"></textarea>
-                    <span class="font-body-sm text-[11px] sm:text-body-sm text-text-muted italic" id="validation-hint">Comments are saved with the registration decision.</span>
+                    <textarea class="w-full rounded-lg p-3 font-body-md text-xs sm:text-body-md text-text-primary bg-surface-crisp border border-border-hairline focus:border-institutional-navy focus:outline-none focus:bg-surface-crisp transition-colors resize-none shadow-sm" id="reviewer-remarks" oninput="handleRemarksInput()" placeholder="Add any optional verification notes or approval references..." rows="4"></textarea>
+                    <span class="font-body-sm text-[11px] sm:text-body-sm text-text-muted italic" id="validation-hint">Optional remarks will be saved in the registration record.</span>
                   </div>
 
                   <!-- Execution Action Button -->
                   <div class="mt-1 flex flex-col gap-2">
                     <button class="w-full py-3 sm:py-space-md px-4 bg-institutional-navy hover:bg-primary-container text-on-primary font-headline-sm text-sm sm:text-headline-sm rounded-lg shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer" id="btn-execute-decision" onclick="executeStatutoryTransition()" type="button">
-                      <span class="material-symbols-outlined text-[18px] sm:text-[20px]">send_time_extension</span>
+                      <span class="material-symbols-outlined text-[18px] sm:text-[20px]" id="submit-btn-icon">check_circle</span>
                       <span id="submit-btn-label">Approve Registration</span>
                     </button>
                     <div class="flex items-center justify-between px-1">
-                      <span class="font-mono-code text-[10px] sm:text-[11px] text-text-muted">Changes are saved by the reviewer service.</span>
+                      <span class="text-[11px] text-text-muted">Your decision will be recorded in the audit log.</span>
                     </div>
                   </div>
                 </form>
@@ -1155,7 +1147,7 @@
             <!-- Table Footer -->
             <div class="p-4 sm:p-space-base border-t border-border-hairline flex flex-col sm:flex-row items-center justify-between gap-3 bg-surface-subtle/20 text-xs text-text-secondary">
               <span class="font-mono-code text-[11px]">Source verification</span>
-              <span class="font-body-sm text-[11px] text-text-muted">Verification records are returned by the backend.</span>
+              <span class="font-body-sm text-[11px] text-text-muted">Verification records fetched from system.</span>
             </div>
 
           </div>
@@ -1411,7 +1403,7 @@
 
       <!-- Modal Footer -->
       <div class="px-5 py-3.5 bg-surface-subtle border-t border-border-hairline flex items-center justify-between">
-        <span class="font-mono text-[11px] text-text-muted">STATUTORY VERIFICATION GATEWAY</span>
+        <span class="font-mono text-[11px] text-text-muted">IDENTITY VERIFICATION</span>
         <div class="flex items-center gap-2">
           <button type="button" onclick="closeProblemModal()" class="px-4 py-2 text-xs font-semibold rounded-lg bg-surface-crisp hover:bg-surface-container border border-border-hairline text-text-secondary cursor-pointer transition-colors">
             Cancel

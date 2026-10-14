@@ -74,9 +74,6 @@ function render() {
               </div>
             </div>
 
-            <div id="phone-feedback" class="flex items-center justify-between text-xs pt-1">
-              <span class="text-text-muted">6-digit OTP will be requested from Gateway</span>
-            </div>
           </div>
 
           <!-- Statutory Checkbox -->
@@ -85,18 +82,6 @@ function render() {
             <label for="statutory-check" class="text-xs text-text-secondary cursor-pointer leading-relaxed">
               I confirm this is a <strong class="text-text-primary">Government-authorized device</strong> and understand this session will be audited under <strong class="text-text-primary">IT Act 2000, Sec 43A</strong>.
             </label>
-          </div>
-
-          <!-- System Connectivity Status Pill -->
-          <div class="px-3 py-2 bg-surface-subtle/90 rounded-lg border border-border-hairline text-xs flex items-center justify-between">
-            <span class="text-text-muted flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-[15px] text-institutional-navy">cloud_done</span>
-              <span>Network Status:</span>
-            </span>
-            <span class="font-mono-code text-[11px] font-semibold text-gov-emerald flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-gov-emerald animate-pulse"></span>
-              <span>Systems Online</span>
-            </span>
           </div>
 
           <button class="w-full h-11 bg-ashoka-blue hover:bg-institutional-navy active:bg-primary text-on-primary font-semibold text-sm rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer mt-1 disabled:opacity-50 disabled:cursor-not-allowed" id="otp-btn" type="submit" disabled>
@@ -108,14 +93,6 @@ function render() {
         <!-- Server-Validated Feedback -->
         <div id="login-feedback" class="hidden rounded-lg p-3 flex items-start gap-2.5 mt-4"></div>
 
-        <!-- Statutory Notice Footer inside Card -->
-        <div class="mt-6 pt-4 border-t border-border-hairline flex items-center justify-between text-xs text-text-muted flex-wrap gap-2">
-          <span class="flex items-center gap-1">
-            <span class="material-symbols-outlined text-[15px] text-gov-emerald">lock</span>
-            256-Bit TLS Protected
-          </span>
-          <span class="font-mono-code text-[10px]">ADM-NODE-01</span>
-        </div>
       </div>
     </main>`;
 }

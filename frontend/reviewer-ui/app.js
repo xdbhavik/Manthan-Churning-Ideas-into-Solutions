@@ -264,8 +264,21 @@ const AppState = {
 };
 
 // =============================================================================
-// 3. DATA NORMALIZERS (Maps real backend DTOs to UI model)
+// 3. DATA NORMALIZERS & HELPERS (Maps real backend DTOs to UI model)
 // =============================================================================
+function formatStatusUserFriendly(st) {
+  if (!st) return 'Pending';
+  switch (st) {
+    case 'SUBMITTED': return 'Pending Review';
+    case 'UNDER_REVIEW': return 'Under Review';
+    case 'ACTION_REQUIRED': return 'Action Required';
+    case 'APPROVED': return 'Approved';
+    case 'REJECTED': return 'Rejected';
+    case 'DRAFT': return 'Draft Saved';
+    default: return st;
+  }
+}
+
 function normalizeRegistration(reg) {
   const id = reg.registrationId || reg.id;
   const source = reg.source || {};
@@ -403,26 +416,60 @@ function handleRoute() {
   const officerName = document.getElementById('header-officer-name');
   const officerId = document.getElementById('header-officer-id');
   const avatarInitials = document.getElementById('header-avatar-initials');
+  const profileContainer = document.getElementById('profile-btn-container');
+  const sidebarToggle = document.getElementById('reviewer-sidebar-toggle');
+  const backdrop = document.getElementById('sidebar-backdrop');
 
   const user = AppState.authenticatedUser;
   const hasToken = Boolean(ApiClient.getAccessToken());
   const isAuthorized = user && (user.role === 'REVIEWER' || user.role === 'ADMIN');
-  document.body.classList.toggle('reviewer-authenticated', Boolean(hasToken && isAuthorized));
+  const isAuthenticated = Boolean(hasToken && isAuthorized);
+
+  const isAuthRoute = (routePath === '#/login' || routePath === '#/otp' || routePath === '' || routePath === '#');
+  const isAccessDenied = (routePath === '#/access-denied');
+
+  // If already authenticated and visiting login/otp route, redirect immediately to dashboard
+  if (isAuthRoute && isAuthenticated) {
+    window.location.hash = '#/dashboard';
+    return;
+  }
 
   // Protected route security guard
   const isProtected = routePath.startsWith('#/detail') || 
                       routePath === '#/dashboard' || 
                       routePath === '#/problem-queue' || 
+                      routePath === '#/source-verification' || 
                       routePath === '#/my-reviews';
 
-  if (isProtected && (!hasToken || !isAuthorized)) {
+  if (isProtected && !isAuthenticated) {
     window.location.hash = '#/login';
     return;
   }
 
-  // Update Global Header with authentic user info
-  if (hasToken && isAuthorized) {
+  // If on an authentication or access-denied screen, FORCE full isolation (no sidebar, no profile, no badges)
+  if (isAuthRoute || isAccessDenied || !isAuthenticated) {
+    document.body.classList.add('on-auth-screen');
+    document.body.classList.remove('reviewer-authenticated');
+    if (navMenu) {
+      navMenu.classList.add('hidden');
+      navMenu.classList.remove('is-open');
+    }
+    if (profileContainer) profileContainer.classList.add('hidden');
+    if (sidebarToggle) sidebarToggle.classList.add('hidden');
+    if (backdrop) backdrop.classList.add('hidden');
+    if (officerName) officerName.textContent = "Unauthenticated";
+    if (officerId) officerId.textContent = "Sign In Required";
+    if (avatarInitials) avatarInitials.innerHTML = '<span class="material-symbols-outlined text-[16px]">person</span>';
+    closeMobileMenu();
+    closeProfileDropdown();
+  } else {
+    // Authenticated on an internal workspace route
+    document.body.classList.remove('on-auth-screen');
+    document.body.classList.add('reviewer-authenticated');
     if (navMenu) navMenu.classList.remove('hidden');
+    if (profileContainer) profileContainer.classList.remove('hidden');
+    if (sidebarToggle) sidebarToggle.classList.remove('hidden');
+
     const displayName = user.name || (user.email ? user.email.split('@')[0].toUpperCase() : 'KYC Agent');
     const displaySub = user.mobile || user.id || 'ROLE_REVIEWER';
 
@@ -436,11 +483,6 @@ function handleRoute() {
     if (dropdownName) dropdownName.textContent = displayName;
     if (dropdownId) dropdownId.textContent = displaySub;
     if (dropdownRole) dropdownRole.textContent = user.role === 'REVIEWER' ? 'KYC AGENT' : (user.role || 'KYC AGENT');
-  } else {
-    if (navMenu) navMenu.classList.add('hidden');
-    if (officerName) officerName.textContent = "Unauthenticated";
-    if (officerId) officerId.textContent = "Sign In Required";
-    if (avatarInitials) avatarInitials.innerHTML = '<span class="material-symbols-outlined text-[16px]">person</span>';
   }
 
   // Reset nav links styling
@@ -633,8 +675,9 @@ function initMobileInput() {
   const checkIcon = document.getElementById('mobile-check-icon');
   if (!mobileInput) return;
 
-  if (!mobileInput.value) {
-    mobileInput.value = '98298 58790';
+  if (checkIcon) {
+    const clean = mobileInput.value ? mobileInput.value.replace(/\D/g, '') : '';
+    checkIcon.style.opacity = clean.length === 10 ? '1' : '0';
   }
 
   mobileInput.addEventListener('input', (e) => {
@@ -666,7 +709,7 @@ async function handleLoginRequestOtp() {
   btnText.innerHTML = `
     <span class="inline-flex items-center gap-2">
       <span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
-      <span>Requesting OTP from Gateway...</span>
+      <span>Requesting OTP...</span>
     </span>
   `;
 
@@ -692,7 +735,7 @@ async function handleLoginRequestOtp() {
       otpMobileLabel.textContent = '+91 ' + masked;
     }
 
-    let toastMsg = `Passcode dispatched via Gateway.`;
+    let toastMsg = `Passcode dispatched.`;
     showToast(toastMsg);
 
     window.location.hash = '#/otp';
@@ -819,7 +862,7 @@ async function handleVerification() {
 
   submitBtn.innerHTML = `
     <span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
-    <span>Validating with Gateway...</span>
+    <span>Validating...</span>
   `;
   submitBtn.disabled = true;
 
@@ -883,6 +926,34 @@ function handleLogout(e) {
   }
   ApiClient.clearTokens();
   AppState.authenticatedUser = null;
+  AppState.registrations = [];
+  AppState.sources = [];
+  
+  document.body.classList.add('on-auth-screen');
+  document.body.classList.remove('reviewer-authenticated');
+  
+  const navMenu = document.getElementById('nav-menu');
+  if (navMenu) {
+    navMenu.classList.add('hidden');
+    navMenu.classList.remove('is-open');
+  }
+  const profileContainer = document.getElementById('profile-btn-container');
+  if (profileContainer) profileContainer.classList.add('hidden');
+  const sidebarToggle = document.getElementById('reviewer-sidebar-toggle');
+  if (sidebarToggle) sidebarToggle.classList.add('hidden');
+  
+  const navReg = document.getElementById('nav-reg-count');
+  const navPrb = document.getElementById('nav-prb-count');
+  const navMy = document.getElementById('nav-my-count');
+  if (navReg) navReg.textContent = '0';
+  if (navPrb) navPrb.textContent = '0';
+  if (navMy) navMy.textContent = '0';
+
+  const mobileInput = document.getElementById('mobile-number');
+  if (mobileInput) mobileInput.value = '';
+  const checkIcon = document.getElementById('mobile-check-icon');
+  if (checkIcon) checkIcon.style.opacity = '0';
+
   showToast("Security token cleared. Signed out.");
   window.location.hash = '#/login';
 }
@@ -924,7 +995,7 @@ async function fetchRegistrationsQueue() {
         <tr>
           <td colspan="5" class="py-10 text-center text-text-muted">
             <span class="material-symbols-outlined text-[36px] text-saffron-accent mb-2 block">cloud_sync</span>
-            <p class="font-body-md text-sm font-semibold text-text-primary">Cannot Reach Backend Gateway</p>
+            <p class="font-body-md text-sm font-semibold text-text-primary">Service Unavailable</p>
             <p class="text-xs text-text-muted mt-1">${err.message}</p>
             <div class="flex items-center justify-center gap-3 mt-3">
               <button onclick="fetchRegistrationsQueue()" class="px-3 py-1.5 bg-institutional-navy text-on-primary rounded-lg text-xs font-semibold hover:bg-primary transition-all cursor-pointer">
@@ -935,7 +1006,7 @@ async function fetchRegistrationsQueue() {
         </tr>
       `;
     }
-    showToast(`Backend Notice: ${err.message}`);
+    showToast(`Notice: ${err.message}`);
   } finally {
     AppState.isLoadingRegistrations = false;
   }
@@ -1309,28 +1380,31 @@ function renderRegistrationDetailView(reg, history) {
   if (auditContainer) {
     if (history && history.length > 0) {
       auditContainer.innerHTML = history.map((item, idx) => {
-        const timeStr = item.changedAt ? new Date(item.changedAt).toLocaleString('en-IN') : 'Live Transition';
-        const desc = item.comment || `State transitioned from ${item.fromStatus || 'INCEPTION'} to ${item.toStatus}`;
+        const timeStr = item.changedAt ? new Date(item.changedAt).toLocaleString('en-IN') : 'Recent';
+        const fromLabel = formatStatusUserFriendly(item.fromStatus);
+        const toLabel = formatStatusUserFriendly(item.toStatus);
+        const desc = item.comment || (item.fromStatus ? `Status updated from ${fromLabel} to ${toLabel}` : `Application received as ${toLabel}`);
         return `
           <div class="relative flex flex-col gap-1">
             <div class="absolute -left-[22px] top-1.5 w-3 h-3 rounded-full ${idx === 0 ? 'bg-status-review-text shadow-sm' : 'bg-gov-emerald shadow-sm'}"></div>
             <div class="flex items-center gap-space-xs">
-              <span class="font-mono-code text-[11px] sm:text-[12px] text-text-muted">${timeStr}</span>
-              <span class="px-2 py-0.5 rounded-full bg-status-review-bg text-status-review-text font-label-sm text-[10px] uppercase font-bold">${item.toStatus}</span>
+              <span class="text-[11px] sm:text-[12px] text-text-muted">${timeStr}</span>
+              <span class="px-2 py-0.5 rounded-full bg-status-review-bg text-status-review-text font-label-sm text-[10px] uppercase font-bold">${toLabel}</span>
             </div>
             <p class="font-body-md text-xs sm:text-body-md text-text-primary">${desc}</p>
           </div>
         `;
       }).join('');
     } else {
+      const currentLabel = formatStatusUserFriendly(reg.status);
       auditContainer.innerHTML = `
         <div class="relative flex flex-col gap-1">
           <div class="absolute -left-[22px] top-1.5 w-3 h-3 rounded-full bg-gov-emerald shadow-sm"></div>
           <div class="flex items-center gap-space-xs">
-            <span class="font-mono-code text-[11px] text-text-muted">${reg.date}</span>
-            <span class="px-2 py-0.5 rounded-full bg-status-submitted-bg text-status-submitted-text font-label-sm text-[10px] uppercase font-bold">${reg.status}</span>
+            <span class="text-[11px] text-text-muted">${reg.date}</span>
+            <span class="px-2 py-0.5 rounded-full bg-status-submitted-bg text-status-submitted-text font-label-sm text-[10px] uppercase font-bold">${currentLabel}</span>
           </div>
-          <p class="font-body-md text-xs text-text-primary">Registration intake recorded in database via Gateway.</p>
+          <p class="font-body-md text-xs text-text-primary">Registration submitted by applicant.</p>
         </div>
       `;
     }
@@ -1359,9 +1433,15 @@ function renderRegistrationDetailView(reg, history) {
   if (decisionForm) decisionForm.classList.toggle('hidden', !canDecide);
   if (readOnlyMessage) {
     readOnlyMessage.classList.toggle('hidden', canDecide);
-    readOnlyMessage.textContent = reg.status === 'ACTION_REQUIRED'
-      ? 'Waiting for the submitter to respond. This registration cannot be decided in its current status.'
-      : `This registration is ${reg.status}. Decisions are available only for SUBMITTED or UNDER_REVIEW registrations.`;
+    if (reg.status === 'ACTION_REQUIRED') {
+      readOnlyMessage.innerHTML = '<div class="flex items-center gap-2 text-saffron-accent"><span class="material-symbols-outlined text-[20px]">hourglass_top</span><span class="font-semibold text-sm">Awaiting Applicant Response</span></div><p class="mt-1 text-xs text-text-secondary">Changes have been requested from the applicant. Further decisions can be made once they submit revised documents.</p>';
+    } else if (reg.status === 'APPROVED') {
+      readOnlyMessage.innerHTML = '<div class="flex items-center gap-2 text-gov-emerald"><span class="material-symbols-outlined text-[20px]">check_circle</span><span class="font-semibold text-sm">Application Approved</span></div><p class="mt-1 text-xs text-text-secondary">This organization is verified and active. No further review actions required.</p>';
+    } else if (reg.status === 'REJECTED') {
+      readOnlyMessage.innerHTML = '<div class="flex items-center gap-2 text-error"><span class="material-symbols-outlined text-[20px]">cancel</span><span class="font-semibold text-sm">Application Rejected</span></div><p class="mt-1 text-xs text-text-secondary">This registration was declined and closed.</p>';
+    } else {
+      readOnlyMessage.textContent = 'This application is currently not open for reviewer decisions.';
+    }
   }
 }
 
@@ -1373,6 +1453,10 @@ function selectDecision(decision) {
   const consequenceBox = document.getElementById('consequence-box');
   const mandatoryAsterisk = document.getElementById('mandatory-asterisk');
   const submitBtnLabel = document.getElementById('submit-btn-label');
+  const submitBtnIcon = document.getElementById('submit-btn-icon');
+  const remarksLabelText = document.getElementById('remarks-label-text');
+  const remarksTextarea = document.getElementById('reviewer-remarks');
+  const validationHint = document.getElementById('validation-hint');
 
   const defaultClass = "decision-tab flex flex-col items-center justify-center p-2 sm:p-3 rounded-lg bg-surface-subtle hover:bg-surface-container transition-all text-center group cursor-pointer border border-border-hairline";
   if (btnApprove) btnApprove.className = defaultClass;
@@ -1382,42 +1466,54 @@ function selectDecision(decision) {
   if (decision === 'APPROVE') {
     if (btnApprove) btnApprove.className = "decision-tab flex flex-col items-center justify-center p-2 sm:p-3 rounded-lg bg-status-approved-bg text-status-approved-text shadow-sm transition-all text-center cursor-pointer border border-status-approved-border";
     if (consequenceBox) {
-      consequenceBox.className = "p-space-base rounded-lg bg-status-approved-bg text-status-approved-text mb-space-base flex items-start gap-space-sm";
+      consequenceBox.className = "p-3 sm:p-3.5 rounded-lg bg-status-approved-bg text-status-approved-text mb-4 flex items-start gap-2.5 sm:gap-3 border border-status-approved-border";
       consequenceBox.innerHTML = `
-        <span class="material-symbols-outlined text-[20px] shrink-0 text-gov-emerald">check_circle</span>
-        <div class="text-body-sm font-body-sm">
-          <strong class="font-bold">Backend State Transition:</strong> Submitter KYC is set to <span class="font-mono-code font-bold">VERIFIED</span>. Primary SourceAccount will be provisioned in database with active submission rights.
+        <span class="material-symbols-outlined text-[20px] shrink-0 text-gov-emerald mt-0.5">verified</span>
+        <div class="text-xs sm:text-body-sm leading-relaxed">
+          <strong class="font-bold">Approve Organization:</strong> The entity will be verified and authorized. Their account will be activated immediately to submit problem statements.
         </div>
       `;
     }
     if (mandatoryAsterisk) mandatoryAsterisk.style.display = 'none';
-    if (submitBtnLabel) submitBtnLabel.innerText = "Execute Approval & Provision Account";
+    if (remarksLabelText) remarksLabelText.textContent = "Reviewer remarks (Optional)";
+    if (remarksTextarea) remarksTextarea.placeholder = "Add any optional verification notes or approval references...";
+    if (validationHint) validationHint.textContent = "Optional remarks will be saved in the registration record.";
+    if (submitBtnLabel) submitBtnLabel.innerText = "Approve Registration";
+    if (submitBtnIcon) submitBtnIcon.innerText = "check_circle";
   } else if (decision === 'REQUEST_ACTION') {
     if (btnRequest) btnRequest.className = "decision-tab flex flex-col items-center justify-center p-2 sm:p-3 rounded-lg bg-status-action-bg text-status-action-text shadow-sm transition-all text-center cursor-pointer border border-status-action-border";
     if (consequenceBox) {
-      consequenceBox.className = "p-space-base rounded-lg bg-status-action-bg text-status-action-text mb-space-base flex items-start gap-space-sm";
+      consequenceBox.className = "p-3 sm:p-3.5 rounded-lg bg-status-action-bg text-status-action-text mb-4 flex items-start gap-2.5 sm:gap-3 border border-status-action-border";
       consequenceBox.innerHTML = `
-        <span class="material-symbols-outlined text-[20px] shrink-0 text-saffron-accent">info</span>
-        <div class="text-body-sm font-body-sm">
-          <strong class="font-bold">State change:</strong> Registration status will change to <span class="font-mono-code font-bold">ACTION_REQUIRED</span>.
+        <span class="material-symbols-outlined text-[20px] shrink-0 text-saffron-accent mt-0.5">contact_support</span>
+        <div class="text-xs sm:text-body-sm leading-relaxed">
+          <strong class="font-bold">Request Changes:</strong> The applicant will be notified to correct deficient details or re-upload required documents before review can proceed.
         </div>
       `;
     }
     if (mandatoryAsterisk) mandatoryAsterisk.style.display = 'inline';
-    if (submitBtnLabel) submitBtnLabel.innerText = "Request Changes";
+    if (remarksLabelText) remarksLabelText.textContent = "Required Changes / Deficiencies";
+    if (remarksTextarea) remarksTextarea.placeholder = "Specify what documents or details the applicant needs to update or provide...";
+    if (validationHint) validationHint.textContent = "This note will be sent directly to the applicant so they know what to fix.";
+    if (submitBtnLabel) submitBtnLabel.innerText = "Request Changes from Applicant";
+    if (submitBtnIcon) submitBtnIcon.innerText = "send";
   } else if (decision === 'REJECT') {
     if (btnReject) btnReject.className = "decision-tab flex flex-col items-center justify-center p-2 sm:p-3 rounded-lg bg-error-container text-on-error-container shadow-sm transition-all text-center cursor-pointer border border-error";
     if (consequenceBox) {
-      consequenceBox.className = "p-space-base rounded-lg bg-error-container text-on-error-container mb-space-base flex items-start gap-space-sm";
+      consequenceBox.className = "p-3 sm:p-3.5 rounded-lg bg-error-container text-on-error-container mb-4 flex items-start gap-2.5 sm:gap-3 border border-error/30";
       consequenceBox.innerHTML = `
-        <span class="material-symbols-outlined text-[20px] shrink-0 text-error">dangerous</span>
-        <div class="text-body-sm font-body-sm">
-          <strong class="font-bold">State change:</strong> Registration status will change to <span class="font-mono-code font-bold">REJECTED</span>.
+        <span class="material-symbols-outlined text-[20px] shrink-0 text-error mt-0.5">error</span>
+        <div class="text-xs sm:text-body-sm leading-relaxed">
+          <strong class="font-bold">Decline Registration:</strong> This application will be rejected and closed. Please provide a clear explanation for the applicant.
         </div>
       `;
     }
     if (mandatoryAsterisk) mandatoryAsterisk.style.display = 'inline';
+    if (remarksLabelText) remarksLabelText.textContent = "Reason for Rejection";
+    if (remarksTextarea) remarksTextarea.placeholder = "State the official grounds for declining this registration...";
+    if (validationHint) validationHint.textContent = "A clear reason is required and will be communicated to the applicant.";
     if (submitBtnLabel) submitBtnLabel.innerText = "Reject Registration";
+    if (submitBtnIcon) submitBtnIcon.innerText = "cancel";
   }
 
   evaluateSubmitReadiness();
@@ -1456,8 +1552,8 @@ async function executeStatutoryTransition() {
 
   executeBtn.disabled = true;
   executeBtn.innerHTML = `
-    <span class="material-symbols-outlined text-[20px] animate-spin">progress_activity</span>
-    <span>Calling Backend Gateway...</span>
+    <span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+    <span>Submitting Decision...</span>
   `;
 
   try {
@@ -1473,7 +1569,13 @@ async function executeStatutoryTransition() {
     }
 
     await ApiClient.post(endpoint, body);
-    showToast(`Order executed: ${AppState.currentDecision} recorded in backend.`);
+    if (AppState.currentDecision === 'APPROVE') {
+      showToast('Registration approved successfully. Organization account is now active.', 'success');
+    } else if (AppState.currentDecision === 'REQUEST_ACTION') {
+      showToast('Change request sent to the applicant successfully.', 'info');
+    } else if (AppState.currentDecision === 'REJECT') {
+      showToast('Registration has been rejected.', 'warning');
+    }
     await loadRegistrationDetail(regId);
     await fetchRegistrationsQueue();
   } catch (err) {

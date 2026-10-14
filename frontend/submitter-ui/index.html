@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>Problem Source Portal · National Repository</title>
+  <title>Manthan · National Repository</title>
   
   <!-- Fonts & Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -18,11 +18,7 @@
 <body class="bg-surface-subtle font-body-md text-text-primary min-h-screen flex flex-col">
 
   <!-- Top Tricolor Ribbon -->
-  <div class="w-full fixed top-0 left-0 h-1 flex z-50">
-    <div class="h-full flex-1 bg-saffron-accent"></div>
-    <div class="h-full flex-1 bg-surface-crisp"></div>
-    <div class="h-full flex-1 bg-gov-emerald"></div>
-  </div>
+  <div class="w-full fixed top-0 left-0 h-1 z-50 bg-gradient-to-r from-saffron-accent via-surface-crisp to-gov-emerald"></div>
 
   <!-- Global Header -->
   <header class="fixed top-1 left-0 right-0 z-40 bg-surface-crisp shadow-sm border-b border-border-hairline">
@@ -46,10 +42,9 @@
         </div>
         <div class="flex flex-col">
           <div class="flex items-center gap-2">
-            <span class="font-bold text-ashoka-blue tracking-tight text-base sm:text-lg">Problem Source Portal</span>
-            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-status-submitted-bg text-status-submitted-text uppercase">Gov.in</span>
+            <span class="font-bold text-ashoka-blue tracking-tight text-base sm:text-lg">Manthan</span>
           </div>
-          <span class="text-xs text-text-muted hidden sm:inline">Problem Source Organization KYC | स्रोत संगठन सत्यापन</span>
+          <span class="text-xs text-text-muted hidden sm:inline">Churning Ideas into.....</span>
         </div>
       </div>
 
@@ -58,7 +53,7 @@
         <span id="header-user-kyc" class="hidden text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Unauthenticated</span>
 
         <!-- Profile Avatar & Dropdown -->
-        <div class="relative" id="profile-dropdown-wrapper">
+        <div class="relative hidden" id="profile-dropdown-wrapper">
           <button type="button" onclick="toggleProfileDropdown()" id="header-profile-btn"
                   class="flex items-center gap-2 bg-surface-muted hover:bg-surface-container-low px-3 py-1.5 rounded-lg border border-border-hairline transition-colors cursor-pointer">
             <div class="w-7 h-7 rounded-full bg-ashoka-blue text-surface-crisp flex items-center justify-center text-xs font-bold" id="header-avatar-initials">
@@ -116,7 +111,7 @@
   <aside id="portal-sidebar" class="fixed left-0 top-[68px] bottom-0 z-30 hidden w-64 flex-col border-r border-border-hairline bg-surface-crisp shadow-sm">
     <div class="border-b border-border-hairline px-5 py-5">
       <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">Workspace</p>
-      <p class="mt-1 text-sm font-bold text-ashoka-blue">Source Portal</p>
+      <p class="mt-1 text-sm font-bold text-ashoka-blue">Manthan</p>
       <p class="mt-1 text-xs text-text-muted">Manage your organization and filed problems</p>
     </div>
     <nav class="flex flex-col gap-1 p-3" aria-label="Main navigation">
@@ -552,7 +547,7 @@
             <div class="pb-3 border-b border-border-hairline">
               <span class="text-[11px] uppercase font-bold text-saffron-accent">Step 4 · Confirmation</span>
               <h3 class="font-bold text-lg text-ashoka-blue">Review Registration Application</h3>
-              <p class="text-xs text-text-secondary">Confirm details before saving draft to the national database.</p>
+              <p class="text-xs text-text-secondary">Confirm details before saving draft.</p>
             </div>
 
             <div class="flex items-center gap-2 p-3 rounded-lg bg-surface-container-low border border-status-submitted-border">
@@ -962,7 +957,7 @@
           <div>
             <div class="flex items-center gap-2 mb-1">
               <span class="material-symbols-outlined text-ashoka-blue text-xl">add_circle</span>
-              <span class="text-xs font-bold uppercase tracking-wider text-gov-emerald">National Problem Intake Gateway</span>
+              <span class="text-xs font-bold uppercase tracking-wider text-gov-emerald">Problem Submission Form</span>
             </div>
             <h1 class="text-2xl font-bold text-ashoka-blue">File Problem Statement</h1>
             <p class="text-sm text-text-secondary mt-0.5">Submit grassroots civic challenges or departmental R&amp;D problems for NEP capstone solvers.</p>
@@ -1704,7 +1699,7 @@
 
       <h3 class="text-xl sm:text-2xl font-bold text-ashoka-blue mb-1">Problem Statement Registered!</h3>
       <p class="text-xs text-text-secondary max-w-sm mb-5">
-        Your problem has been recorded in the statutory database and queued for Nodal Review.
+        Your problem has been recorded and queued for review.
       </p>
 
       <!-- Reference ID Box -->
