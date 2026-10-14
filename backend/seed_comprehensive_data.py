@@ -208,10 +208,12 @@ def seed_all():
     # 1b. Additional Submitter accounts for testing all wizard and deficiency states
     reg_queue = [
         # Submitter 2: UNDER_REVIEW (tracking screen test)
+        # Submitter 2: UNDER_REVIEW (tracking screen test)
         (
             "66666666-aaaa-4000-8000-000000000002", "GOVT", "PRI", "UNDER_REVIEW",
             json.dumps({
-                "organizationName": "Khadur Sahib Gram Panchayat", "pan": "AAATK9012F",
+                "organizationName": "Khadur Sahib Gram Panchayat", "priName": "Khadur Sahib Gram Panchayat",
+                "priLevel": "GRAM_PANCHAYAT", "pan": "AAATK9012F",
                 "dossierId": "#PRI-KYC-2024-88912", "state": "Punjab", "district": "Tarn Taran",
                 "contactPersonName": "Harpreet Singh Dhillon (VDO)", "contactPhone": "9900000002"
             }), submitter_2_id, reviewer_user_id, None
@@ -229,16 +231,17 @@ def seed_all():
         (
             "66666666-aaaa-4000-8000-000000000004", "INDUSTRY", "STARTUP", "DRAFT",
             json.dumps({
-                "organizationName": "JalShakti Automation Labs Pvt Ltd", "pan": "AAACJ8821K",
-                "state": "Rajasthan", "district": "Jaipur", "contactPersonName": "Vikramaditya Rathore",
-                "contactPhone": "9900000004"
+                "organizationName": "JalShakti Automation Labs Pvt Ltd", "companyName": "JalShakti Automation Labs Pvt Ltd",
+                "pan": "AAACJ8821K", "state": "Rajasthan", "district": "Jaipur",
+                "contactPersonName": "Vikramaditya Rathore", "contactPhone": "9900000004"
             }), submitter_4_id, None, None
         ),
-        # Reviewer queue item 1: SUBMITTED (Gram Panchayat)
+        # Reviewer queue item 1: SUBMITTED (Urban Local Body)
         (
             "66666666-aaaa-4000-8000-000000000005", "GOVT", "ULB", "SUBMITTED",
             json.dumps({
-                "organizationName": "Wani Municipal Council", "pan": "AAALW4421M",
+                "organizationName": "Wani Municipal Council", "ulbName": "Wani Municipal Council",
+                "ulbType": "MUNICIPALITY", "pan": "AAALW4421M",
                 "dossierId": "#ULB-KYC-2024-55102", "state": "Maharashtra", "district": "Yavatmal",
                 "contactPersonName": "Dr. Sneha K. Patil (Chief Officer)", "contactPhone": "9820011223"
             }), submitter_2_id, reviewer_user_id, None
@@ -247,8 +250,8 @@ def seed_all():
         (
             "66666666-aaaa-4000-8000-000000000006", "HEI", "UNIVERSITY", "SUBMITTED",
             json.dumps({
-                "organizationName": "Bastar Central University Research Cell", "pan": "AAABU7712K",
-                "dossierId": "#HEI-KYC-2024-30114", "state": "Chhattisgarh", "district": "Bastar",
+                "organizationName": "Bastar Central University Research Cell", "institutionName": "Bastar Central University Research Cell",
+                "pan": "AAABU7712K", "dossierId": "#HEI-KYC-2024-30114", "state": "Chhattisgarh", "district": "Bastar",
                 "contactPersonName": "Prof. Arvind Netam (Registrar)", "contactPhone": "9877112233"
             }), submitter_2_id, reviewer_user_id, None
         ),
@@ -256,8 +259,8 @@ def seed_all():
         (
             "66666666-aaaa-4000-8000-000000000007", "CITIZEN", "RWA", "UNDER_REVIEW",
             json.dumps({
-                "organizationName": "Indirapuram Residents Apex Association", "pan": "AAAAR3310N",
-                "dossierId": "#RWA-KYC-2024-77291", "state": "Uttar Pradesh", "district": "Ghaziabad",
+                "organizationName": "Indirapuram Residents Apex Association", "rwaName": "Indirapuram Residents Apex Association",
+                "pan": "AAAAR3310N", "dossierId": "#RWA-KYC-2024-77291", "state": "Uttar Pradesh", "district": "Ghaziabad",
                 "contactPersonName": "Sunil Verma (President)", "contactPhone": "9818822334"
             }), submitter_6_id, reviewer_user_id, None
         ),
@@ -265,8 +268,8 @@ def seed_all():
         (
             "66666666-aaaa-4000-8000-000000000008", "COMMUNITY", "SHG", "SUBMITTED",
             json.dumps({
-                "organizationName": "Mahila Utkarsha Self Help Federation", "pan": "AAAMU9921B",
-                "dossierId": "#SHG-KYC-2024-99210", "state": "Maharashtra", "district": "Nashik",
+                "organizationName": "Mahila Utkarsha Self Help Federation", "shgName": "Mahila Utkarsha Self Help Federation",
+                "pan": "AAAMU9921B", "dossierId": "#SHG-KYC-2024-99210", "state": "Maharashtra", "district": "Nashik",
                 "contactPersonName": "Sunita Tai Deshmukh", "contactPhone": "9866112244"
             }), submitter_7_id, reviewer_user_id, None
         )
