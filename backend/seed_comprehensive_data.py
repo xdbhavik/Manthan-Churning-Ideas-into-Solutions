@@ -706,23 +706,24 @@ def seed_all():
         outcome_esc = p["outcome"].replace("'", "''")
         loc_str = p["loc"]["text"].replace("'", "''")
         dom_json = json.dumps(p["domain_names"])
+        owner_id = submitter_2_id if p["id"] == "11111111-aaaa-4000-8000-000000000002" else (submitter_1_id if p["bucket"] == "GOVT" else (submitter_3_id if p["bucket"] == "INDUSTRY" else submitter_4_id))
 
         portal_sqls.append(f"""
         INSERT INTO published_problem (
             problem_id, cycle_id, title, description, expected_outcome,
             source_bucket, sub_entity_type, urgency, severity, location,
-            domains, evidence_count, access_rule, access_universities, published_at
+            domains, evidence_count, access_rule, access_universities, published_at, submitted_by_user_id
         ) VALUES (
             '{p["id"]}', '{p["cycle_id"]}', '{title_esc}', '{desc_esc}', '{outcome_esc}',
             '{p["bucket"]}', '{p["sub_entity"]}', '{p["urgency"]}', '{p["severity"]}', '{loc_str}',
-            '{dom_json}'::jsonb, 2, '{p["access_rule"]}', '[]'::jsonb, NOW() - interval '3 days'
+            '{dom_json}'::jsonb, 2, '{p["access_rule"]}', '[]'::jsonb, NOW() - interval '3 days', '{owner_id}'
         );
         """)
     run_psql("sih_portal", "\n".join(portal_sqls))
 
     # Student Submissions for Priya across 5 distinct problem statements
     submissions = [
-        # GOVT Submission 1 (Pothole Problem) -> UNDER_REVIEW
+        # GOVT Submission 1 (Pothole Problem) -> ACCEPTED
         {
             "sub_id": "33333333-cccc-4000-8000-000000000001",
             "prob_id": "11111111-aaaa-4000-8000-000000000001",
@@ -730,11 +731,12 @@ def seed_all():
             "title": "VeloSense - Edge IMU & Camera Pipeline for Transit Buses",
             "summary": "Lightweight TensorFlow Lite model running on Raspberry Pi 4 with MPU6050 accelerometer, streaming geo-tagged road defects over 4G.",
             "github": "https://github.com/priya-sharma/velosense-pothole-telemetry",
-            "status": "UNDER_REVIEW",
+            "status": "ACCEPTED",
+            "comment": "Validated on Bengaluru BMTC Route 335E with 94.2% detection precision for major potholes. High civic utility for BBMP.",
             "target_pool": "GOVERNMENT",
-            "review_status": "ASSIGNED"
+            "review_status": "ACCEPTED"
         },
-        # GOVT Submission 2 (Solar Microgrid) -> RETURNED
+        # GOVT Submission 2 (Solar Microgrid) -> ACCEPTED
         {
             "sub_id": "33333333-cccc-4000-8000-000000000002",
             "prob_id": "11111111-aaaa-4000-8000-000000000002",
@@ -742,10 +744,10 @@ def seed_all():
             "title": "UrjaSetu - Smart Microgrid Peer Ledger",
             "summary": "ESP32-based bidirectional metering node interfacing with an open-source consensus ledger for local power settlement.",
             "github": "https://github.com/priya-sharma/urja-setu-microgrid",
-            "status": "RETURNED",
-            "comment": "Please update hardware circuit schematics to include anti-islanding protection and resubmit.",
+            "status": "ACCEPTED",
+            "comment": "Top-tier student engineering project. Anti-islanding safety relay verified. Highly recommended for pilot adoption by Tarn Taran Gram Panchayat under PM-KUSUM.",
             "target_pool": "GOVERNMENT",
-            "review_status": "RETURNED"
+            "review_status": "ACCEPTED"
         },
         # INDUSTRY Submission (Water Leakage) -> ACCEPTED
         {

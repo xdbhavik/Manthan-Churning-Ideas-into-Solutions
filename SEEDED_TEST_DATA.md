@@ -129,6 +129,17 @@ The submitter portal test accounts demonstrate each lifecycle stage from fresh o
 | `9900000004` | `33333333-3333-4333-8333-000000000004` | **Draft Applicant (MSME)** | Gujarat / `INDUSTRY` (`MSME`) | **Draft Wizard Resume (`view-wizard`)**<br>• Status: `DRAFT`<br>• Resumes directly at Step 4 (Document Upload) with steps 1–3 pre-filled |
 | `9900000005` | `33333333-3333-4333-8333-000000000005` | **Fresh New User** | N/A | **Clean Onboarding Start (`view-wizard`)**<br>• No registrations<br>• Starts at Wizard Step 1 (Category Selection) |
 
+### 2.1 Accepted Student Solutions in Submitter Portal (`#view-my-solutions`)
+
+The Submitter Portal includes a dedicated **Accepted Solutions** workspace where problem statement owners can inspect student innovations, view evaluator scorecards, download files, and assign institutional mentors:
+
+| Submitter Phone | Submitter Persona | Linked Problem Statement | Accepted Student Solution | Scorecard & Review Details | Mentor Assignment State |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `9900000002` | **Khadur Sahib Gram Panchayat** (`PRI` / `GOVT`) | `11111111-aaaa-4000-8000-000000000002`<br>*(Decentralized Solar Microgrid Energy Trading for Rural Gram Panchayats)* | **UrjaSetu - Smart Microgrid Peer Ledger**<br>• Team: *UrjaVanguard* (IIT Delhi)<br>• Leader: Aarav Sharma<br>• Microcontroller: ESP32-S3 + LoRa mesh | **89 / 100** (P1 Band)<br>• Feasibility: 28/30<br>• Rural Impact: 27/30<br>• Novelty: 18/20<br>• Field Deployability: 16/20 | **Pre-assigned Mentor:**<br>Er. Gurpreet Singh *(Punjab Energy Development Agency - PEDA)* |
+| `9900000001` | **Bruhat Bengaluru Mahanagara Palike (BBMP)** (`ULB` / `GOVT`) | `11111111-aaaa-4000-8000-000000000001`<br>*(IoT-Enabled Pothole & Road Surface Telemetry System)* | **VeloSense - Edge IMU & Camera Pipeline for Transit Buses**<br>• Team: *UrbanTrackers* (NITK Surathkal)<br>• Leader: Priya Sharma<br>• Hardware: Raspberry Pi 4 + Coral TPU | **92 / 100** (Critical Band)<br>• AI Accuracy: 33/35 (32 FPS)<br>• Latency: 32/35 (<1.2s)<br>• Scalability: 27/30 | **Unassigned**<br>*(Ready for testing the interactive "Assign Mentor" form in UI)* |
+| `9900000003` | **Tata Utilities / Infra Tech Ltd** (`COMPANY` / `INDUSTRY`) | `11111111-aaaa-4000-8000-000000000003`<br>*(Autonomous Water Pipeline Leakage & Contamination Mesh)* | **JalDrishti - Acoustic Mesh for Municipal Pipeline Surveillance**<br>• Hydrophone sensor mesh | **88 / 100** (High Feasibility) | Ready for Mentor Assignment |
+| `9900000006` | **Kisan Vikas Sahakari Mandali** (`SHG` / `COMMUNITY`) | `11111111-aaaa-4000-8000-000000000006`<br>*(Affordable Cold-Storage Monitoring Mesh)* | **KrishiSheet - LoRa Mesh Cold Room Tracker**<br>• Environmental LoRa beacon with SMS dispatch | **86 / 100** (Field-Ready) | Ready for Mentor Assignment |
+
 ---
 
 ## 3. Reviewer Portal (`http://localhost:8086`)
