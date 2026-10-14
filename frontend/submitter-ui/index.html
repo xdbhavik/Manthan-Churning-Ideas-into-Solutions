@@ -1071,7 +1071,7 @@
               </div>
               <button type="button" onclick="fillDefaultLocation()" class="text-xs font-bold text-ashoka-blue hover:text-institutional-navy flex items-center gap-1 cursor-pointer">
                 <span class="material-symbols-outlined text-[16px]">my_location</span>
-                <span>Auto-fill Current / Default Coordinates</span>
+                <span>Detect Device GPS Coordinates</span>
               </button>
             </div>
 
@@ -1080,7 +1080,7 @@
                 <label class="text-xs font-bold text-ashoka-blue" for="pf-state">
                   State / UT <span class="compulsory-asterisk text-error font-bold text-sm ml-0.5" title="Compulsory field">*</span>
                 </label>
-                <input id="pf-state" type="text" required value="Bihar"
+                <input id="pf-state" type="text" required placeholder="e.g., Bihar, Maharashtra"
                        class="w-full h-11 px-3.5 rounded-lg border border-border-strong bg-surface-subtle text-sm text-text-primary focus:bg-surface-crisp focus:border-ashoka-blue focus:outline-none"/>
               </div>
 
@@ -1088,7 +1088,7 @@
                 <label class="text-xs font-bold text-ashoka-blue" for="pf-district">
                   District <span class="compulsory-asterisk text-error font-bold text-sm ml-0.5" title="Compulsory field">*</span>
                 </label>
-                <input id="pf-district" type="text" required value="Patna"
+                <input id="pf-district" type="text" required placeholder="e.g., Patna, Pune"
                        class="w-full h-11 px-3.5 rounded-lg border border-border-strong bg-surface-subtle text-sm text-text-primary focus:bg-surface-crisp focus:border-ashoka-blue focus:outline-none"/>
               </div>
 
@@ -1122,7 +1122,7 @@
                 <label class="text-xs font-bold text-ashoka-blue" for="pf-latitude">
                   Latitude <span class="compulsory-asterisk text-error font-bold text-sm ml-0.5" title="Compulsory field">*</span>
                 </label>
-                <input id="pf-latitude" type="number" step="any" required value="25.5941"
+                <input id="pf-latitude" type="number" step="any" required placeholder="e.g., 25.5941"
                        class="w-full h-11 px-3.5 rounded-lg border border-border-strong bg-surface-subtle text-sm font-mono-code text-text-primary focus:bg-surface-crisp focus:border-ashoka-blue focus:outline-none"/>
               </div>
 
@@ -1130,7 +1130,7 @@
                 <label class="text-xs font-bold text-ashoka-blue" for="pf-longitude">
                   Longitude <span class="compulsory-asterisk text-error font-bold text-sm ml-0.5" title="Compulsory field">*</span>
                 </label>
-                <input id="pf-longitude" type="number" step="any" required value="85.1376"
+                <input id="pf-longitude" type="number" step="any" required placeholder="e.g., 85.1376"
                        class="w-full h-11 px-3.5 rounded-lg border border-border-strong bg-surface-subtle text-sm font-mono-code text-text-primary focus:bg-surface-crisp focus:border-ashoka-blue focus:outline-none"/>
               </div>
 

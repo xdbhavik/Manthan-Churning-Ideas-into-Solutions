@@ -2285,41 +2285,24 @@ function handleAccessRuleChange(rule) {
 }
 
 function fillDefaultLocation() {
-  const stateInput = document.getElementById('pf-state');
-  const distInput = document.getElementById('pf-district');
   const latInput = document.getElementById('pf-latitude');
   const lngInput = document.getElementById('pf-longitude');
-  const blockInput = document.getElementById('pf-block');
-  const villageInput = document.getElementById('pf-village');
-  const pincodeInput = document.getElementById('pf-pincode');
 
   if (navigator.geolocation) {
+    toast('Detecting device GPS coordinates...', 'info');
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         if (latInput) latInput.value = pos.coords.latitude.toFixed(6);
         if (lngInput) lngInput.value = pos.coords.longitude.toFixed(6);
-        toast('Detected device GPS coordinates!', 'success');
+        toast('Detected device GPS coordinates successfully!', 'success');
       },
-      () => {
-        if (stateInput) stateInput.value = 'Bihar';
-        if (distInput) distInput.value = 'Patna';
-        if (blockInput) blockInput.value = 'Patna Sadar';
-        if (villageInput) villageInput.value = 'Ward 12';
-        if (pincodeInput) pincodeInput.value = '800001';
-        if (latInput) latInput.value = '25.594100';
-        if (lngInput) lngInput.value = '85.137600';
-        toast('Populated standard Bihar-Patna civic coordinates.', 'info');
-      }
+      (err) => {
+        toast('Could not detect GPS location (' + (err.message || 'permission denied') + '). Please enter location details manually.', 'warning');
+      },
+      { timeout: 10000, enableHighAccuracy: true }
     );
   } else {
-    if (stateInput) stateInput.value = 'Bihar';
-    if (distInput) distInput.value = 'Patna';
-    if (blockInput) blockInput.value = 'Patna Sadar';
-    if (villageInput) villageInput.value = 'Ward 12';
-    if (pincodeInput) pincodeInput.value = '800001';
-    if (latInput) latInput.value = '25.594100';
-    if (lngInput) lngInput.value = '85.137600';
-    toast('Populated standard Bihar-Patna civic coordinates.', 'info');
+    toast('Geolocation is not supported by your browser. Please enter location coordinates manually.', 'warning');
   }
 }
 
