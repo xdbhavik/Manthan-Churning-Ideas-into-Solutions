@@ -442,12 +442,12 @@
         <!-- Right Side Checklist -->
         <div class="lg:col-span-4 flex flex-col gap-4">
           <div class="bg-surface-crisp p-5 rounded-xl border border-border-hairline shadow-sm">
-            <h4 class="font-bold text-sm text-ashoka-blue mb-2">Required Information</h4>
+            <h4 class="font-bold text-sm text-ashoka-blue mb-2">Compulsory Information</h4>
             <p class="text-xs text-text-secondary leading-relaxed mb-3">
-              Required fields marked with <span class="text-saffron-accent font-bold">*</span> must be provided before final review submission.
+              Compulsory fields marked with a red asterisk <span class="compulsory-asterisk text-error font-bold text-base">*</span> must be completed before you can proceed to the next step.
             </p>
-            <div class="p-3 rounded-lg bg-surface-subtle text-xs font-mono-code text-text-secondary leading-relaxed">
-              Fields marked with * are required. Please fill them in before proceeding.
+            <div class="p-3 rounded-lg bg-surface-subtle text-xs font-mono-code text-text-secondary leading-relaxed border border-border-hairline">
+              Fields marked with * are compulsory for official statutory registration. Incomplete submissions cannot be processed.
             </div>
           </div>
         </div>
@@ -985,7 +985,7 @@
 
             <div class="flex flex-col gap-1.5">
               <label class="text-xs font-bold text-ashoka-blue" for="pf-title">
-                Problem Title <span class="text-saffron-accent">*</span>
+                Problem Title <span class="compulsory-asterisk text-error font-bold text-sm ml-0.5" title="Compulsory field">*</span>
               </label>
               <input id="pf-title" type="text" required placeholder="e.g., Acute groundwater arsenic contamination in Ward 12"
                      class="w-full h-11 px-3.5 rounded-lg border border-border-strong bg-surface-subtle text-sm text-text-primary placeholder:text-text-muted focus:bg-surface-crisp focus:border-ashoka-blue focus:outline-none transition-all"/>
@@ -994,7 +994,7 @@
 
             <div class="flex flex-col gap-1.5">
               <label class="text-xs font-bold text-ashoka-blue" for="pf-description">
-                Comprehensive Description <span class="text-saffron-accent">*</span>
+                Comprehensive Description <span class="compulsory-asterisk text-error font-bold text-sm ml-0.5" title="Compulsory field">*</span>
               </label>
               <textarea id="pf-description" rows="4" required placeholder="Describe the ground reality, severity, challenges faced, observed impact on citizens, and technical or logistical hurdles..."
                         class="w-full p-3.5 rounded-lg border border-border-strong bg-surface-subtle text-sm text-text-primary placeholder:text-text-muted focus:bg-surface-crisp focus:border-ashoka-blue focus:outline-none transition-all"></textarea>
@@ -1003,7 +1003,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div class="flex flex-col gap-1.5">
                 <label class="text-xs font-bold text-ashoka-blue" for="pf-urgency">
-                  Urgency Level <span class="text-saffron-accent">*</span>
+                  Urgency Level <span class="compulsory-asterisk text-error font-bold text-sm ml-0.5" title="Compulsory field">*</span>
                 </label>
                 <select id="pf-urgency" required class="w-full h-11 px-3 rounded-lg border border-border-strong bg-surface-subtle text-xs font-medium text-text-primary focus:bg-surface-crisp focus:border-ashoka-blue focus:outline-none">
                   <option value="IMMEDIATE">Immediate (0–3 months critical)</option>
@@ -1014,7 +1014,7 @@
 
               <div class="flex flex-col gap-1.5">
                 <label class="text-xs font-bold text-ashoka-blue" for="pf-severity">
-                  Severity Level <span class="text-saffron-accent">*</span>
+                  Severity Level <span class="compulsory-asterisk text-error font-bold text-sm ml-0.5" title="Compulsory field">*</span>
                 </label>
                 <select id="pf-severity" required class="w-full h-11 px-3 rounded-lg border border-border-strong bg-surface-subtle text-xs font-medium text-text-primary focus:bg-surface-crisp focus:border-ashoka-blue focus:outline-none">
                   <option value="CRITICAL">Critical (Life-safety or critical civic hazard)</option>
@@ -1036,7 +1036,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div class="flex flex-col gap-1.5">
                 <label class="text-xs font-bold text-ashoka-blue" for="pf-affected-population">
-                  Affected Population (Citizens) <span class="text-saffron-accent">*</span>
+                  Affected Population (Citizens) <span class="compulsory-asterisk text-error font-bold text-sm ml-0.5" title="Compulsory field">*</span>
                 </label>
                 <input id="pf-affected-population" type="number" min="1" required placeholder="e.g., 25000"
                        class="w-full h-11 px-3.5 rounded-lg border border-border-strong bg-surface-subtle text-sm text-text-primary placeholder:text-text-muted focus:bg-surface-crisp focus:border-ashoka-blue focus:outline-none"/>
@@ -1045,7 +1045,7 @@
 
               <div class="flex flex-col gap-1.5">
                 <label class="text-xs font-bold text-ashoka-blue" for="pf-expected-outcome">
-                  Expected Civic Outcome <span class="text-saffron-accent">*</span>
+                  Expected Civic Outcome <span class="compulsory-asterisk text-error font-bold text-sm ml-0.5" title="Compulsory field">*</span>
                 </label>
                 <input id="pf-expected-outcome" type="text" required placeholder="e.g., Continuous potable water supply below 10 ppb arsenic"
                        class="w-full h-11 px-3.5 rounded-lg border border-border-strong bg-surface-subtle text-sm text-text-primary placeholder:text-text-muted focus:bg-surface-crisp focus:border-ashoka-blue focus:outline-none"/>
@@ -1067,7 +1067,7 @@
             <div class="flex items-center justify-between pb-3 border-b border-border-hairline">
               <div class="flex items-center gap-2">
                 <span class="material-symbols-outlined text-ashoka-blue text-lg">location_on</span>
-                <h2 class="font-bold text-base text-ashoka-blue">3. Geographical Location <span class="text-saffron-accent">*</span></h2>
+                <h2 class="font-bold text-base text-ashoka-blue">3. Geographical Location <span class="compulsory-asterisk text-error font-bold text-sm ml-0.5" title="Compulsory field">*</span></h2>
               </div>
               <button type="button" onclick="fillDefaultLocation()" class="text-xs font-bold text-ashoka-blue hover:text-institutional-navy flex items-center gap-1 cursor-pointer">
                 <span class="material-symbols-outlined text-[16px]">my_location</span>
@@ -1078,7 +1078,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div class="flex flex-col gap-1.5">
                 <label class="text-xs font-bold text-ashoka-blue" for="pf-state">
-                  State / UT <span class="text-saffron-accent">*</span>
+                  State / UT <span class="compulsory-asterisk text-error font-bold text-sm ml-0.5" title="Compulsory field">*</span>
                 </label>
                 <input id="pf-state" type="text" required value="Bihar"
                        class="w-full h-11 px-3.5 rounded-lg border border-border-strong bg-surface-subtle text-sm text-text-primary focus:bg-surface-crisp focus:border-ashoka-blue focus:outline-none"/>
@@ -1086,7 +1086,7 @@
 
               <div class="flex flex-col gap-1.5">
                 <label class="text-xs font-bold text-ashoka-blue" for="pf-district">
-                  District <span class="text-saffron-accent">*</span>
+                  District <span class="compulsory-asterisk text-error font-bold text-sm ml-0.5" title="Compulsory field">*</span>
                 </label>
                 <input id="pf-district" type="text" required value="Patna"
                        class="w-full h-11 px-3.5 rounded-lg border border-border-strong bg-surface-subtle text-sm text-text-primary focus:bg-surface-crisp focus:border-ashoka-blue focus:outline-none"/>
@@ -1120,7 +1120,7 @@
 
               <div class="flex flex-col gap-1.5">
                 <label class="text-xs font-bold text-ashoka-blue" for="pf-latitude">
-                  Latitude <span class="text-saffron-accent">*</span>
+                  Latitude <span class="compulsory-asterisk text-error font-bold text-sm ml-0.5" title="Compulsory field">*</span>
                 </label>
                 <input id="pf-latitude" type="number" step="any" required value="25.5941"
                        class="w-full h-11 px-3.5 rounded-lg border border-border-strong bg-surface-subtle text-sm font-mono-code text-text-primary focus:bg-surface-crisp focus:border-ashoka-blue focus:outline-none"/>
@@ -1128,7 +1128,7 @@
 
               <div class="flex flex-col gap-1.5">
                 <label class="text-xs font-bold text-ashoka-blue" for="pf-longitude">
-                  Longitude <span class="text-saffron-accent">*</span>
+                  Longitude <span class="compulsory-asterisk text-error font-bold text-sm ml-0.5" title="Compulsory field">*</span>
                 </label>
                 <input id="pf-longitude" type="number" step="any" required value="85.1376"
                        class="w-full h-11 px-3.5 rounded-lg border border-border-strong bg-surface-subtle text-sm font-mono-code text-text-primary focus:bg-surface-crisp focus:border-ashoka-blue focus:outline-none"/>

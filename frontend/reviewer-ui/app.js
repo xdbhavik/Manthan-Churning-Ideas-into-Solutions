@@ -167,8 +167,46 @@ const ApiClient = {
 };
 
 // =============================================================================
-// 1.1 SHARED REVIEWER ERROR HANDLING LAYER (RFC 7807 SANITIZER & CONFLICT HANDLER)
+// 1.1 SHARED REVIEWER ERROR HANDLING LAYER (RFC 7807 SANITIZER & COMPULSORY FIELD TRANSLATOR)
 // =============================================================================
+const FIELD_FRIENDLY_NAMES = {
+  priLevel: 'Panchayat Administrative Level (Gram / Block / Zilla Panchayat)',
+  priName: 'Panchayat / PRI Official Name',
+  departmentFullName: 'Department / Ministry Full Name',
+  ulbName: 'Urban Local Body (ULB) Name',
+  contactNumber: 'Primary Contact Phone Number',
+  rwaName: 'RWA Official Name',
+  companyName: 'Company / Organization Name',
+  udyamRegistrationNumber: 'Udyam Registration Number',
+  organizationName: 'Organization Name',
+  shgName: 'Self-Help Group (SHG) Name',
+  orgType: 'Cooperative / Organization Type',
+  institutionName: 'University / Institute Name'
+};
+
+const REQUIRED_FIELDS_BY_SOURCE_TYPE = {
+  DEPARTMENT: ['departmentFullName'],
+  PRI: ['priLevel', 'priName'],
+  ULB: ['ulbName'],
+  INDIVIDUAL: ['contactNumber'],
+  RWA: ['rwaName'],
+  COMPANY: ['companyName'],
+  STARTUP: ['companyName'],
+  MSME: ['companyName', 'udyamRegistrationNumber'],
+  CSR: ['companyName'],
+  NGO: ['organizationName'],
+  SHG: ['organizationName', 'shgName'],
+  CBO_COOP: ['organizationName', 'orgType'],
+  UNIVERSITY: ['institutionName'],
+  RESEARCH_LAB: ['institutionName']
+};
+
+function formatMissingFieldsFriendly(rawKeys) {
+  if (!rawKeys) return '';
+  const keys = Array.isArray(rawKeys) ? rawKeys : String(rawKeys).split(',').map(s => s.trim()).filter(Boolean);
+  return keys.map(k => FIELD_FRIENDLY_NAMES[k] || k.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())).join(', ');
+}
+
 function extractBackendErrorMessage(err) {
   if (!err) return 'An unexpected error occurred.';
   let raw = err.data || err.message || err;
@@ -182,18 +220,29 @@ function extractBackendErrorMessage(err) {
     }
   }
   
+  let msg = '';
   if (raw && typeof raw === 'object') {
-    if (raw.detail && typeof raw.detail === 'string') return raw.detail;
-    if (raw.message && typeof raw.message === 'string') return raw.message;
-    if (raw.error && typeof raw.error === 'string') return raw.error;
-    if (raw.title && typeof raw.title === 'string' && !raw.instance) return raw.title;
+    if (raw.detail && typeof raw.detail === 'string') msg = raw.detail;
+    else if (raw.message && typeof raw.message === 'string') msg = raw.message;
+    else if (raw.error && typeof raw.error === 'string') msg = raw.error;
+    else if (raw.title && typeof raw.title === 'string' && !raw.instance) msg = raw.title;
+  } else if (typeof raw === 'string') {
+    msg = raw;
   }
   
-  if (typeof raw === 'string') {
-    return raw;
+  if (!msg) msg = err.message || 'Operation failed. Please check network connectivity.';
+
+  // Check for missing compulsory fields message and translate into graceful, user-friendly language
+  const materializeMatch = msg.match(/missing field\(s\)[^:]*:\s*([^.]+)/i);
+  const requiredFieldsMatch = msg.match(/Missing required fields for [^:]+:\s*([^.]+)/i);
+  const missingKeysStr = materializeMatch ? materializeMatch[1] : (requiredFieldsMatch ? requiredFieldsMatch[1] : null);
+
+  if (missingKeysStr) {
+    const friendlyList = formatMissingFieldsFriendly(missingKeysStr);
+    return `This application is missing compulsory details: ${friendlyList}. Please use 'Request Changes' to ask the applicant to complete them before approval.`;
   }
-  
-  return err.message || 'Operation failed. Please check network connectivity.';
+
+  return msg;
 }
 
 async function handleReviewerActionError(err, actionContext = {}) {
@@ -215,6 +264,35 @@ async function handleReviewerActionError(err, actionContext = {}) {
       try {
         await fetchRegistrationsQueue();
       } catch (e) {}
+    }
+    return;
+  }
+
+  // Intercept missing required fields when trying to APPROVE
+  let rawMsg = '';
+  if (err && typeof err === 'object') {
+    rawMsg = err.data?.detail || err.data?.message || err.message || '';
+  }
+  const isMissingFields = rawMsg.includes('missing field(s)') || rawMsg.includes('Missing required fields') || status === 422;
+  const match = rawMsg.match(/missing field\(s\)[^:]*:\s*([^.]+)/i) || rawMsg.match(/Missing required fields for [^:]+:\s*([^.]+)/i);
+
+  if (isMissingFields && actionContext.action === 'APPROVE') {
+    const keys = match ? match[1] : '';
+    const friendlyList = formatMissingFieldsFriendly(keys) || 'compulsory entity information';
+    
+    // Gracefully switch decision to REQUEST_ACTION so reviewer can proceed smoothly
+    selectDecision('REQUEST_ACTION');
+    const remarksEl = document.getElementById('reviewer-remarks');
+    if (remarksEl) {
+      remarksEl.value = `Please provide the following required details: ${friendlyList}. These are mandatory for official verification and account activation.`;
+      handleRemarksInput();
+    }
+    
+    showToast(`Approval paused: Missing compulsory details (${friendlyList}). Switched to "Request Changes" so you can send a deficiency notice.`, 'warning');
+    
+    const decisionForm = document.getElementById('statutory-decision-form');
+    if (decisionForm) {
+      decisionForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
     return;
   }
@@ -1426,6 +1504,44 @@ function renderRegistrationDetailView(reg, history) {
   if (textarea) textarea.value = reg.actionRequiredComment || reg.rejectionReason || '';
   const counter = document.getElementById('char-counter');
   if (counter) counter.innerText = "0 / 1000 chars";
+
+  // Proactive Incomplete Dossier Check
+  const rawPayload = reg.raw?.sourcePayload || reg.source || {};
+  const rawType = reg.raw?.sourceType || reg.subType;
+  const requiredKeys = REQUIRED_FIELDS_BY_SOURCE_TYPE[rawType] || [];
+  const missingKeys = requiredKeys.filter(k => {
+    const v = rawPayload[k];
+    return v === undefined || v === null || String(v).trim() === '';
+  });
+
+  const missingAlertEl = document.getElementById('dossier-missing-fields-alert');
+  if (missingAlertEl) {
+    if (missingKeys.length > 0 && ['SUBMITTED', 'UNDER_REVIEW'].includes(reg.status)) {
+      const friendlyMissing = formatMissingFieldsFriendly(missingKeys);
+      missingAlertEl.className = 'mb-4 p-4 rounded-xl bg-amber-50 border border-amber-300 text-amber-950 flex items-start gap-3 shadow-sm';
+      missingAlertEl.innerHTML = `
+        <span class="material-symbols-outlined text-amber-600 text-2xl shrink-0 mt-0.5">warning</span>
+        <div class="flex-1 text-xs sm:text-sm">
+          <div class="flex items-center gap-2 mb-1">
+            <strong class="font-bold text-amber-900">Incomplete Applicant Information</strong>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-200 text-amber-900 uppercase tracking-wider">Action Required</span>
+          </div>
+          <p class="text-amber-800 leading-relaxed mb-2.5">
+            This registration is missing mandatory information: <strong class="underline font-semibold">${friendlyMissing}</strong>.
+            These details are compulsory before official verification can be completed.
+          </p>
+          <button type="button" onclick="prepareRequestActionForMissing('${friendlyMissing.replace(/'/g, "\\'")}')" class="px-3.5 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm transition-all cursor-pointer">
+            <span class="material-symbols-outlined text-[16px]">edit_note</span>
+            <span>Request Missing Details from Applicant</span>
+          </button>
+        </div>
+      `;
+    } else {
+      missingAlertEl.className = 'hidden mb-4';
+      missingAlertEl.innerHTML = '';
+    }
+  }
+
   selectDecision('APPROVE');
   const canDecide = ['SUBMITTED', 'UNDER_REVIEW'].includes(reg.status);
   const decisionForm = document.getElementById('statutory-decision-form');
@@ -1444,6 +1560,20 @@ function renderRegistrationDetailView(reg, history) {
     }
   }
 }
+
+function prepareRequestActionForMissing(friendlyMissing) {
+  selectDecision('REQUEST_ACTION');
+  const remarksEl = document.getElementById('reviewer-remarks');
+  if (remarksEl) {
+    remarksEl.value = `Please provide the following required details: ${friendlyMissing}. These are mandatory to complete official verification and activate your account.`;
+    handleRemarksInput();
+  }
+  const decisionForm = document.getElementById('statutory-decision-form');
+  if (decisionForm) {
+    decisionForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+window.prepareRequestActionForMissing = prepareRequestActionForMissing;
 
 function selectDecision(decision) {
   AppState.currentDecision = decision;
@@ -1549,6 +1679,24 @@ async function executeStatutoryTransition() {
 
   const executeBtn = document.getElementById('btn-execute-decision');
   const remarks = document.getElementById('reviewer-remarks')?.value || '';
+
+  // Proactive check on APPROVE: prevent failed materialization if required fields are missing
+  if (AppState.currentDecision === 'APPROVE') {
+    const rawPayload = AppState.currentRegistration?.raw?.sourcePayload || AppState.currentRegistration?.source || {};
+    const rawType = AppState.currentRegistration?.raw?.sourceType || AppState.currentRegistration?.subType;
+    const requiredKeys = REQUIRED_FIELDS_BY_SOURCE_TYPE[rawType] || [];
+    const missingKeys = requiredKeys.filter(k => {
+      const v = rawPayload[k];
+      return v === undefined || v === null || String(v).trim() === '';
+    });
+
+    if (missingKeys.length > 0) {
+      const friendlyMissing = formatMissingFieldsFriendly(missingKeys);
+      showToast(`Cannot approve: Missing compulsory details (${friendlyMissing}). Switched to "Request Changes".`, 'warning');
+      prepareRequestActionForMissing(friendlyMissing);
+      return;
+    }
+  }
 
   executeBtn.disabled = true;
   executeBtn.innerHTML = `

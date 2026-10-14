@@ -904,3 +904,23 @@ select:not(.custom-select-native) {
   padding-right: 2.25rem;
 }
 
+/* Compulsory Field Indicator & Validation States */
+.compulsory-asterisk {
+  color: #ba1a1a !important;
+  font-weight: 700 !important;
+  margin-left: 2px;
+  user-select: none;
+}
+
+.input-field-error {
+  border-color: #ba1a1a !important;
+  background-color: #fffbfa !important;
+  box-shadow: 0 0 0 2px rgba(186, 26, 26, 0.18) !important;
+}
+
+.custom-select-wrapper.has-error .custom-select-trigger {
+  border-color: #ba1a1a !important;
+  background-color: #fffbfa !important;
+  box-shadow: 0 0 0 2px rgba(186, 26, 26, 0.18) !important;
+}
+

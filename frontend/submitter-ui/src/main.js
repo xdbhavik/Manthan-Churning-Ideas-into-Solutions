@@ -1078,7 +1078,7 @@ function renderStep2Form() {
       const fieldWrap = document.createElement('div');
       fieldWrap.className = f.type === 'textarea' ? 'sm:col-span-2 flex flex-col gap-1' : 'flex flex-col gap-1';
       const val = state.wizard.formData[f.key] || '';
-      const isReq = f.required;
+      const isReq = Boolean(f.required);
 
       let inputHtml = '';
       if (f.type === 'select') {
@@ -1104,8 +1104,8 @@ function renderStep2Form() {
         const currentOpt = normalizedOptions.find(o => o.value === selectedVal) || normalizedOptions[0] || { value: '', label: 'Select option' };
 
         inputHtml = `
-          <div class="custom-select-wrapper" data-field-key="${f.key}">
-            <button type="button" class="custom-select-trigger" data-select-trigger="${f.key}" aria-haspopup="listbox" aria-expanded="false">
+          <div class="custom-select-wrapper" data-field-key="${f.key}" data-required="${isReq}">
+            <button id="field-${f.key}" type="button" class="custom-select-trigger" data-select-trigger="${f.key}" aria-haspopup="listbox" aria-expanded="false">
               <span class="custom-select-label truncate">${currentOpt.label}</span>
               <span class="custom-select-chevron material-symbols-outlined">expand_more</span>
             </button>
@@ -1126,19 +1126,22 @@ function renderStep2Form() {
                 }).join('')}
               </div>
             </div>
-            <input type="hidden" name="${f.key}" value="${selectedVal}" />
+            <input type="hidden" name="${f.key}" value="${selectedVal}" ${isReq ? 'data-required="true"' : ''}/>
           </div>
         `;
       } else if (f.type === 'textarea') {
-        inputHtml = `<textarea name="${f.key}" rows="${f.rows || 3}" placeholder="${f.placeholder || ''}" class="w-full p-3 rounded-lg border border-border-strong bg-surface-crisp font-body-md focus:outline-none focus:ring-2 focus:ring-ashoka-blue">${val}</textarea>`;
+        inputHtml = `<textarea id="field-${f.key}" name="${f.key}" rows="${f.rows || 3}" placeholder="${f.placeholder || ''}" ${isReq ? 'required data-required="true"' : ''} class="w-full p-3 rounded-lg border border-border-strong bg-surface-crisp font-body-md focus:outline-none focus:ring-2 focus:ring-ashoka-blue transition-colors">${val}</textarea>`;
       } else {
-        inputHtml = `<input type="${f.type === 'date' ? 'date' : f.type === 'number' || f.type === 'money' ? 'number' : 'text'}" name="${f.key}" value="${val}" placeholder="${f.placeholder || ''}" class="w-full h-10 px-3 rounded-lg border border-border-strong bg-surface-crisp font-body-md focus:outline-none focus:ring-2 focus:ring-ashoka-blue"/>`;
+        inputHtml = `<input id="field-${f.key}" type="${f.type === 'date' ? 'date' : f.type === 'number' || f.type === 'money' ? 'number' : 'text'}" name="${f.key}" value="${val}" placeholder="${f.placeholder || ''}" ${isReq ? 'required data-required="true"' : ''} class="w-full h-10 px-3 rounded-lg border border-border-strong bg-surface-crisp font-body-md focus:outline-none focus:ring-2 focus:ring-ashoka-blue transition-colors"/>`;
       }
 
       fieldWrap.innerHTML = `
-        <label class="font-label-sm text-ashoka-blue flex items-center justify-between">
-          <span>${f.label} ${isReq ? '<span class="text-saffron-accent font-bold">*</span>' : ''}</span>
-          ${f.hint ? `<span class="text-[11px] text-text-muted">${f.hint}</span>` : ''}
+        <label class="font-label-sm text-ashoka-blue flex items-center justify-between" for="field-${f.key}">
+          <span class="font-semibold text-text-primary flex items-center">
+            ${f.label}
+            ${isReq ? '<span class="compulsory-asterisk text-error font-bold text-sm ml-0.5" title="Compulsory field" aria-hidden="true">*</span>' : ''}
+          </span>
+          ${f.hint ? `<span class="text-[11px] text-text-muted font-normal">${f.hint}</span>` : ''}
         </label>
         ${inputHtml}
       `;
@@ -1147,6 +1150,22 @@ function renderStep2Form() {
 
     grpDiv.appendChild(grid);
     container.appendChild(grpDiv);
+  });
+
+  // Real-time input listeners to remove error styles when user inputs data
+  container.addEventListener('input', (e) => {
+    const target = e.target;
+    target.classList.remove('input-field-error');
+    const errEl = target.closest('.flex-col')?.querySelector('.step2-field-error');
+    if (errEl) errEl.remove();
+  });
+  container.addEventListener('change', (e) => {
+    const target = e.target;
+    target.classList.remove('input-field-error');
+    const wrapper = target.closest('.custom-select-wrapper');
+    if (wrapper) wrapper.classList.remove('has-error');
+    const errEl = target.closest('.flex-col')?.querySelector('.step2-field-error');
+    if (errEl) errEl.remove();
   });
 }
 
@@ -1157,6 +1176,81 @@ function collectStep2Data() {
   for (const [k, v] of formData.entries()) {
     if (v !== '') state.wizard.formData[k] = v;
   }
+}
+
+function clearStep2ValidationErrors() {
+  const form = document.getElementById('step2-form');
+  if (!form) return;
+  form.querySelectorAll('.input-field-error').forEach(el => el.classList.remove('input-field-error'));
+  form.querySelectorAll('.custom-select-wrapper.has-error').forEach(el => el.classList.remove('has-error'));
+  form.querySelectorAll('.step2-field-error').forEach(el => el.remove());
+}
+
+function validateStep2Data() {
+  collectStep2Data();
+  clearStep2ValidationErrors();
+
+  const schema = TYPE_SCHEMAS[state.wizard.type];
+  if (!schema || !Array.isArray(schema.fields)) return { valid: true, missing: [] };
+
+  const missing = [];
+  let firstErrorElement = null;
+
+  schema.fields.forEach(f => {
+    if (f.required) {
+      const rawVal = state.wizard.formData[f.key];
+      const isEmpty = rawVal === undefined || rawVal === null || String(rawVal).trim() === '';
+      if (isEmpty) {
+        missing.push(f);
+        const inputEl = document.querySelector(`[name="${f.key}"]`);
+        const selectWrapper = document.querySelector(`.custom-select-wrapper[data-field-key="${f.key}"]`);
+        const targetElement = selectWrapper || inputEl;
+
+        if (targetElement) {
+          if (selectWrapper) {
+            selectWrapper.classList.add('has-error');
+          } else if (inputEl) {
+            inputEl.classList.add('input-field-error');
+          }
+
+          const parentWrap = targetElement.closest('.flex-col');
+          if (parentWrap && !parentWrap.querySelector('.step2-field-error')) {
+            const errDiv = document.createElement('div');
+            errDiv.className = 'step2-field-error text-[11px] text-error font-semibold mt-1 flex items-center gap-1';
+            errDiv.innerHTML = `<span class="material-symbols-outlined text-[13px]">error</span> ${f.label} is compulsory.`;
+            parentWrap.appendChild(errDiv);
+          }
+
+          if (!firstErrorElement) {
+            firstErrorElement = selectWrapper ? selectWrapper.querySelector('.custom-select-trigger') : inputEl;
+          }
+        }
+      }
+    }
+  });
+
+  return {
+    valid: missing.length === 0,
+    missing,
+    firstErrorElement
+  };
+}
+
+function validateAndGoStep3() {
+  const result = validateStep2Data();
+  if (!result.valid) {
+    const fieldNames = result.missing.map(f => f.label).join(', ');
+    toast(`Please complete all compulsory fields marked with an asterisk (*): ${fieldNames}`, 'error');
+    if (result.firstErrorElement) {
+      result.firstErrorElement.focus();
+      result.firstErrorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    return false;
+  }
+
+  state.wizard.step = 3;
+  renderWizardStep();
+  return true;
 }
 
 function attachFiles(files) {
@@ -1365,7 +1459,22 @@ function renderStep4Review() {
 }
 
 async function handleSaveDraft() {
-  collectStep2Data();
+  const valResult = validateStep2Data();
+  if (!valResult.valid) {
+    const fieldNames = valResult.missing.map(f => f.label).join(', ');
+    toast(`Please complete all compulsory fields marked with an asterisk (*): ${fieldNames}`, 'error');
+    state.wizard.step = 2;
+    renderWizardStep();
+    setTimeout(() => {
+      validateStep2Data();
+      if (valResult.firstErrorElement) {
+        valResult.firstErrorElement.focus();
+        valResult.firstErrorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
+    return;
+  }
+
   const payload = {
     sourceType: state.wizard.type,
     account: {
@@ -1420,7 +1529,17 @@ async function handleSubmitRegistration() {
     await renderTrackingScreen(res.data);
     showView('view-tracking');
   } else {
-    toast((res.data && res.data.detail) || 'Validation failed. Mandatory fields missing for this source type.', 'error');
+    let rawDetail = (res.data && res.data.detail) || '';
+    if (rawDetail.includes('Missing required fields') || rawDetail.includes('missing field(s)')) {
+      toast('Your application cannot be submitted because compulsory organization details are missing. Please complete them in Step 2.', 'error');
+      state.wizard.step = 2;
+      renderWizardStep();
+      setTimeout(() => {
+        validateStep2Data();
+      }, 100);
+    } else {
+      toast(rawDetail || 'Validation failed. Mandatory fields missing for this source type.', 'error');
+    }
   }
 }
 
@@ -1803,19 +1922,62 @@ async function renderDeficiencyScreen(reg) {
   const schema = TYPE_SCHEMAS[reg.sourceType] || {};
   (schema.fields || []).forEach(f => {
     const val = reg.source?.[f.key] || '';
+    const isReq = Boolean(f.required);
     const div = document.createElement('div');
     div.className = 'flex flex-col gap-1 p-3 rounded-lg bg-surface-subtle border border-border-hairline';
+
+    let inputHtml = '';
+    if (f.type === 'select') {
+      const rawOptions = f.options || [];
+      const opts = rawOptions.map(o => {
+        const valStr = typeof o === 'object' && o !== null ? o.value : o;
+        const labelStr = (typeof o === 'object' && o !== null && o.label)
+          ? o.label
+          : (ENUM_LABELS[valStr] || formatEnumValue(valStr));
+        const isSel = val === valStr;
+        return `<option value="${valStr}" ${isSel ? 'selected' : ''}>${labelStr}</option>`;
+      }).join('');
+
+      inputHtml = `
+        <select name="${f.key}" ${isReq ? 'required data-required="true"' : ''} class="w-full h-10 px-3 rounded-lg bg-surface-crisp border border-border-strong text-body-sm focus:outline-none focus:ring-2 focus:ring-ashoka-blue transition-colors">
+          <option value="">Select option</option>
+          ${opts}
+        </select>
+      `;
+    } else if (f.type === 'textarea') {
+      inputHtml = `<textarea name="${f.key}" rows="${f.rows || 3}" ${isReq ? 'required data-required="true"' : ''} class="w-full p-2.5 rounded-lg bg-surface-crisp border border-border-strong text-body-sm focus:outline-none focus:ring-2 focus:ring-ashoka-blue transition-colors">${val}</textarea>`;
+    } else {
+      inputHtml = `<input type="${f.type === 'date' ? 'date' : f.type === 'number' || f.type === 'money' ? 'number' : 'text'}" name="${f.key}" value="${val}" ${isReq ? 'required data-required="true"' : ''} class="w-full h-10 px-3 rounded-lg bg-surface-crisp border border-border-strong text-body-sm focus:outline-none focus:ring-2 focus:ring-ashoka-blue transition-colors"/>`;
+    }
+
     div.innerHTML = `
-      <label class="font-label-sm text-ashoka-blue font-bold">${f.label}</label>
-      <input type="text" name="${f.key}" value="${val}" class="w-full h-9 px-3 rounded bg-surface-crisp border border-border-strong text-body-sm focus:outline-none focus:ring-2 focus:ring-ashoka-blue"/>
+      <label class="font-label-sm text-ashoka-blue font-bold flex items-center justify-between">
+        <span class="flex items-center">
+          ${f.label}
+          ${isReq ? '<span class="compulsory-asterisk text-error font-bold text-sm ml-0.5" title="Compulsory field" aria-hidden="true">*</span>' : ''}
+        </span>
+        ${f.hint ? `<span class="text-[11px] text-text-muted font-normal">${f.hint}</span>` : ''}
+      </label>
+      ${inputHtml}
     `;
     formContainer.appendChild(div);
+  });
+
+  formContainer.addEventListener('input', (e) => {
+    e.target.classList.remove('input-field-error');
+    const errEl = e.target.closest('.flex-col')?.querySelector('.deficiency-field-error');
+    if (errEl) errEl.remove();
+  });
+  formContainer.addEventListener('change', (e) => {
+    e.target.classList.remove('input-field-error');
+    const errEl = e.target.closest('.flex-col')?.querySelector('.deficiency-field-error');
+    if (errEl) errEl.remove();
   });
 }
 
 async function handlePatchDeficiency() {
   const regId = state.activeRegistration?.registrationId;
-  if (!regId) return;
+  if (!regId) return false;
 
   const form = document.getElementById('deficiency-form');
   const formData = {};
@@ -1832,8 +1994,10 @@ async function handlePatchDeficiency() {
 
   if (res.ok) {
     toast('Changes saved successfully!', 'success');
+    return true;
   } else {
     toast((res.data && res.data.detail) || 'Failed to save changes', 'error');
+    return false;
   }
 }
 
@@ -1841,8 +2005,52 @@ async function handleResubmit() {
   const regId = state.activeRegistration?.registrationId;
   if (!regId) return;
 
-  // First save any amendments
-  await handlePatchDeficiency();
+  const form = document.getElementById('deficiency-form');
+  const schema = TYPE_SCHEMAS[state.activeRegistration?.sourceType] || {};
+  const missing = [];
+  let firstError = null;
+
+  if (form && schema.fields) {
+    // Clear existing error marks
+    form.querySelectorAll('.input-field-error').forEach(el => el.classList.remove('input-field-error'));
+    form.querySelectorAll('.deficiency-field-error').forEach(el => el.remove());
+
+    const d = new FormData(form);
+    schema.fields.forEach(f => {
+      if (f.required) {
+        const val = d.get(f.key);
+        if (val === null || val === undefined || String(val).trim() === '') {
+          missing.push(f);
+          const el = form.querySelector(`[name="${f.key}"]`);
+          if (el) {
+            el.classList.add('input-field-error');
+            const parent = el.closest('.flex-col');
+            if (parent && !parent.querySelector('.deficiency-field-error')) {
+              const errDiv = document.createElement('div');
+              errDiv.className = 'deficiency-field-error text-[11px] text-error font-semibold mt-1 flex items-center gap-1';
+              errDiv.innerHTML = `<span class="material-symbols-outlined text-[13px]">error</span> ${f.label} is compulsory.`;
+              parent.appendChild(errDiv);
+            }
+            if (!firstError) firstError = el;
+          }
+        }
+      }
+    });
+  }
+
+  if (missing.length > 0) {
+    const names = missing.map(f => f.label).join(', ');
+    toast(`Please complete all compulsory fields marked with (*): ${names}`, 'error');
+    if (firstError) {
+      firstError.focus();
+      firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    return;
+  }
+
+  // Save amendments first
+  const saved = await handlePatchDeficiency();
+  if (!saved) return;
 
   const res = await api('POST', `/registration/${regId}/submit`);
   if (res.ok && res.data) {
@@ -1851,7 +2059,12 @@ async function handleResubmit() {
     await renderTrackingScreen(res.data);
     showView('view-tracking');
   } else {
-    toast((res.data && res.data.detail) || 'Resubmission failed', 'error');
+    let rawDetail = (res.data && res.data.detail) || '';
+    if (rawDetail.includes('Missing required fields') || rawDetail.includes('missing field(s)')) {
+      toast('Resubmission rejected: compulsory fields are still missing. Please complete them before submitting.', 'error');
+    } else {
+      toast(rawDetail || 'Resubmission failed. Please review your details.', 'error');
+    }
   }
 }
 
@@ -3239,6 +3452,8 @@ window.clearSession = clearSession;
 window.setWizardBucket = setWizardBucket;
 window.renderWizardStep = renderWizardStep;
 window.collectStep2Data = collectStep2Data;
+window.validateStep2Data = validateStep2Data;
+window.validateAndGoStep3 = validateAndGoStep3;
 window.addDoc = addDoc;
 window.removeDoc = removeDoc;
 window.attachFiles = attachFiles;
