@@ -1069,9 +1069,9 @@
                 <span class="material-symbols-outlined text-ashoka-blue text-lg">location_on</span>
                 <h2 class="font-bold text-base text-ashoka-blue">3. Geographical Location <span class="compulsory-asterisk text-error font-bold text-sm ml-0.5" title="Compulsory field">*</span></h2>
               </div>
-              <button type="button" onclick="fillDefaultLocation()" class="text-xs font-bold text-ashoka-blue hover:text-institutional-navy flex items-center gap-1 cursor-pointer">
-                <span class="material-symbols-outlined text-[16px]">my_location</span>
-                <span>Detect Device GPS Coordinates</span>
+              <button type="button" onclick="fillDefaultLocation()" id="detect-gps-btn" class="text-xs font-bold text-ashoka-blue hover:text-institutional-navy flex items-center gap-1.5 cursor-pointer bg-surface-subtle hover:bg-surface-muted px-2.5 py-1.5 rounded-md border border-border-hairline transition-colors">
+                <span class="material-symbols-outlined text-[16px]" id="detect-gps-icon">my_location</span>
+                <span id="detect-gps-text">Auto-detect Location & Coordinates</span>
               </button>
             </div>
 

@@ -2284,26 +2284,154 @@ function handleAccessRuleChange(rule) {
   }
 }
 
+function cleanAdminName(name) {
+  if (!name || typeof name !== 'string') return '';
+  return name.replace(/\s+district$/i, '').trim();
+}
+
+async function reverseGeocodeLocation(lat, lng) {
+  // Strategy 1: OpenStreetMap Nominatim
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}&zoom=18&addressdetails=1`, {
+      signal: controller.signal,
+      headers: { 'Accept': 'application/json' }
+    });
+    clearTimeout(timeoutId);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.address) {
+        const addr = data.address;
+        const state = addr.state || addr.province || addr.region || '';
+        const district = addr.state_district || addr.district || addr.city_district || addr.county || addr.city || '';
+        const block = addr.county || addr.subdistrict || addr.municipality || addr.city_district || '';
+        const village = addr.village || addr.suburb || addr.town || addr.neighbourhood || addr.road || '';
+        const pincode = addr.postcode || '';
+        if (state || district) {
+          return {
+            state: cleanAdminName(state),
+            district: cleanAdminName(district),
+            block: cleanAdminName(block),
+            village: village,
+            pincode: pincode
+          };
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Nominatim reverse geocode fetch failed or timed out:', err);
+  }
+
+  // Strategy 2: BigDataCloud Reverse Geocoding Client API (fallback)
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+    const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lng)}&localityLanguage=en`, {
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    if (res.ok) {
+      const data = await res.json();
+      if (data) {
+        let district = '';
+        let block = '';
+        if (data.localityInfo && Array.isArray(data.localityInfo.administrative)) {
+          // District: adminLevel 5 or description matching district
+          const distObj = data.localityInfo.administrative.find(a => a.adminLevel === 5 || /district/i.test(a.description || ''));
+          if (distObj) district = distObj.name;
+          // Block / Taluka: adminLevel 6 or description matching taluka/tehsil/block
+          const blockObj = data.localityInfo.administrative.find(a => a.adminLevel === 6 || /taluka|tehsil|block/i.test(a.description || ''));
+          if (blockObj) block = blockObj.name;
+        }
+        if (!district) district = data.city || data.locality || '';
+        return {
+          state: cleanAdminName(data.principalSubdivision || ''),
+          district: cleanAdminName(district),
+          block: cleanAdminName(block),
+          village: data.locality || data.city || '',
+          pincode: data.postcode || ''
+        };
+      }
+    }
+  } catch (err) {
+    console.warn('BigDataCloud reverse geocode fetch failed or timed out:', err);
+  }
+
+  return null;
+}
+
 function fillDefaultLocation() {
+  const stateInput = document.getElementById('pf-state');
+  const distInput = document.getElementById('pf-district');
+  const blockInput = document.getElementById('pf-block');
+  const villageInput = document.getElementById('pf-village');
+  const pincodeInput = document.getElementById('pf-pincode');
   const latInput = document.getElementById('pf-latitude');
   const lngInput = document.getElementById('pf-longitude');
+  const detectBtn = document.getElementById('detect-gps-btn');
+  const detectText = document.getElementById('detect-gps-text');
+  const detectIcon = document.getElementById('detect-gps-icon');
 
-  if (navigator.geolocation) {
-    toast('Detecting device GPS coordinates...', 'info');
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        if (latInput) latInput.value = pos.coords.latitude.toFixed(6);
-        if (lngInput) lngInput.value = pos.coords.longitude.toFixed(6);
-        toast('Detected device GPS coordinates successfully!', 'success');
-      },
-      (err) => {
-        toast('Could not detect GPS location (' + (err.message || 'permission denied') + '). Please enter location details manually.', 'warning');
-      },
-      { timeout: 10000, enableHighAccuracy: true }
-    );
-  } else {
-    toast('Geolocation is not supported by your browser. Please enter location coordinates manually.', 'warning');
+  if (!navigator.geolocation) {
+    toast('Geolocation is not supported by your browser. Please enter location details manually.', 'warning');
+    return;
   }
+
+  if (detectBtn) detectBtn.disabled = true;
+  if (detectText) detectText.textContent = 'Detecting GPS...';
+  if (detectIcon) detectIcon.classList.add('animate-spin');
+
+  toast('Acquiring device GPS coordinates...', 'info');
+
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const lat = pos.coords.latitude.toFixed(6);
+      const lng = pos.coords.longitude.toFixed(6);
+
+      if (latInput) latInput.value = lat;
+      if (lngInput) lngInput.value = lng;
+
+      if (detectText) detectText.textContent = 'Resolving Address...';
+      toast('GPS captured! Resolving State, District & Postal details...', 'info');
+
+      try {
+        const geoInfo = await reverseGeocodeLocation(lat, lng);
+        if (geoInfo) {
+          if (stateInput && geoInfo.state) {
+            stateInput.value = geoInfo.state;
+            stateInput.classList.remove('input-field-error', 'border-red-500');
+          }
+          if (distInput && geoInfo.district) {
+            distInput.value = geoInfo.district;
+            distInput.classList.remove('input-field-error', 'border-red-500');
+          }
+          if (blockInput && geoInfo.block && !blockInput.value) blockInput.value = geoInfo.block;
+          if (villageInput && geoInfo.village && !villageInput.value) villageInput.value = geoInfo.village;
+          if (pincodeInput && geoInfo.pincode && !pincodeInput.value) pincodeInput.value = geoInfo.pincode;
+
+          const locationSummary = [geoInfo.district, geoInfo.state].filter(Boolean).join(', ');
+          toast(`Location detected: ${locationSummary}${geoInfo.pincode ? ` (${geoInfo.pincode})` : ''}`, 'success');
+        } else {
+          toast('GPS coordinates captured! Please confirm or enter your State and District manually.', 'info');
+        }
+      } catch (e) {
+        console.warn('Reverse geocoding error:', e);
+        toast('GPS coordinates captured! Please confirm your State and District manually.', 'info');
+      } finally {
+        if (detectBtn) detectBtn.disabled = false;
+        if (detectText) detectText.textContent = 'Auto-detect Location & Coordinates';
+        if (detectIcon) detectIcon.classList.remove('animate-spin');
+      }
+    },
+    (err) => {
+      if (detectBtn) detectBtn.disabled = false;
+      if (detectText) detectText.textContent = 'Auto-detect Location & Coordinates';
+      if (detectIcon) detectIcon.classList.remove('animate-spin');
+      toast('Could not access device GPS (' + (err.message || 'permission denied') + '). Please enter location manually.', 'warning');
+    },
+    { timeout: 12000, enableHighAccuracy: true }
+  );
 }
 
 async function handlePostProblem() {
@@ -3461,6 +3589,7 @@ window.selectUniversity = selectUniversity;
 window.removeSelectedUniversity = removeSelectedUniversity;
 window.toggleDomainSelection = toggleDomainSelection;
 window.fillDefaultLocation = fillDefaultLocation;
+window.reverseGeocodeLocation = reverseGeocodeLocation;
 window.handleFilterProblemsList = handleFilterProblemsList;
 window.loadMyAcceptedSolutions = loadMyAcceptedSolutions;
 window.downloadAcceptedSolutionFile = downloadAcceptedSolutionFile;
