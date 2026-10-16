@@ -1,0 +1,197 @@
+# Production Docker Compose for SIH26043 on AWS EC2 (backed by Amazon RDS)
+name: sih26043-prod
+
+services:
+  eureka-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+      args:
+        JAR_FILE: eureka-server/target/eureka-server-0.0.1-SNAPSHOT.jar
+    image: sih26043-eureka-server:prod
+    restart: unless-stopped
+    ports:
+      - "8761:8761"
+    environment:
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=60 -XX:+UseSerialGC"
+    mem_limit: 500m
+
+  source-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+      args:
+        JAR_FILE: source-service/target/source-service-0.0.1-SNAPSHOT.jar
+    image: sih26043-source-service:prod
+    restart: unless-stopped
+    depends_on:
+      eureka-server:
+        condition: service_started
+    environment:
+      SERVER_PORT: "8081"
+      DB_URL: jdbc:postgresql://${DB_ENDPOINT}:5432/sih_source
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      MOCK_OTP_CODE: ${MOCK_OTP_CODE:-123456}
+      OTP_RATE_LIMIT_ENABLED: ${OTP_RATE_LIMIT_ENABLED:-false}
+      IDENTITY_PEPPER: ${IDENTITY_PEPPER}
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=60 -XX:+UseSerialGC"
+    mem_limit: 800m
+    ports:
+      - "8081:8081"
+
+  problem-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+      args:
+        JAR_FILE: problem-service/target/problem-service-0.0.1-SNAPSHOT.jar
+    image: sih26043-problem-service:prod
+    restart: unless-stopped
+    depends_on:
+      source-service:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+    environment:
+      SERVER_PORT: "8082"
+      DB_URL: jdbc:postgresql://${DB_ENDPOINT}:5432/sih_problem
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY}
+      EVIDENCE_STORAGE_DIR: /data/evidence
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-agentrouter/deepseek-v4-flash}
+      SOURCE_SERVICE_URL: http://source-service
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=60 -XX:+UseSerialGC"
+    mem_limit: 800m
+    ports:
+      - "8082:8082"
+    volumes:
+      - evidence:/data/evidence
+
+  evaluation-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+      args:
+        JAR_FILE: evaluation-service/target/evaluation-service-0.0.1-SNAPSHOT.jar
+    image: sih26043-evaluation-service:prod
+    restart: unless-stopped
+    depends_on:
+      problem-service:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+    environment:
+      SERVER_PORT: "8083"
+      DB_URL: jdbc:postgresql://${DB_ENDPOINT}:5432/sih_eval
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-agentrouter/deepseek-v4-flash}
+      EVALUATION_AUTO_ENABLED: ${EVALUATION_AUTO_ENABLED:-true}
+      PROBLEM_SERVICE_URL: http://problem-service
+      PORTAL_SERVICE_URL: http://portal-service
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=60 -XX:+UseSerialGC"
+    mem_limit: 800m
+    ports:
+      - "8083:8083"
+
+  portal-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+      args:
+        JAR_FILE: portal-service/target/portal-service-0.0.1-SNAPSHOT.jar
+    image: sih26043-portal-service:prod
+    restart: unless-stopped
+    depends_on:
+      source-service:
+        condition: service_started
+      evaluation-service:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+    environment:
+      SERVER_PORT: "8084"
+      DB_URL: jdbc:postgresql://${DB_ENDPOINT}:5432/sih_portal
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      PORTAL_FILE_STORAGE_DIR: /data/portal-files
+      SOURCE_SERVICE_URL: http://source-service
+      EVALUATION_SERVICE_URL: http://evaluation-service
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=60 -XX:+UseSerialGC"
+    mem_limit: 800m
+    ports:
+      - "8084:8084"
+    volumes:
+      - portal-files:/data/portal-files
+
+  codejudge-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.codejudge
+      args:
+        JAR_FILE: codejudge-service/target/codejudge-service-0.0.1-SNAPSHOT.jar
+    image: sih26043-codejudge-service:prod
+    restart: unless-stopped
+    depends_on:
+      eureka-server:
+        condition: service_started
+    environment:
+      SERVER_PORT: "8085"
+      DB_URL: jdbc:postgresql://${DB_ENDPOINT}:5432/sih_codejudge
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      CODEJUDGE_ANALYZER_DIR: /opt/codejudge-analyzer
+      CODEJUDGE_WORKSPACES_DIR: /data/codejudge-workspaces
+      CODEJUDGE_SANDBOX_ENABLED: "false"
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-agentrouter/deepseek-v4-flash}
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=60 -XX:+UseSerialGC"
+    mem_limit: 800m
+    ports:
+      - "8085:8085"
+    volumes:
+      - codejudge-workspaces:/data/codejudge-workspaces
+
+  gateway:
+    image: caddy:2
+    container_name: sih26043-gateway
+    restart: unless-stopped
+    depends_on:
+      - source-service
+      - problem-service
+      - evaluation-service
+      - portal-service
+      - codejudge-service
+      - eureka-server
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./gateway/Caddyfile.prod:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  evidence:
+  portal-files:
+  codejudge-workspaces:
+  caddy_data:
+  caddy_config:

@@ -1,0 +1,49 @@
+api.bhavik.site {
+	tls themanthanedu@gmail.com
+	encode gzip
+
+	# --- source-service route set (auth, users, source registration & accounts).
+	#     Explicit even though the fallback below is also source-service, so the
+	#     intent is documented and the routing is robust to a future default change. ---
+	@source path /auth /auth/* /users /users/* /registration /registration/* /reviewer/registrations /reviewer/registrations/* /source/accounts /source/accounts/* /sources /sources/*
+	handle @source {
+		reverse_proxy source-service:8081
+	}
+
+	# --- problem-service route set (domains, problems, problem-scoped audit) ---
+	@problem path /domains /domains/* /problems /problems/* /audit /audit*
+	handle @problem {
+		reverse_proxy problem-service:8082
+	}
+
+	# --- evaluation-service route set ---
+	@evaluation path /evaluation /evaluation/*
+	handle @evaluation {
+		reverse_proxy evaluation-service:8083
+	}
+
+	# --- portal-service route set (public problem portal, submissions, files) ---
+	@portal path /portal /portal/*
+	handle @portal {
+		reverse_proxy portal-service:8084
+	}
+
+	# --- codejudge-service route set (automated repository evaluation) ---
+	@codejudge path /codejudge /codejudge/*
+	handle @codejudge {
+		reverse_proxy codejudge-service:8085
+	}
+
+	# --- Eureka registry REST API (dashboard is on the registry's own port 8761;
+	#     this exposes the /eureka/apps JSON through the gateway for verification). ---
+	@eureka path /eureka /eureka/*
+	handle @eureka {
+		reverse_proxy eureka-server:8761
+	}
+
+	# --- everything else (swagger-ui, /v3/api-docs, /error, OPTIONS preflight,
+	#     any unclaimed prefix) falls through to source-service. ---
+	handle {
+		reverse_proxy source-service:8081
+	}
+}

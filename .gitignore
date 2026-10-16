@@ -3,3 +3,16 @@ issue-screenshots/
 todo.txt
 frontend/stitch_innovation_portal_workspace.zip
 frontend/stitch_innovation_portal_workspace/
+
+# Environment files & keys
+.env
+.env.*
+!.env.example
+!.env.prod.example
+*.pem
+*.key
+
+# Archives
+*.tar.gz
+*.tar
+*.rar
