@@ -114,7 +114,24 @@ SET status = 'ACCEPTED',
 WHERE submission_id = '33333333-cccc-4000-8000-000000000001';
 """
 
-cmd = ["docker", "exec", "-i", "sih26043-pg", "psql", "-U", "sih", "-d", "sih_portal"]
-p = subprocess.run(cmd, input=sql, text=True, capture_output=True)
-print("STDOUT:", p.stdout)
-print("STDERR:", p.stderr)
+import os
+
+PG_HOST = os.environ.get("PGHOST")
+PG_USER = os.environ.get("PGUSER", "sih")
+PG_PASSWORD = os.environ.get("PGPASSWORD")
+PG_PORT = os.environ.get("PGPORT", "5432")
+
+if PG_HOST:
+    cmd = ["psql", "-v", "ON_ERROR_STOP=1", "-h", PG_HOST, "-p", str(PG_PORT), "-U", PG_USER, "-d", "sih_portal"]
+    env = os.environ.copy()
+    env["PGCLIENTENCODING"] = "UTF8"
+    if PG_PASSWORD:
+        env["PGPASSWORD"] = PG_PASSWORD
+    p = subprocess.run(cmd, input=f"SET client_encoding = 'UTF8';\n{sql}".encode('utf-8'), capture_output=True, env=env)
+    print("STDOUT:", p.stdout.decode('utf-8', errors='replace'))
+    print("STDERR:", p.stderr.decode('utf-8', errors='replace'))
+else:
+    cmd = ["docker", "exec", "-i", "sih26043-pg", "psql", "-U", "sih", "-d", "sih_portal"]
+    p = subprocess.run(cmd, input=sql, text=True, capture_output=True)
+    print("STDOUT:", p.stdout)
+    print("STDERR:", p.stderr)

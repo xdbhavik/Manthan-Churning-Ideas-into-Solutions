@@ -33,12 +33,23 @@ import subprocess
 import json
 import uuid
 
-PSQL_PATH = r"C:\Program Files\PostgreSQL\18\bin\psql.exe"
+PG_HOST = os.environ.get("PGHOST")
+PG_USER = os.environ.get("PGUSER", "sih")
+PG_PASSWORD = os.environ.get("PGPASSWORD")
+PG_PORT = os.environ.get("PGPORT", "5432")
 
 def run_psql(db: str, sql: str) -> str:
-    cmd = ["docker", "exec", "-i", "-e", "PGCLIENTENCODING=UTF8", "sih26043-pg", "psql", "-v", "ON_ERROR_STOP=1", "-U", "sih", "-d", db]
-    input_bytes = f"SET client_encoding = 'UTF8';\n{sql}".encode('utf-8')
-    res = subprocess.run(cmd, input=input_bytes, capture_output=True)
+    if PG_HOST:
+        cmd = ["psql", "-v", "ON_ERROR_STOP=1", "-h", PG_HOST, "-p", str(PG_PORT), "-U", PG_USER, "-d", db]
+        env = os.environ.copy()
+        env["PGCLIENTENCODING"] = "UTF8"
+        if PG_PASSWORD:
+            env["PGPASSWORD"] = PG_PASSWORD
+        res = subprocess.run(cmd, input=f"SET client_encoding = 'UTF8';\n{sql}".encode('utf-8'), capture_output=True, env=env)
+    else:
+        cmd = ["docker", "exec", "-i", "-e", "PGCLIENTENCODING=UTF8", "sih26043-pg", "psql", "-v", "ON_ERROR_STOP=1", "-U", "sih", "-d", db]
+        input_bytes = f"SET client_encoding = 'UTF8';\n{sql}".encode('utf-8')
+        res = subprocess.run(cmd, input=input_bytes, capture_output=True)
     stdout_str = res.stdout.decode('utf-8', errors='replace')
     stderr_str = res.stderr.decode('utf-8', errors='replace')
     if res.returncode != 0:
