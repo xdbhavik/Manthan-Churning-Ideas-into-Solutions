@@ -4,17 +4,31 @@ All 5 frontends in this repository can be deployed to **Vercel** with **zero mod
 
 ---
 
+## 🌐 Live Production Deployments
+
+All 5 frontends have been deployed to Vercel as **independent projects** connected to the AWS production backend at `https://api.bhavik.site`:
+
+| Portal | Role / Target Audience | Live Production URL | Vercel Project |
+| :--- | :--- | :--- | :--- |
+| 🇮🇳 **National Innovation Portal** | Public Innovators & Students | [https://innovation-portal-web.vercel.app](https://innovation-portal-web.vercel.app) | `innovation-portal-web` |
+| 🎯 **Evaluator Interface** | Domain Experts & Evaluators | [https://evaluator-ui-kappa.vercel.app](https://evaluator-ui-kappa.vercel.app) | `evaluator-ui` |
+| 📝 **Submitter Interface** | Solution Submissions & KYC | [https://submitter-ui.vercel.app](https://submitter-ui.vercel.app) | `submitter-ui` |
+| 🛡️ **Admin Portal** | System & Cycle Administration | [https://admin-ui-ivory-alpha.vercel.app](https://admin-ui-ivory-alpha.vercel.app) | `admin-ui` |
+| ⚖️ **Reviewer Workbench** | Statutory & Source Reviewers | [https://reviewer-ui-two.vercel.app](https://reviewer-ui-two.vercel.app) | `reviewer-ui` |
+
+---
+
 ## ⚡ Deployment Matrix
 
-Because this repository is structured as a monorepo, import this GitHub repository on Vercel **5 separate times** (one for each portal), specifying the respective **Root Directory**.
+Because this repository is structured as a monorepo, each portal is an independent project linked to its respective subfolder:
 
-| Portal | Project Name Suggestion | Root Directory | Framework Preset | Build Command | Output Directory | Environment Variables |
+| Portal | Project Name | Root Directory | Framework Preset | Build Command | Output Directory | Environment Variables |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **National Innovation Portal** | `sih-innovation-portal` | `frontend/innovation-portal-web` | **Vite** | `npm run build` | `dist` | `VITE_API_BASE_URL=https://api.bhavik.site` |
-| **Evaluator Interface** | `sih-evaluator-ui` | `frontend/evaluator-ui` | **Vite** | `npm run build` | `dist` | `VITE_API_BASE_URL=https://api.bhavik.site` |
-| **Submitter Interface** | `sih-submitter-ui` | `frontend/submitter-ui` | **Vite** | `npm run build` | `dist` | `VITE_API_BASE_URL=https://api.bhavik.site` |
-| **Admin Portal** | `sih-admin-ui` | `frontend/admin-ui` | **Other** | *(leave empty / disabled)* | `.` | *(none needed)* |
-| **Reviewer Workbench** | `sih-reviewer-ui` | `frontend/reviewer-ui` | **Other** | *(leave empty / disabled)* | `.` | *(none needed)* |
+| **National Innovation Portal** | `innovation-portal-web` | `frontend/innovation-portal-web` | **Vite** | `npm run build` | `dist` | `VITE_API_BASE_URL=https://api.bhavik.site` |
+| **Evaluator Interface** | `evaluator-ui` | `frontend/evaluator-ui` | **Vite** | `npm run build` | `dist` | `VITE_API_BASE_URL=https://api.bhavik.site` |
+| **Submitter Interface** | `submitter-ui` | `frontend/submitter-ui` | **Vite** | `npm run build` | `dist` | `VITE_API_BASE_URL=https://api.bhavik.site` |
+| **Admin Portal** | `admin-ui` | `frontend/admin-ui` | **Other** | *(none)* | `.` | *(none needed)* |
+| **Reviewer Workbench** | `reviewer-ui` | `frontend/reviewer-ui` | **Other** | *(none)* | `.` | *(none needed)* |
 
 ---
 
