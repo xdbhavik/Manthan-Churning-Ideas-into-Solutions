@@ -34,6 +34,36 @@
 
 </div>
 
+## 🌐 Live Production Deployments & Access Directory
+
+> [!IMPORTANT]
+> **Cloud Status:** All backend microservices are live on **AWS EC2 + Amazon RDS** behind TLS ([`https://api.bhavik.site`](https://api.bhavik.site)). All 5 frontend portals are live on **Vercel** with dedicated production URLs and public access enabled.
+> 
+> **Universal Test OTP:** `123456` *(Valid for all seeded stakeholder accounts)*
+
+### ⚡ Frontend Portals (Hosted on Vercel)
+
+| Stakeholder / Persona | Portal Name | Live Production URL | Seeded Demo Login |
+| :--- | :--- | :--- | :--- |
+| 🇮🇳 **Students & Innovators** | **National Innovation Portal** | [**innovation-portal-web.vercel.app**](https://innovation-portal-web.vercel.app) | Mobile: `9876543210` (OTP: `123456`) |
+| 🎯 **Domain Experts / Jury** | **Evaluator Scoring Suite** | [**evaluator-ui-kappa.vercel.app**](https://evaluator-ui-kappa.vercel.app) | Mobile: `9700000001` (Govt)<br>Mobile: `9700000002` (Industry)<br>Mobile: `9700000003` (HEI) |
+| 📝 **Problem Owners (ULB/PRI)** | **Submitter Declaration Hub** | [**submitter-ui.vercel.app**](https://submitter-ui.vercel.app) | Mobile: `9900000001` (Approved KYC)<br>Mobile: `9900000002` (Under Review) |
+| 🛡️ **Ministry / Operations** | **Admin Operations Cockpit** | [**admin-ui-ivory-alpha.vercel.app**](https://admin-ui-ivory-alpha.vercel.app) | Direct Admin API / Token |
+| ⚖️ **Statutory Compliance** | **Reviewer Workbench** | [**reviewer-ui-two.vercel.app**](https://reviewer-ui-two.vercel.app) | Mobile: `9829858790` (OTP: `123456`) |
+
+### ⚙️ Backend & API Gateway (Hosted on AWS)
+
+| Service Component | Cloud Infrastructure | Production Endpoint |
+| :--- | :--- | :--- |
+| **API Gateway (TLS Reverse Proxy)** | AWS EC2 · Caddy v2 (Let's Encrypt SSL) | [**https://api.bhavik.site**](https://api.bhavik.site) |
+| **OpenAPI / Swagger Documentation** | Live Interactive API Explorer | [**https://api.bhavik.site/swagger-ui/index.html**](https://api.bhavik.site/swagger-ui/index.html) |
+| **Eureka Service Registry** | Microservices Discovery REST API | [**https://api.bhavik.site/eureka/apps**](https://api.bhavik.site/eureka/apps) |
+| **Database Cluster** | Amazon RDS PostgreSQL 16 Multi-Database | `sih-postgres.cv4ygog0qn0f.ap-south-1.rds.amazonaws.com` |
+
+📄 *For a clean plain-text directory ready to share with your team, see [`DEPLOYED_LINKS.txt`](./DEPLOYED_LINKS.txt).*
+
+---
+
 ## 🌟 Executive Pitch & Problem Context
 
 In traditional national innovation hackathons, thousands of problem statements submitted by ministries, state departments, and industry leaders suffer from **three critical systemic fractures**:

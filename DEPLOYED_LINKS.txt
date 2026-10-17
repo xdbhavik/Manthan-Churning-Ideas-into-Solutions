@@ -1,0 +1,94 @@
+================================================================================
+SIH26043 - NATIONAL INNOVATION LIFECYCLE PLATFORM (MANTHAN)
+LIVE PRODUCTION DEPLOYMENT DIRECTORY & ACCESS REFERENCE
+================================================================================
+Target Cloud: AWS EC2 (Backend Gateway) + Amazon RDS PostgreSQL + Vercel (Frontends)
+Production Security: Let's Encrypt TLS (HTTPS) + Stateless JWT + Permissive CORS
+Universal Test OTP: 123456 (For all seeded accounts)
+================================================================================
+
+--------------------------------------------------------------------------------
+1. FRONTEND PORTALS (HOSTED ON VERCEL)
+--------------------------------------------------------------------------------
+
+[1] NATIONAL INNOVATION PORTAL
+    * URL:         https://innovation-portal-web.vercel.app
+    * Persona:     Students, University Teams, Public Innovators
+    * Key Actions: Explore 12 National Problems, Form Teams, Submit Solutions,
+                   Track Submission Status & Evaluator Scorecards.
+    * Demo Login:  Mobile: 9876543210  |  OTP: 123456
+                   (Student: Priya Sharma, IISc Bengaluru)
+
+[2] EVALUATOR SCORING & AUDIT SUITE
+    * URL:         https://evaluator-ui-kappa.vercel.app
+    * Persona:     Domain Experts, Statutory Jury, Technical Evaluators
+    * Key Actions: Review Assigned Problem Statements, Score Student Project
+                   Submissions using Rubrics, Enter Priority Band Recommendations.
+    * Demo Logins: (OTP: 123456 for all)
+      - Government Pool:  Mobile: 9700000001 (Joint Director, Urban Governance)
+      - Industry Pool:    Mobile: 9700000002 (Principal Architect, Tata Tech)
+      - HEI / Academic:   Mobile: 9700000003 (Dean of R&D, IIT Bombay)
+      - Citizen Pool:     Mobile: 9700000004 (Lead Civic Auditor)
+      - Community Pool:   Mobile: 9700000005 (Director, Gramin Vikas Trust)
+
+[3] SUBMITTER DECLARATION & PROBLEM OWNER HUB
+    * URL:         https://submitter-ui.vercel.app
+    * Persona:     Ministries, Municipalities (ULBs), Panchayats (PRIs), MSMEs, NGOs
+    * Key Actions: Problem Statement Draft Wizard, KYC Onboarding & Document Upload,
+                   Inspect Accepted Student Innovations, Assign Mentors.
+    * Demo Logins: (OTP: 123456 for all)
+      - Approved KYC (ULB):      Mobile: 9900000001 (BBMP Bengaluru)
+      - Under Review KYC (PRI):  Mobile: 9900000002 (Khadur Sahib Gram Panchayat)
+      - Action Required (NGO):   Mobile: 9900000003 (Pune Green Earth Foundation)
+      - Draft Wizard Applicant:  Mobile: 9900000004 (MSME Applicant)
+      - Fresh Onboarding User:   Mobile: 9900000005 (Step 1 Clean Slate)
+
+[4] ADMIN OPERATIONS COCKPIT
+    * URL:         https://admin-ui-ivory-alpha.vercel.app
+    * Persona:     Ministry Ops, Super Admins, System Administrators
+    * Key Actions: Problem Lifecycle Overview, Evaluation Cycles Management,
+                   Source Account Audits, System-Wide Telemetry.
+    * Demo Login:  Uses direct Admin API key or Auth Token via https://api.bhavik.site
+
+[5] STATUTORY REVIEWER WORKBENCH
+    * URL:         https://reviewer-ui-two.vercel.app
+    * Persona:     Statutory Compliance Officers, KYC Reviewers
+    * Key Actions: Review Source Registration Dossiers, Inspect Uploaded Documents,
+                   Approve / Return Applications with Deficiency Notes.
+    * Demo Login:  Mobile: 9829858790  |  OTP: 123456
+                   (Senior Statutory KYC Verification Officer)
+
+
+--------------------------------------------------------------------------------
+2. BACKEND & API GATEWAY (HOSTED ON AWS EC2 + RDS)
+--------------------------------------------------------------------------------
+
+* Central API Gateway:      https://api.bhavik.site
+* Gateway Reverse Proxy:    Caddy v2 with Auto Let's Encrypt TLS
+* Eureka Service Registry:  https://api.bhavik.site/eureka/apps (JSON Registry)
+* Swagger / OpenAPI Docs:   https://api.bhavik.site/swagger-ui/index.html
+
+Core Microservice Endpoints (routed via https://api.bhavik.site):
+* Auth & Users:             https://api.bhavik.site/auth/**
+* Source Registrations:     https://api.bhavik.site/registration/**
+* Problem & Domains:        https://api.bhavik.site/problems/** , /domains/**
+* Evaluation & Cycles:      https://api.bhavik.site/evaluation/**
+* Student Innovation Portal:https://api.bhavik.site/portal/**
+* Automated CodeJudge Engine:https://api.bhavik.site/codejudge/**
+
+
+--------------------------------------------------------------------------------
+3. DATABASE & CLUSTER ARCHITECTURE
+--------------------------------------------------------------------------------
+
+* Cloud Provider:           Amazon Web Services (AWS)
+* Compute:                  EC2 Instance i-0a50e5f50467a5aae (ap-south-1 Mumbai)
+* Database Engine:          Amazon RDS PostgreSQL 16
+* RDS Endpoint:             sih-postgres.cv4ygog0qn0f.ap-south-1.rds.amazonaws.com:5432
+* Logical Databases:        sih_source, sih_problem, sih_eval, sih_portal, sih_codejudge
+* Seeded Content:           12 Problem Statements, 6 Student Projects, 5 Evaluator
+                            Profiles, 6 KYC Review Dossiers, Accepted Solutions.
+
+================================================================================
+Generated for SIH26043 Team Reference · Grand Finale Edition
+================================================================================
