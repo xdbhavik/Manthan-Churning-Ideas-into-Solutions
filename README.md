@@ -65,7 +65,7 @@ flowchart TB
     end
 
     subgraph Edge["🚪 Security & Gateway Edge"]
-        GW["Caddy API Gateway\n:8080 / :8090\n(Reverse Proxy · SSL · Path Routing · Shielding)"]
+        GW["Caddy API Gateway\nhttps://api.bhavik.site\n(:80 / :443 · Reverse Proxy · TLS · Path Routing)"]
     end
 
     subgraph Discovery["🔭 Service Mesh Discovery"]
@@ -109,8 +109,12 @@ flowchart TB
 
     SVC_PRB --- VOL_EV
     SVC_PTL --- VOL_PT
-    SVC_CDJ --- VOL_CJ
 ```
+
+> 🚀 **Live Production AWS Backend**:
+> * **Public API Gateway:** `https://api.bhavik.site` (Secured via Let's Encrypt TLS / Caddy on AWS EC2 `13.205.158.156`)
+> * **Managed Database:** AWS RDS PostgreSQL 16 (`sih-postgres.cv4ygog0qn0f.ap-south-1.rds.amazonaws.com`)
+> * **Active Routing:** All 5 frontend portals, integration test scripts, and registration tools are pre-configured to dispatch requests to `https://api.bhavik.site`.
 
 ---
 

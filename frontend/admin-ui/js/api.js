@@ -6,7 +6,7 @@ const REFRESH_KEY = 'sih_admin_refresh_token';
 const USER_KEY = 'sih_admin_user';
 
 export function getApiBase() {
-  return localStorage.getItem('api_base_url') || 'http://localhost:8090';
+  return localStorage.getItem('api_base_url') || 'https://api.bhavik.site';
 }
 
 export function setTokens(access, refresh, user = null) {

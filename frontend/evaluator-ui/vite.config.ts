@@ -7,10 +7,10 @@ export default defineConfig({
   server: {
     port: 3001,
     proxy: {
-      "/auth": { target: "http://localhost:8090", changeOrigin: true },
-      "/evaluation": { target: "http://localhost:8090", changeOrigin: true },
-      "/problems": { target: "http://localhost:8090", changeOrigin: true },
-      "/portal": { target: "http://localhost:8090", changeOrigin: true },
+      "/auth": { target: "https://api.bhavik.site", changeOrigin: true, secure: true },
+      "/evaluation": { target: "https://api.bhavik.site", changeOrigin: true, secure: true },
+      "/problems": { target: "https://api.bhavik.site", changeOrigin: true, secure: true },
+      "/portal": { target: "https://api.bhavik.site", changeOrigin: true, secure: true },
     },
   },
 });

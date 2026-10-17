@@ -4,8 +4,8 @@ This document catalogs all dummy test data seeded across the **SIH26043** micros
 
 > **Quick Credentials Reference:**
 > * **Universal Development OTP:** `123456` *(Valid for all accounts across all portals)*
-> * **API Gateway URL:** `http://localhost:8080` (or `http://localhost:8090`)
-> * **Database Target:** Docker Container `sih26043-pg` (`sih` user, port `5432`)
+> * **API Gateway URL (AWS Deployed):** `https://api.bhavik.site` *(Local fallback: `http://localhost:8080` or `:8090`)*
+> * **Database Target:** AWS RDS PostgreSQL `sih-postgres.cv4ygog0qn0f.ap-south-1.rds.amazonaws.com` *(Local fallback: Docker Container `sih26043-pg`)*
 
 ---
 

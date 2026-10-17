@@ -1,8 +1,8 @@
 # Frontend Integration Map
 
 > Practical guide for a future frontend developer. Maps UI features → endpoints →
-> payloads → response fields → error states. Base URL is the gateway
-> (`http://localhost:8080` or `:8090`); paths are relative.
+> payloads → response fields → error states. Base URL is the deployed AWS API gateway
+> (`https://api.bhavik.site`, with local fallback `http://localhost:8080` or `:8090`); paths are relative.
 
 ---
 

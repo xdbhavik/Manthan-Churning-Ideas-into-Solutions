@@ -12,10 +12,11 @@ The current evaluator test console is located at `actor-ui/evaluator.html`. It c
 
 ## 1. Service and Access
 
-Browser requests should normally go through the Caddy gateway:
+Browser requests should go through the Caddy gateway:
 
-- Gateway: `http://localhost:8080`
-- Evaluation service: `http://localhost:8083`
+- Production Gateway: `https://api.bhavik.site`
+- Local Development Gateway: `http://localhost:8080` (or `http://localhost:8090`)
+- Direct Evaluation service (internal): `http://localhost:8083`
 
 Evaluation endpoints are protected by JWT roles:
 

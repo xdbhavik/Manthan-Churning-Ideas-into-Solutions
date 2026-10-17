@@ -227,20 +227,52 @@ api.bhavik.site {
 
 ---
 
-## 9. Operational Commands & Maintenance Runbook
+## 9. Frontend Portals & Client Integration (AWS Production Gateway)
 
-### 8.1 SSH Login to EC2
+Following successful TLS termination and health verification at `https://api.bhavik.site`, all frontend portals, client apps, seed scripts, and integration test runners were reconfigured to target the deployed AWS gateway:
+
+### 9.1 Frontend Applications Reconfigured
+
+| Application | Path / File | Configuration Key / Mechanism | Configured Target |
+| :--- | :--- | :--- | :--- |
+| **Submitter Portal** | `frontend/submitter-ui/src/main.js` | `state.baseUrl` / `localStorage('sih_portal_base')` | `https://api.bhavik.site` |
+| **Reviewer Portal** | `frontend/reviewer-ui/app.js` | `ApiClient.getBaseUrl()` / `localStorage('api_base_url')` | `https://api.bhavik.site` |
+| **Admin UI** | `frontend/admin-ui/js/api.js` | `getApiBase()` / `localStorage('api_base_url')` | `https://api.bhavik.site` |
+| **Evaluator UI** | `frontend/evaluator-ui/src/lib/api.ts` | `VITE_API_BASE_URL` fallback | `https://api.bhavik.site` |
+| **Evaluator UI (Vite Proxy)** | `frontend/evaluator-ui/vite.config.ts` | Dev proxy targets (`/auth`, `/evaluation`, `/problems`, `/portal`) | `https://api.bhavik.site` |
+| **Evaluator UI Env** | `frontend/evaluator-ui/.env` & `.env.example` | `VITE_API_BASE_URL` | `https://api.bhavik.site` |
+| **Innovation Portal Web** | `frontend/innovation-portal-web/src/services/apiClient.ts` | `VITE_API_BASE_URL` fallback | `https://api.bhavik.site` |
+| **Innovation Portal Web Env** | `frontend/innovation-portal-web/.env` & `.env.example` | `VITE_API_BASE_URL` | `https://api.bhavik.site` |
+| **Innovation Portal Web (Dist)**| `frontend/innovation-portal-web/dist/assets/index-*.js` | Bundled default base URL `p1` | `https://api.bhavik.site` |
+
+### 9.2 Verification Tools & Test Runners Reconfigured
+
+| Tool / Script | File Path | Mechanism |
+| :--- | :--- | :--- |
+| **Multi-Portal Verification Suite** | `backend/verify_all_portals.py` | `BASE_URL = os.environ.get('API_GATEWAY_URL', 'https://api.bhavik.site')` |
+| **Evaluators Pool Test** | `backend/test_all_evaluators.py` | `BASE_URL = os.environ.get('API_GATEWAY_URL', 'https://api.bhavik.site')` |
+| **KYC Roundtrip Test** | `backend/test_kyc_flow.py` | `BASE_URL = os.environ.get('API_GATEWAY_URL', 'https://api.bhavik.site')` |
+| **Student Submissions Test** | `backend/test_submit.py` | `BASE_URL = os.environ.get('API_GATEWAY_URL', 'https://api.bhavik.site')` |
+| **PowerShell Registration Seeder**| `backend/seed-sample-cases.ps1` | `param([string]$GatewayUrl = "https://api.bhavik.site")` |
+| **Registration Wizard App** | `backend/registration-wizard/wizard-app.js` & `index.html` | Default input & `localStorage` fallback to `https://api.bhavik.site` |
+| **SIH Test UI Console** | `backend/test-ui/index.html` | Default input & `localStorage` fallback to `https://api.bhavik.site` |
+
+---
+
+## 10. Operational Commands & Maintenance Runbook
+
+### 10.1 SSH Login to EC2
 ```powershell
 ssh -o "ProxyCommand=aws ec2-instance-connect open-tunnel --instance-id i-0a50e5f50467a5aae --remote-port 22" -i C:\Users\Bhavik\.ssh\sih-deploy-key.pem ubuntu@i-0a50e5f50467a5aae
 ```
 
-### 8.2 Starting the Gateway (after DNS is saved)
+### 10.2 Starting the Gateway (after DNS is saved)
 ```bash
 cd /home/ubuntu/app/backend
 docker compose -f docker-compose.prod.yml up -d gateway
 ```
 
-### 8.3 Checking Stack Status & Logs
+### 10.3 Checking Stack Status & Logs
 ```bash
 # View container status
 docker compose -f docker-compose.prod.yml ps
@@ -252,12 +284,12 @@ docker compose -f docker-compose.prod.yml logs -f gateway
 docker compose -f docker-compose.prod.yml logs --tail 100 -f source-service
 ```
 
-### 8.4 Restarting a Service
+### 10.4 Restarting a Service
 ```bash
 docker compose -f docker-compose.prod.yml restart source-service
 ```
 
-### 8.5 Updating or Re-deploying Code
+### 10.5 Updating or Re-deploying Code
 1. Re-package jars locally:
    ```powershell
    cd backend

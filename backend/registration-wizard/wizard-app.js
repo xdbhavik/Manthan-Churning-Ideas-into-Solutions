@@ -10,7 +10,7 @@ const $ = (id) => document.getElementById(id);
 
 /* ---------------- persistent config / token ---------------- */
 const state = {
-  baseUrl: localStorage.getItem('sih_base') || 'http://localhost:8080',
+  baseUrl: localStorage.getItem('sih_base') || 'https://api.bhavik.site',
   token: localStorage.getItem('sih_token') || '',
   refresh: localStorage.getItem('sih_refresh') || '',
   step: 0,

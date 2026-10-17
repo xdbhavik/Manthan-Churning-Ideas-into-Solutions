@@ -2,7 +2,7 @@ import axios, { AxiosError } from 'axios';
 import type { AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
 import { clearTokens, getAccessToken, getRefreshToken, setTokens } from '../lib/auth';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.bhavik.site';
 
 /** Fired when a session can no longer be refreshed (hard auth failure). */
 export const AUTH_EXPIRED_EVENT = 'auth:expired';

@@ -54,7 +54,7 @@ flowchart TD
     end
 
     subgraph Gateway["🚪 Reverse Proxy / Gateway Layer"]
-        GW["API Gateway\n:8090 / Docker Network"]
+        GW["API Gateway\nhttps://api.bhavik.site\n(:80 / :443 · Let's Encrypt TLS)"]
     end
 
     subgraph Backend["⚙️ Core Spring Boot & Engine Services"]
@@ -263,15 +263,17 @@ docker compose up -d --build submitter-ui
 
 ## 🔌 API Gateway & Proxies
 
-All frontends are pre-configured to communicate seamlessly with the backend microservices via the gateway:
+All frontends are pre-configured to communicate seamlessly with the backend microservices via the deployed AWS API Gateway at **`https://api.bhavik.site`** (or local fallback `http://localhost:8080` / `http://localhost:8090`):
 
 | Route Prefix | Target Service | Purpose |
 |:---|:---|:---|
-| `/auth/*` | Auth Gateway (`:8090`) | OTP generation, token verification, session lifecycle |
-| `/problems/*` | Problem Service (`:8090`) | Problem ingestion, catalog querying, metadata |
-| `/evaluation/*` | Evaluation Service (`:8090`) | Scoring submission, consensus routing, rubrics |
-| `/reviewer/*` | Reviewer Service (`:8090`) | Case allocations, compliance validations |
-| `/users/*` | User Service (`:8090`) | Identity profiles and credential management |
+| `/auth/*` | Auth Gateway (`https://api.bhavik.site`) | OTP generation, token verification, session lifecycle |
+| `/problems/*` | Problem Service (`https://api.bhavik.site`) | Problem ingestion, catalog querying, metadata |
+| `/evaluation/*` | Evaluation Service (`https://api.bhavik.site`) | Scoring submission, consensus routing, rubrics |
+| `/reviewer/*` | Reviewer Service (`https://api.bhavik.site`) | Case allocations, compliance validations |
+| `/users/*` | User Service (`https://api.bhavik.site`) | Identity profiles and credential management |
+| `/portal/*` | Innovation Portal (`https://api.bhavik.site`) | Student problem browsing, draft submissions |
+| `/registration/*` | Source Service (`https://api.bhavik.site`) | Submitter onboarding, KYC dossier flow |
 
 ---
 

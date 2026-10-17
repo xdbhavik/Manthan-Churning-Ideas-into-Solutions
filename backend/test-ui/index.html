@@ -76,7 +76,7 @@
 <header>
   <h1>🧪 SIH26043 Test Console</h1>
   <label>Base URL</label>
-  <input id="baseUrl" style="width:220px" placeholder="http://localhost:8090">
+  <input id="baseUrl" style="width:220px" placeholder="https://api.bhavik.site">
   <button class="btn" onclick="saveBase()">Save</button>
   <span id="roleBadge" class="badge"></span>
   <div id="tokenBar">
@@ -344,7 +344,7 @@
 /* ---------------- state ---------------- */
 const $ = id => document.getElementById(id);
 const state = {
-  baseUrl: localStorage.getItem('sih_base_url') || 'http://localhost:8080',
+  baseUrl: localStorage.getItem('sih_base_url') || 'https://api.bhavik.site',
   token: localStorage.getItem('sih_token') || '',
   refresh: localStorage.getItem('sih_refresh') || '',
   user: null,

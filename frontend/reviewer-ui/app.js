@@ -3,7 +3,7 @@
  * SIH26043 REVIEWER PORTAL — LIVE BACKEND GATEWAY INTEGRATION
  * Core Single-Page Application Client Logic
  * 
- * Target Gateway: http://localhost:8090 (Central Reverse Proxy)
+ * Target Gateway: https://api.bhavik.site (Central Reverse Proxy on AWS)
  * Backends:
  *   - source-service (port 8081 via /auth, /registration, /reviewer/registrations)
  *   - problem-service (port 8082 via /problems, /domains, /audit)
@@ -17,7 +17,7 @@
 // =============================================================================
 const ApiClient = {
   getBaseUrl() {
-    return localStorage.getItem('api_base_url') || 'http://localhost:8090';
+    return localStorage.getItem('api_base_url') || 'https://api.bhavik.site';
   },
 
   getAccessToken() {

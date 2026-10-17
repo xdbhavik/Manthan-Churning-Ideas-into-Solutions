@@ -1,6 +1,6 @@
 # PowerShell script to seed authentic sample registrations into SIH26043 backend via Gateway
 param(
-    [string]$GatewayUrl = "http://localhost:8090"
+    [string]$GatewayUrl = "https://api.bhavik.site"
 )
 
 Write-Host "=========================================================================" -ForegroundColor Cyan
