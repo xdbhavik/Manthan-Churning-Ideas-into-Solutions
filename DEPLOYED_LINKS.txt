@@ -1,94 +1,186 @@
 ================================================================================
 SIH26043 - NATIONAL INNOVATION LIFECYCLE PLATFORM (MANTHAN)
-LIVE PRODUCTION DEPLOYMENT DIRECTORY & ACCESS REFERENCE
+LIVE PRODUCTION DEPLOYMENTS & DEMO LOGIN DIRECTORY
 ================================================================================
-Target Cloud: AWS EC2 (Backend Gateway) + Amazon RDS PostgreSQL + Vercel (Frontends)
-Production Security: Let's Encrypt TLS (HTTPS) + Stateless JWT + Permissive CORS
-Universal Test OTP: 123456 (For all seeded accounts)
+Target Cloud:      AWS EC2 (Backend Gateway) + Amazon RDS PostgreSQL + Vercel
+Security:          Let's Encrypt TLS (HTTPS) + Stateless JWT + Wildcard CORS
+Universal OTP:     123456 (Hardcoded mock OTP active across all accounts)
+API Gateway:       https://api.bhavik.site
 ================================================================================
 
 --------------------------------------------------------------------------------
-1. FRONTEND PORTALS (HOSTED ON VERCEL)
+1. FRONTEND PORTALS & DEMO LOGIN CREDENTIALS
 --------------------------------------------------------------------------------
 
-[1] NATIONAL INNOVATION PORTAL
-    * URL:         https://innovation-portal-web.vercel.app
-    * Persona:     Students, University Teams, Public Innovators
-    * Key Actions: Explore 12 National Problems, Form Teams, Submit Solutions,
-                   Track Submission Status & Evaluator Scorecards.
-    * Demo Login:  Mobile: 9876543210  |  OTP: 123456
-                   (Student: Priya Sharma, IISc Bengaluru)
+[1] NATIONAL INNOVATION PORTAL (STUDENTS & CITIZEN INNOVATORS)
+    * Live URL:      https://innovation-portal-web.vercel.app
+    * Target Role:   Student Innovator / Team Leader
+    * Demo Login:
+      - Mobile:      9876543210
+      - OTP:         123456
+      - Persona:     Priya Sharma (Indian Institute of Science - IISc, Bengaluru)
+      - Email:       priya@university.ac.in
+    * Key Features & Seeded Data to Test:
+      - Dashboard: 6 tracked submissions with live statuses:
+        1. VeloSense (Edge IMU & Camera) -> Status: UNDER_REVIEW
+        2. UrjaSetu (Microgrid Ledger)    -> Status: RETURNED (Action Required)
+        3. JalDrishti (Pipeline Mesh)     -> Status: ACCEPTED (Phase 3 Funding)
+        4. SwachhBin (Dual-Stream AI)     -> Status: SUBMITTED
+        5. KrishiSheet (LoRa Cold Room)   -> Status: ACCEPTED
+        6. SwasthyaTablet (Clinical Aide) -> Status: SUBMITTED
+      - Problem Explorer: Browse 12 published national problem statements.
+      - Interactive Submission: Create new submission with GitHub repo link.
 
-[2] EVALUATOR SCORING & AUDIT SUITE
-    * URL:         https://evaluator-ui-kappa.vercel.app
-    * Persona:     Domain Experts, Statutory Jury, Technical Evaluators
-    * Key Actions: Review Assigned Problem Statements, Score Student Project
-                   Submissions using Rubrics, Enter Priority Band Recommendations.
-    * Demo Logins: (OTP: 123456 for all)
-      - Government Pool:  Mobile: 9700000001 (Joint Director, Urban Governance)
-      - Industry Pool:    Mobile: 9700000002 (Principal Architect, Tata Tech)
-      - HEI / Academic:   Mobile: 9700000003 (Dean of R&D, IIT Bombay)
-      - Citizen Pool:     Mobile: 9700000004 (Lead Civic Auditor)
-      - Community Pool:   Mobile: 9700000005 (Director, Gramin Vikas Trust)
+
+[2] EVALUATOR SCORING & AUDIT SUITE (DOMAIN EXPERTS & JURY)
+    * Live URL:      https://evaluator-ui-kappa.vercel.app
+    * Target Role:   Technical Evaluators (Strictly isolated by domain pool)
+    * Universal OTP: 123456
+    * Demo Logins by Expert Pool:
+
+      A. GOVERNMENT POOL EVALUATOR
+         - Mobile:   9700000001
+         - OTP:      123456
+         - Persona:  Joint Director, Urban Local Governance
+         - Assigned Problems (3):
+           * IoT-Enabled Pothole Telemetry (Status: ASSIGNED - open to Accept/Decline)
+           * Decentralized Solar Microgrid (Status: IN_PROGRESS - open for scoring)
+           * AI-Driven Flood Forecasting   (Status: SUBMITTED - Scored: 82/100)
+         - Assigned Student Submissions to Grade (2):
+           * VeloSense (Pothole Telemetry) -> Ready for Rubric scoring
+           * UrjaSetu (Microgrid Ledger)   -> Returned with deficiency note
+
+      B. INDUSTRY POOL EVALUATOR
+         - Mobile:   9700000002
+         - OTP:      123456
+         - Persona:  Principal Architect, Tata Advanced Technologies
+         - Assigned Problems: Pipeline Leakage Mesh, Traffic RL, Industrial Effluents.
+         - Assigned Student Submissions: JalDrishti (Acoustic Mesh) -> Scored 88/100.
+
+      C. HIGHER EDUCATION INSTITUTION (HEI) EVALUATOR
+         - Mobile:   9700000003
+         - OTP:      123456
+         - Persona:  Dean of R&D, IIT Bombay
+         - Assigned Problems: Zero-Latency Tele-Diagnosis, Soil Micro-Spectrometer.
+         - Assigned Student Submissions: SwasthyaTablet (Scored: 89/100).
+
+      D. CITIZEN OBSERVER POOL EVALUATOR
+         - Mobile:   9700000004
+         - OTP:      123456
+         - Persona:  Lead Civic Auditor (Civil Society Observer)
+         - Assigned Problems: Municipal Solid Waste AI, Rural Digital Literacy.
+         - Assigned Student Submissions: SwachhBin Dual-Stream Sorter.
+
+      E. COMMUNITY POOL EVALUATOR
+         - Mobile:   9700000005
+         - OTP:      123456
+         - Persona:  Programme Director, Gramin Vikas Trust
+         - Assigned Problems: Affordable Vegetable Cold-Storage, Hill Hydrogeology.
+         - Assigned Student Submissions: KrishiSheet LoRa Tracker.
+
 
 [3] SUBMITTER DECLARATION & PROBLEM OWNER HUB
-    * URL:         https://submitter-ui.vercel.app
-    * Persona:     Ministries, Municipalities (ULBs), Panchayats (PRIs), MSMEs, NGOs
-    * Key Actions: Problem Statement Draft Wizard, KYC Onboarding & Document Upload,
-                   Inspect Accepted Student Innovations, Assign Mentors.
-    * Demo Logins: (OTP: 123456 for all)
-      - Approved KYC (ULB):      Mobile: 9900000001 (BBMP Bengaluru)
-      - Under Review KYC (PRI):  Mobile: 9900000002 (Khadur Sahib Gram Panchayat)
-      - Action Required (NGO):   Mobile: 9900000003 (Pune Green Earth Foundation)
-      - Draft Wizard Applicant:  Mobile: 9900000004 (MSME Applicant)
-      - Fresh Onboarding User:   Mobile: 9900000005 (Step 1 Clean Slate)
+    * Live URL:      https://submitter-ui.vercel.app
+    * Target Role:   Ministries, Municipalities (ULBs), Panchayats (PRIs), MSMEs, NGOs
+    * Universal OTP: 123456
+    * Demo Logins by Lifecycle State:
 
-[4] ADMIN OPERATIONS COCKPIT
-    * URL:         https://admin-ui-ivory-alpha.vercel.app
-    * Persona:     Ministry Ops, Super Admins, System Administrators
-    * Key Actions: Problem Lifecycle Overview, Evaluation Cycles Management,
-                   Source Account Audits, System-Wide Telemetry.
-    * Demo Login:  Uses direct Admin API key or Auth Token via https://api.bhavik.site
+      A. APPROVED KYC DASHBOARD (BBMP BENGALURU - ULB/GOVT)
+         - Mobile:   9900000001
+         - OTP:      123456
+         - Persona:  Bruhat Bengaluru Mahanagara Palike (ULB)
+         - State:    KYC Approved (`canSubmit: true`).
+         - Features: Inspect 3 submitted problem statements.
+         - Tab:      Accepted Solutions (#view-my-solutions)
+                     * Displays "VeloSense" (Score: 92/100)
+                     * Interactive form to assign institutional mentor.
 
-[5] STATUTORY REVIEWER WORKBENCH
-    * URL:         https://reviewer-ui-two.vercel.app
-    * Persona:     Statutory Compliance Officers, KYC Reviewers
-    * Key Actions: Review Source Registration Dossiers, Inspect Uploaded Documents,
-                   Approve / Return Applications with Deficiency Notes.
-    * Demo Login:  Mobile: 9829858790  |  OTP: 123456
-                   (Senior Statutory KYC Verification Officer)
+      B. APPLICATION TRACKING VIEW (KHADUR SAHIB GRAM PANCHAYAT - PRI/GOVT)
+         - Mobile:   9900000002
+         - OTP:      123456
+         - Persona:  Khadur Sahib Gram Panchayat (Punjab)
+         - State:    Application Status: SUBMITTED / UNDER_REVIEW.
+         - Features: Live progress stepper and review status timeline.
+         - Tab:      Accepted Solutions: "UrjaSetu" with PEDA mentor pre-assigned.
+
+      C. ACTION REQUIRED / DEFICIENCY BANNER (PUNE GREEN EARTH - NGO)
+         - Mobile:   9900000003
+         - OTP:      123456
+         - Persona:  Pune Green Earth Foundation (NGO)
+         - State:    ACTION_REQUIRED
+         - Note:     "PFMS Bank passbook mandate requires signature of Authorized Secretary."
+         - Features: Tests document re-upload and resubmission workflow.
+
+      D. DRAFT RESUME APPLICANT (MSME APPLICANT)
+         - Mobile:   9900000004
+         - OTP:      123456
+         - State:    DRAFT - Resumes directly at Step 4 (Document Upload).
+
+      E. FRESH ONBOARDING USER
+         - Mobile:   9900000005
+         - OTP:      123456
+         - State:    Starts at Step 1 (Category & Jurisdiction Selection).
+
+
+[4] STATUTORY REVIEWER WORKBENCH (KYC VERIFICATION)
+    * Live URL:      https://reviewer-ui-two.vercel.app
+    * Target Role:   Statutory Verification Officers
+    * Demo Login:
+      - Mobile:      9829858790
+      - OTP:         123456
+      - Persona:     Senior Statutory KYC Verification Officer
+    * Key Features & Seeded Queue to Test:
+      - Live KYC verification queue with 6 dossiers across India:
+        1. Khadur Sahib Gram Panchayat (Punjab, PRI) -> UNDER_REVIEW
+        2. Pune Green Earth Foundation (Maharashtra, NGO) -> ACTION_REQUIRED
+        3. Wani Municipal Council (Maharashtra, ULB) -> SUBMITTED
+        4. Bastar Central University Research Cell (Chhattisgarh) -> SUBMITTED
+        5. Indirapuram Residents Apex Association (UP, RWA) -> UNDER_REVIEW
+        6. Mahila Utkarsha Self Help Federation (Maharashtra, SHG) -> SUBMITTED
+      - Actions: Open dossier, view PDFs/documents, approve, or return with comments.
+
+
+[5] ADMIN OPERATIONS COCKPIT
+    * Live URL:      https://admin-ui-ivory-alpha.vercel.app
+    * Target Role:   Ministry Administrators & System Ops
+    * Config:        API Gateway pre-configured to https://api.bhavik.site
+    * Features:      Global problem lifecycle overview, evaluation cycles management,
+                     source entity directory, and system health telemetry.
 
 
 --------------------------------------------------------------------------------
-2. BACKEND & API GATEWAY (HOSTED ON AWS EC2 + RDS)
+2. BACKEND & API GATEWAY INFRASTRUCTURE
 --------------------------------------------------------------------------------
 
-* Central API Gateway:      https://api.bhavik.site
-* Gateway Reverse Proxy:    Caddy v2 with Auto Let's Encrypt TLS
-* Eureka Service Registry:  https://api.bhavik.site/eureka/apps (JSON Registry)
-* Swagger / OpenAPI Docs:   https://api.bhavik.site/swagger-ui/index.html
+* Gateway URL:              https://api.bhavik.site (Let's Encrypt TLS on AWS EC2)
+* Interactive Swagger Docs: https://api.bhavik.site/swagger-ui/index.html
+* Eureka Registry REST API: https://api.bhavik.site/eureka/apps (JSON format)
 
-Core Microservice Endpoints (routed via https://api.bhavik.site):
-* Auth & Users:             https://api.bhavik.site/auth/**
-* Source Registrations:     https://api.bhavik.site/registration/**
-* Problem & Domains:        https://api.bhavik.site/problems/** , /domains/**
-* Evaluation & Cycles:      https://api.bhavik.site/evaluation/**
-* Student Innovation Portal:https://api.bhavik.site/portal/**
-* Automated CodeJudge Engine:https://api.bhavik.site/codejudge/**
+Path Routing (all routed through central HTTPS gateway):
+* Authentication & Users:   POST https://api.bhavik.site/auth/login
+                            POST https://api.bhavik.site/auth/verify-otp
+* Problem Management:       GET  https://api.bhavik.site/problems
+                            GET  https://api.bhavik.site/domains
+* Evaluation & Scoring:     GET  https://api.bhavik.site/evaluation/cycles
+                            POST https://api.bhavik.site/evaluation/rubrics/score
+* Public Innovation Portal: GET  https://api.bhavik.site/portal/problems
+                            POST https://api.bhavik.site/portal/submissions
+* CodeJudge Engine:         POST https://api.bhavik.site/codejudge/evaluate
 
 
 --------------------------------------------------------------------------------
-3. DATABASE & CLUSTER ARCHITECTURE
+3. AWS CLOUD & DATABASE TOPOLOGY
 --------------------------------------------------------------------------------
 
-* Cloud Provider:           Amazon Web Services (AWS)
-* Compute:                  EC2 Instance i-0a50e5f50467a5aae (ap-south-1 Mumbai)
+* Cloud Provider:           Amazon Web Services (AWS, ap-south-1 Mumbai)
+* EC2 Instance ID:          i-0a50e5f50467a5aae
+* Public IP / Gateway:      13.205.158.156  ->  api.bhavik.site
 * Database Engine:          Amazon RDS PostgreSQL 16
-* RDS Endpoint:             sih-postgres.cv4ygog0qn0f.ap-south-1.rds.amazonaws.com:5432
-* Logical Databases:        sih_source, sih_problem, sih_eval, sih_portal, sih_codejudge
-* Seeded Content:           12 Problem Statements, 6 Student Projects, 5 Evaluator
-                            Profiles, 6 KYC Review Dossiers, Accepted Solutions.
+* RDS Host:                 sih-postgres.cv4ygog0qn0f.ap-south-1.rds.amazonaws.com:5432
+* Microservice Databases:   sih_source, sih_problem, sih_eval, sih_portal, sih_codejudge
+* Seed Status:              Fully populated with 12 problems, 6 student submissions,
+                            5 evaluator pools, and accepted solution scorecards.
 
 ================================================================================
-Generated for SIH26043 Team Reference · Grand Finale Edition
+SIH26043 Grand Finale Edition · Everything is Live and Seeded!
 ================================================================================

@@ -43,13 +43,13 @@
 
 ### ⚡ Frontend Portals (Hosted on Vercel)
 
-| Stakeholder / Persona | Portal Name | Live Production URL | Seeded Demo Login |
-| :--- | :--- | :--- | :--- |
-| 🇮🇳 **Students & Innovators** | **National Innovation Portal** | [**innovation-portal-web.vercel.app**](https://innovation-portal-web.vercel.app) | Mobile: `9876543210` (OTP: `123456`) |
-| 🎯 **Domain Experts / Jury** | **Evaluator Scoring Suite** | [**evaluator-ui-kappa.vercel.app**](https://evaluator-ui-kappa.vercel.app) | Mobile: `9700000001` (Govt)<br>Mobile: `9700000002` (Industry)<br>Mobile: `9700000003` (HEI) |
-| 📝 **Problem Owners (ULB/PRI)** | **Submitter Declaration Hub** | [**submitter-ui.vercel.app**](https://submitter-ui.vercel.app) | Mobile: `9900000001` (Approved KYC)<br>Mobile: `9900000002` (Under Review) |
-| 🛡️ **Ministry / Operations** | **Admin Operations Cockpit** | [**admin-ui-ivory-alpha.vercel.app**](https://admin-ui-ivory-alpha.vercel.app) | Direct Admin API / Token |
-| ⚖️ **Statutory Compliance** | **Reviewer Workbench** | [**reviewer-ui-two.vercel.app**](https://reviewer-ui-two.vercel.app) | Mobile: `9829858790` (OTP: `123456`) |
+| Stakeholder / Persona | Portal Name | Live Production URL | Seeded Demo Login *(OTP: `123456`)* | What It Demonstrates |
+| :--- | :--- | :--- | :--- | :--- |
+| 🇮🇳 **Students & Innovators** | **National Innovation Portal** | [**innovation-portal-web.vercel.app**](https://innovation-portal-web.vercel.app) | Mobile: `9876543210`<br>*(Priya Sharma, IISc)* | 6 tracked projects (`ACCEPTED`, `RETURNED`, `UNDER_REVIEW`), 12 challenges, team formation. |
+| 🎯 **Domain Experts / Jury** | **Evaluator Scoring Suite** | [**evaluator-ui-kappa.vercel.app**](https://evaluator-ui-kappa.vercel.app) | • Govt: `9700000001`<br>• Industry: `9700000002`<br>• Academic: `9700000003`<br>• Citizen: `9700000004`<br>• Community: `9700000005` | Pool-isolated evaluation queues, rubric scorecards (feasibility, novelty, scalability), priority bands. |
+| 📝 **Problem Owners (ULB/PRI/NGO)** | **Submitter Declaration Hub** | [**submitter-ui.vercel.app**](https://submitter-ui.vercel.app) | • Approved (BBMP): `9900000001`<br>• In Review (PRI): `9900000002`<br>• Action Req (NGO): `9900000003` | KYC onboarding wizard, deficiency resolution, and **Accepted Student Solutions (#view-my-solutions)** with mentor assignment. |
+| 🛡️ **Ministry / Operations** | **Admin Operations Cockpit** | [**admin-ui-ivory-alpha.vercel.app**](https://admin-ui-ivory-alpha.vercel.app) | Connects to `https://api.bhavik.site` | Problem lifecycle state machine, evaluation cycle dispatch, and system audit telemetry. |
+| ⚖️ **Statutory Compliance** | **Reviewer Workbench** | [**reviewer-ui-two.vercel.app**](https://reviewer-ui-two.vercel.app) | Mobile: `9829858790`<br>*(Senior KYC Officer)* | Live KYC review queue across 6 national dossiers (PRI, ULB, NGO, SHG, HEI, RWA), approval & deficiency notes. |
 
 ### ⚙️ Backend & API Gateway (Hosted on AWS)
 
@@ -60,7 +60,7 @@
 | **Eureka Service Registry** | Microservices Discovery REST API | [**https://api.bhavik.site/eureka/apps**](https://api.bhavik.site/eureka/apps) |
 | **Database Cluster** | Amazon RDS PostgreSQL 16 Multi-Database | `sih-postgres.cv4ygog0qn0f.ap-south-1.rds.amazonaws.com` |
 
-📄 *For a clean plain-text directory ready to share with your team, see [`DEPLOYED_LINKS.txt`](./DEPLOYED_LINKS.txt).*
+📄 *For a clean plain-text directory ready to share with your team on WhatsApp/Slack, see [`DEPLOYED_LINKS.txt`](./DEPLOYED_LINKS.txt).*
 
 ---
 
